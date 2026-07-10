@@ -32,7 +32,7 @@ function resolveProviderConfig(): ProviderConfig {
       provider,
       apiKey: process.env.MOONSHOT_API_KEY ?? process.env.KIMI_API_KEY,
       baseURL: process.env.KIMI_BASE_URL ?? 'https://api.moonshot.ai/v1',
-      model: process.env.KIMI_MODEL ?? 'kimi-k2-0711-preview',
+      model: process.env.KIMI_MODEL ?? 'kimi-k2.6',
       maxTokens: 900,
     };
   }
