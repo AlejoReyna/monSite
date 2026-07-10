@@ -331,7 +331,7 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
               Fluidly animated Single Page Applications featuring high-performance image optimization & strict mobile-first UI architecture.
             </p>
 
-            <p className={styles.swipeHint}>Desliza o toca para ver cada invitación</p>
+            <p className={styles.swipeHint}>Swipe or tap to view each invitation</p>
           </motion.div>
         </div>
       </motion.div>

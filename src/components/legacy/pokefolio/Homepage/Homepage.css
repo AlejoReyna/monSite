@@ -1,0 +1,59 @@
+.pokefolio-root .typing-text {
+    text-align: center;
+}
+
+.pokefolio-root p.hover-effect {
+    transition: transform 0.3s ease-in-out;
+}
+
+.pokefolio-root p.hover-effect:hover {
+    transform: translateY(-5px);
+}
+
+/** CSS for the smallest screens **/
+@media (min-width: 360px) and (max-width: 576px) {
+    .pokefolio-root .typing-text {
+        font-size: 1.3rem;
+    }
+
+    .pokefolio-root .option {
+        font-size: 0.5rem;
+    }
+
+    .pokefolio-root #second-textbox-line {
+        font-size: 0.7rem;
+    }
+
+    .pokefolio-root #first-textbox-line {
+        font-size: 0.7rem;
+    }
+}
+
+/** CSS for small screens **/
+@media (min-width: 576px) and (max-width: 768px) {
+    .pokefolio-root .typing-text {
+        font-size: 2rem;
+    }
+}
+
+/** CSS for medium screens **/
+@media (min-width: 768px) and (max-width: 992px){
+    .pokefolio-root .typing-text {
+        font-size: 2.4rem;
+    }
+}
+
+/** CSS for large screens **/
+@media (min-width: 992px) and (max-width:1200px) {
+    .pokefolio-root .typing-text {
+        font-size: 2.8rem;
+    }
+}
+
+/** CSS for extra-large screens **/
+@media (min-width:1200px) {
+    .pokefolio-root .typing-text {
+        font-size: 2.8rem;
+    }
+
+}

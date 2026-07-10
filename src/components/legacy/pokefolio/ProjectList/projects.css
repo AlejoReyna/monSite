@@ -1,0 +1,7 @@
+.pokefolio-root .arrow {
+    max-height: 3rem;
+}
+
+.pokefolio-root .opac-black {
+    background-color: rgba(0, 0, 0, 0.5);
+}

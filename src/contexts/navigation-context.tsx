@@ -19,7 +19,11 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     const el = document.getElementById(section);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
     }
+    // Sin ancla en la página (p. ej. la secuencia de paneles del home):
+    // delega en quien escuche el evento (hero-carousel-sequence).
+    window.dispatchEvent(new CustomEvent("sequence:navigate", { detail: section }));
   };
 
   return (
