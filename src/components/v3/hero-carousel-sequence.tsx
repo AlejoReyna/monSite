@@ -8,6 +8,7 @@ import ThisCafeteriaGateway from "@/components/this-cafeteria-gateway";
 import NoNamedBotGateway from "@/components/nonamedbot-gateway";
 import WeddingServiceGateway from "@/components/wedding-service-gateway";
 import PlebesProjectGateway from "@/components/plebes-project-gateway";
+import ContactGateway from "@/components/contact-gateway";
 import "@/components/v3/v3.css";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -31,7 +32,7 @@ const PANEL_TRANSITION = {
   duration: 0.62,
   ease: [0.16, 1, 0.3, 1] as const, // expo-out: arranque firme, asentado suave
 };
-type SequencePanel = 0 | 1 | 2 | 3 | 4;
+type SequencePanel = 0 | 1 | 2 | 3 | 4 | 5;
 
 const PANELS: { id: SequencePanel; label: string }[] = [
   { id: 0, label: "Inicio" },
@@ -39,6 +40,7 @@ const PANELS: { id: SequencePanel; label: string }[] = [
   { id: 2, label: "Plebes" },
   { id: 3, label: "NoNamedBot" },
   { id: 4, label: "Wedding Service" },
+  { id: 5, label: "Get in touch" },
 ];
 const LAST_PANEL = (PANELS.length - 1) as SequencePanel;
 const PANEL_SCROLLABLE_SELECTOR = "[data-carousel-scrollable='true']";
@@ -69,6 +71,7 @@ export default function HeroCarouselSequence() {
   const nonamedbotProgress = useMotionValue(0);
   const minecraftProgress = useMotionValue(0);
   const plebesProgress = useMotionValue(0);
+  const contactProgress = useMotionValue(0);
   const revealProgress = useMotionValue(0);
   const isAnimatingRef = useRef(false);
   const isRevealedRef = useRef(false);
@@ -86,6 +89,7 @@ export default function HeroCarouselSequence() {
   const [nonamedbotPointerEvents, setNonamedbotPointerEvents] = useState<"none" | "auto">("none");
   const [minecraftPointerEvents, setMinecraftPointerEvents] = useState<"none" | "auto">("none");
   const [plebesPointerEvents, setPlebesPointerEvents] = useState<"none" | "auto">("none");
+  const [contactPointerEvents, setContactPointerEvents] = useState<"none" | "auto">("none");
   const touchScrollableRef = useRef<HTMLElement | null>(null);
 
   const setNavFontMode = useCallback(
@@ -145,6 +149,11 @@ export default function HeroCarouselSequence() {
     setPlebesPointerEvents((prev) => (prev === next ? prev : next));
   });
 
+  useMotionValueEvent(contactProgress, "change", (latest) => {
+    const next = latest >= 0.98 ? "auto" : "none";
+    setContactPointerEvents((prev) => (prev === next ? prev : next));
+  });
+
   useMotionValueEvent(revealProgress, "change", (latest) => {
     const next = latest >= 0.98 ? "auto" : "none";
     setCarouselPointerEvents((prev) => (prev === next ? prev : next));
@@ -168,18 +177,20 @@ export default function HeroCarouselSequence() {
       revealProgress.set(0);
 
       // Pila de paneles deslizantes (índice = panelId - 1).
-      // 1: NoNamedBot · 2: plebes · 3: cafetería · 4: boda
+      // 1: NoNamedBot · 2: plebes · 3: cafetería · 4: boda · 5: contacto
       const progresses = [
         nonamedbotProgress,
         plebesProgress,
         cafeteriaProgress,
         minecraftProgress,
+        contactProgress,
       ];
       const pointerSetters = [
         setNonamedbotPointerEvents,
         setPlebesPointerEvents,
         setCafeteriaPointerEvents,
         setMinecraftPointerEvents,
+        setContactPointerEvents,
       ];
 
       // Durante la transición ningún panel deslizante recibe eventos.
@@ -229,6 +240,7 @@ export default function HeroCarouselSequence() {
       nonamedbotProgress,
       minecraftProgress,
       plebesProgress,
+      contactProgress,
       revealProgress,
       setActivePanel,
       setNavFontMode,
@@ -341,6 +353,18 @@ export default function HeroCarouselSequence() {
     [stepPanel]
   );
 
+  // Navegación externa (navbar): sin anclas reales en el home, el contexto de
+  // navegación emite este evento y aquí lo mapeamos a un panel.
+  useEffect(() => {
+    const onNavigate = (event: Event) => {
+      const section = (event as CustomEvent<string>).detail;
+      if (section === "contact") goToPanel(LAST_PANEL);
+      else if (section === "home") goToPanel(0);
+    };
+    window.addEventListener("sequence:navigate", onNavigate);
+    return () => window.removeEventListener("sequence:navigate", onNavigate);
+  }, [goToPanel]);
+
   // ── Navegación por teclado (flechas, Página, Inicio/Fin, Espacio) ─────────
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -400,6 +424,7 @@ export default function HeroCarouselSequence() {
   const cafeteriaY = useTransform(cafeteriaProgress, [0, 1], ["100%", "0%"]);
   const minecraftY = useTransform(minecraftProgress, [0, 1], ["100%", "0%"]);
   const plebesY = useTransform(plebesProgress, [0, 1], ["100%", "0%"]);
+  const contactY = useTransform(contactProgress, [0, 1], ["100%", "0%"]);
   const carouselY = useTransform(revealProgress, [0, 1], ["7%", "0%"]);
 
   const carouselClip = useTransform(
@@ -414,7 +439,7 @@ export default function HeroCarouselSequence() {
       id="work"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      style={{ height: "100svh", position: "relative", zIndex: 1, touchAction: activePanel === 2 ? "pan-y" : "pan-x" }}
+      style={{ height: "100svh", position: "relative", zIndex: 1, touchAction: activePanel === 2 || activePanel === 5 ? "pan-y" : "pan-x" }}
       className="bg-[var(--gic-night-sky)]"
     >
       <div
@@ -490,6 +515,19 @@ export default function HeroCarouselSequence() {
           }}
         >
           <WeddingServiceGateway isActive={activePanel === 4} />
+        </motion.div>
+
+        <motion.div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 8,
+            y: contactY,
+            pointerEvents: contactPointerEvents,
+            willChange: "transform",
+          }}
+        >
+          <ContactGateway isActive={activePanel === 5} />
         </motion.div>
 
         {/* Projects carousel hidden — uncomment import + block to restore
