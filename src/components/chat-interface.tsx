@@ -199,20 +199,20 @@ export default function ChatInterface({
 
   const greetings = [
     {
-      en: "Hey there! I'm Alexis. I code things that live on the internet, and this GPT version of me is here to chat.",
-      es: "¡Hey! Soy Alexis. Programo cosas que viven en internet, y esta versión GPT de mí está aquí para charlar.",
+      en: "Hey there! I'm Alexis. I code things that live on the internet, and this AI version of me is here to chat.",
+      es: "¡Hey! Soy Alexis. Programo cosas que viven en internet, y esta versión AI de mí está aquí para charlar.",
     },
     {
       en: "Hi, I'm Alexis. Web developer by day, debugging wizard by night. This is my AI twin.",
       es: "Hola, soy Alexis. Desarrollador web de día, mago del debugging de noche. Este es mi gemelo AI.",
     },
     {
-      en: "Hello! Alexis here. I turn coffee into code, and this GPT knows most of my tricks.",
-      es: "¡Hola! Alexis aquí. Convierto café en código, y este GPT conoce la mayoría de mis trucos.",
+      en: "Hello! Alexis here. I turn coffee into code, and this AI knows most of my tricks.",
+      es: "¡Hola! Alexis aquí. Convierto café en código, y esta AI conoce la mayoría de mis trucos.",
     },
     {
-      en: "Hey, I'm Alexis. I make pixels dance on screens, powered by GPT magic.",
-      es: "Hey, soy Alexis. Hago que los píxeles bailen en pantallas, con magia GPT.",
+      en: "Hey, I'm Alexis. I make pixels dance on screens, powered by AI magic.",
+      es: "Hey, soy Alexis. Hago que los píxeles bailen en pantallas, con magia AI.",
     },
   ];
 
@@ -323,7 +323,7 @@ export default function ChatInterface({
             {!showChat && (
               <div className="shrink-0 font-mono text-[14px] lg:text-[16px] xl:text-[17px] leading-6">
                 <span className="text-gray-200">&gt;</span>
-                <span className="text-gray-400 ml-2">GPT-5</span>
+                <span className="text-gray-400 ml-2">alexis-ai</span>
                 <span className="text-gray-100 ml-2">
                   {displayed || text}
                   {!showNamePrompt && displayed.length < text.length && (
@@ -353,7 +353,7 @@ export default function ChatInterface({
                       <div className="mb-2">
                         <div className="text-[14px] lg:text-[16px] xl:text-[17px]">
                           <span className="text-gray-200">&gt;</span>
-                          <span className="text-gray-400 ml-2">GPT-5</span>
+                          <span className="text-gray-400 ml-2">alexis-ai</span>
                           <span className="text-gray-100 ml-2">{content}</span>
                         </div>
                         <div className="text-[14px] text-gray-500 mt-1">
@@ -391,7 +391,7 @@ export default function ChatInterface({
               <div className="bg-black/30 border-l-4 border-red-500 text-red-100 p-4 rounded font-mono text-[14px] lg:text-[16px] xl:text-[17px] animate-fadeIn shrink-0">
                 <div className="flex items-center text-[14px] mb-2">
                   <span className="text-gray-200">&gt;</span>
-                  <span className="text-gray-400 ml-2">GPT-5</span>
+                  <span className="text-gray-400 ml-2">alexis-ai</span>
                   <span className="text-red-300 ml-2">error</span>
                 </div>
                 <div className="ml-6">
