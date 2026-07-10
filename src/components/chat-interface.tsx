@@ -321,7 +321,7 @@ export default function ChatInterface({
           <div className="flex-1 min-h-0 flex flex-col gap-4 mb-4 overflow-y-auto">
             {/* Portada */}
             {!showChat && (
-              <div className="shrink-0 font-mono text-[15px] lg:text-[18px] xl:text-[19px] leading-6">
+              <div className="shrink-0 font-mono text-[14px] lg:text-[16px] xl:text-[17px] leading-6">
                 <span className="text-gray-200">&gt;</span>
                 <span className="text-gray-400 ml-2">GPT-5</span>
                 <span className="text-gray-100 ml-2">
@@ -347,11 +347,11 @@ export default function ChatInterface({
                 const key = (m.id ?? String(+m.timestamp)) as string;
                 const content = isUser ? stripHintFromUserMessage(m.content) : m.content ?? "";
                 return (
-                  <div key={key} className="font-mono text-[15px] lg:text-[18px] xl:text-[19px] leading-6 animate-fadeIn">
+                  <div key={key} className="font-mono text-[14px] lg:text-[16px] xl:text-[17px] leading-6 animate-fadeIn">
                     {isUser ? (
                       // Usuario - estilo comando de terminal con wrap correcto
                       <div className="mb-2">
-                        <div className="text-[15px] lg:text-[18px] xl:text-[19px]">
+                        <div className="text-[14px] lg:text-[16px] xl:text-[17px]">
                           <span className="text-gray-200">&gt;</span>
                           <span className="text-gray-400 ml-2">GPT-5</span>
                           <span className="text-gray-100 ml-2">{content}</span>
@@ -363,7 +363,7 @@ export default function ChatInterface({
                     ) : (
                       // Respuesta del sistema
                       <div className="mb-2">
-                        <div className="text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 text-[15px] lg:text-[18px] xl:text-[19px] leading-6">
+                        <div className="text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 text-[14px] lg:text-[16px] xl:text-[17px] leading-6">
                           {content}
                         </div>
                         <div className="text-[14px] text-gray-500 mt-1">
@@ -375,7 +375,7 @@ export default function ChatInterface({
                 );
               })}
               {isLoading && (
-                <div className="font-mono text-[15px] lg:text-[18px] xl:text-[19px] animate-fadeIn">
+                <div className="font-mono text-[14px] lg:text-[16px] xl:text-[17px] animate-fadeIn">
                   <div className="text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 flex items-center gap-3">
                     <LoadingSpinner />
                     <span>Procesando respuesta...</span>
@@ -388,8 +388,8 @@ export default function ChatInterface({
 
             {/* Error */}
             {error && (
-              <div className="bg-black/30 border-l-4 border-red-500 text-red-100 p-4 rounded font-mono text-[15px] lg:text-[18px] xl:text-[19px] animate-fadeIn shrink-0">
-                <div className="flex items-center text-[15px] mb-2">
+              <div className="bg-black/30 border-l-4 border-red-500 text-red-100 p-4 rounded font-mono text-[14px] lg:text-[16px] xl:text-[17px] animate-fadeIn shrink-0">
+                <div className="flex items-center text-[14px] mb-2">
                   <span className="text-gray-200">&gt;</span>
                   <span className="text-gray-400 ml-2">GPT-5</span>
                   <span className="text-red-300 ml-2">error</span>
@@ -429,7 +429,7 @@ export default function ChatInterface({
 
           {/* Input - siempre al final */}
           <div className="border-t border-gray-500/30 pt-3 shrink-0">
-            <div className="flex items-center font-mono text-[15px] lg:text-[18px] xl:text-[19px]">
+            <div className="flex items-center font-mono text-[14px] lg:text-[16px] xl:text-[17px]">
               <span className="text-gray-200 ml-2">&gt;</span>
 
               <input
@@ -443,7 +443,7 @@ export default function ChatInterface({
                   }
                 }}
                 placeholder={isEs ? "Pregúntame algo..." : "Ask me something..."}
-                className="flex-1 bg-transparent text-gray-100 placeholder-gray-400 font-mono text-[15px] lg:text-[18px] xl:text-[19px] focus:outline-none disabled:opacity-50 caret-gray-300 ml-2"
+                className="flex-1 bg-transparent text-gray-100 placeholder-gray-400 font-mono text-[14px] lg:text-[16px] xl:text-[17px] focus:outline-none disabled:opacity-50 caret-gray-300 ml-2"
                 disabled={isLoading}
                 maxLength={500}
               />

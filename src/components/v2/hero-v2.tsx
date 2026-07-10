@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
 import ChatInterface from "@/components/chat-interface";
 
 /* ═══════════════════════════════════════════
@@ -48,18 +48,31 @@ export default function HeroV2({
 }: HeroV2Props) {
   const heroRef = useRef<HTMLElement>(null);
   const [devBorder, setDevBorder] = useState(false);
-  const [msgIndex, setMsgIndex] = useState(0);
-  const [msgVisible, setMsgVisible] = useState(true);
+
+  // Remonta la terminal al cruzar el breakpoint lg: el offset de drag de
+  // framer-motion vive como transform inline y sobrevive al cambio de CSS
+  // (bottom/center móvil ↔ top/right desktop), dejando el panel descuadrado.
+  const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
-    const t = setInterval(() => {
-      setMsgVisible(v => {
-        if (v) return false; // visible → start standby
-        setMsgIndex(i => (i + 1) % COMIC_MESSAGES.length); // advance on hidden → visible
-        return true;
-      });
-    }, 2000);
-    return () => clearInterval(t);
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
   }, []);
+  // Comic speech-bubble rotation — disabled for now, kept in case it comes back.
+  // const [msgIndex, setMsgIndex] = useState(0);
+  // const [msgVisible, setMsgVisible] = useState(true);
+  // useEffect(() => {
+  //   const t = setInterval(() => {
+  //     setMsgVisible(v => {
+  //       if (v) return false; // visible → start standby
+  //       setMsgIndex(i => (i + 1) % COMIC_MESSAGES.length); // advance on hidden → visible
+  //       return true;
+  //     });
+  //   }, 2000);
+  //   return () => clearInterval(t);
+  // }, []);
 
   /* parallax / fade */
   const { scrollYProgress } = useScroll({
@@ -134,25 +147,14 @@ export default function HeroV2({
           margin: "0 auto",
         }}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(380px,min(640px,52vw))] gap-10 lg:gap-12 items-start lg:items-stretch w-full flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(380px,min(640px,52vw))_1fr] gap-10 lg:gap-12 items-start lg:items-stretch w-full flex-1">
 
-          {/* ── Left column: layout placeholder ── */}
-          <div className={`hidden lg:block relative w-full h-full min-h-[min(70vh,520px)] lg:min-h-[min(88vh,780px)] ${devBorder ? "border-2 border-rose-400" : ""}`}>
-            {/* ── Dev: horizontal line at 45% ── */}
-            {devBorder && (
-              <div
-                className="absolute inset-x-0 pointer-events-none"
-                style={{ top: "38%", height: "1px", background: "rgba(255,0,0,0.6)" }}
-              />
-            )}
-          </div>
-
-          {/* ── Right column: GIF full height ── */}
+          {/* ── Left column: GIF full height ── */}
           <motion.div
             initial={{ opacity: embed ? 1 : 0, y: embed ? 0 : 16 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.75, delay: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
-            className={`relative lg:ml-[15%] w-full h-full min-h-[50vh] lg:min-h-[min(83.6vh,665px)] pt-0 lg:pt-16 mt-[-3vh] lg:mt-[60px] overflow-hidden pointer-events-none origin-top rounded-lg ${devBorder ? "border-2 border-rose-400" : ""}`}
+            className={`relative lg:mr-[15%] w-full h-full min-h-[50vh] lg:min-h-[min(83.6vh,665px)] pt-0 lg:pt-16 mt-[-3vh] lg:mt-[60px] overflow-hidden pointer-events-none origin-top rounded-lg ${devBorder ? "border-2 border-rose-400" : ""}`}
             style={{ opacity: gifOpacity, scale: gifScale }}
             aria-hidden
           >
@@ -180,7 +182,7 @@ export default function HeroV2({
               />
             )}
 
-            {/* ── Comic speech bubbles ── */}
+            {/* ── Comic speech bubbles — disabled for now, kept in case it comes back ──
             <AnimatePresence mode="wait">
               {msgVisible && (
                 <motion.svg
@@ -207,7 +209,6 @@ export default function HeroV2({
               )}
             </AnimatePresence>
 
-            {/* Bubble — cycles with 2s visible / 2s standby */}
             <div className="absolute pointer-events-none" style={{ top: "8.5%", left: "62.5%", zIndex: 10 }}>
               <AnimatePresence mode="wait">
                 {msgVisible && (
@@ -231,60 +232,45 @@ export default function HeroV2({
                 )}
               </AnimatePresence>
             </div>
+            ── */}
 
           </motion.div>
-        </div>
-      </motion.div>
 
-
-      {/* ── Draggable terminal ── */}
-      <style>{`.comic-terminal, .comic-terminal * { font-family: var(--gic-font-comic) !important; }`}</style>
-      <motion.div
-        drag
-        dragMomentum={false}
-        dragConstraints={heroRef}
-        dragElastic={0}
-        className="absolute z-30 cursor-grab active:cursor-grabbing comic-terminal bottom-0 lg:bottom-auto lg:top-[22%] left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-[8%] w-[96vw] lg:w-[min(546px,44.1vw)]"
-        style={{
-          opacity: contentOpacity,
-          fontFamily: "var(--gic-font-comic)",
-        }}
-      >
-        <div className="w-full h-[min(425.25px,40.5vh)] lg:h-[min(472.5px,52.5vh)]">
-          <ChatInterface variant="panel" className="!w-full !h-full max-w-none" />
+          {/* ── Right column: layout placeholder (terminal floats here) ── */}
+          <div className={`hidden lg:block relative w-full h-full min-h-[min(70vh,520px)] lg:min-h-[min(88vh,780px)] ${devBorder ? "border-2 border-rose-400" : ""}`}>
+            {/* ── Dev: horizontal line at 45% ── */}
+            {devBorder && (
+              <div
+                className="absolute inset-x-0 pointer-events-none"
+                style={{ top: "38%", height: "1px", background: "rgba(255,0,0,0.6)" }}
+              />
+            )}
+          </div>
         </div>
+
+        {/* ── Scroll hint — a scribbled comic aside beside the art ── */}
         <motion.div
-          className="pointer-events-none select-none absolute lg:relative -top-[19vh] left-[2vw] lg:top-auto lg:left-auto w-[120px] lg:w-auto"
+          className="pointer-events-none select-none absolute z-20 flex flex-col items-end text-right right-3 top-[30%] w-[110px] md:right-6 lg:right-auto lg:left-2 lg:top-1/2 lg:w-[130px] lg:items-start lg:text-left"
+          style={{ rotate: -4, color: "rgba(255,255,255,0.55)", gap: 4 }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.75, ease: [0.22, 1, 0.36, 1] as const }}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 8,
-            marginTop: "clamp(0.65rem, 1.5vh, 1rem)",
-            color: "rgba(255,255,255,0.78)",
-            textAlign: "center",
-          }}
         >
           <span
             style={{
-              minHeight: "1.25em",
-              fontSize: "clamp(0.68rem, 0.9vw, 0.84rem)",
-              letterSpacing: "0.18em",
-              lineHeight: 1.2,
-              textTransform: "uppercase",
-              textShadow: "0 2px 10px rgba(0,0,0,0.45)",
+              fontFamily: "var(--gic-font-comic)",
+              fontSize: "clamp(0.74rem, 1.1vw, 0.86rem)",
+              lineHeight: 1.3,
+              textShadow: "0 1px 6px rgba(0,0,0,0.5)",
             }}
           >
-            {SCROLL_PROMPT}
+            {SCROLL_PROMPT.toLowerCase()}
           </span>
           <svg
             viewBox="0 0 54 78"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="block opacity-90 w-[43px] h-[62px] lg:w-[54px] lg:h-[78px]"
+            className="block w-[16px] h-[23px] mr-3 lg:mr-0 lg:ml-3"
           >
             <path
               d="M17 4 C17 36, 38 38, 38 68"
@@ -301,6 +287,26 @@ export default function HeroV2({
             />
           </svg>
         </motion.div>
+      </motion.div>
+
+
+      {/* ── Draggable terminal ── */}
+      <style>{`.comic-terminal, .comic-terminal * { font-family: var(--font-space-mono, ui-monospace, monospace) !important; }`}</style>
+      <motion.div
+        key={isDesktop ? "terminal-lg" : "terminal-sm"}
+        drag
+        dragMomentum={false}
+        dragConstraints={heroRef}
+        dragElastic={0}
+        className="absolute z-30 cursor-grab active:cursor-grabbing comic-terminal bottom-0 lg:bottom-auto lg:top-[22%] left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto lg:right-[8%] w-[96vw] lg:w-[min(546px,44.1vw)]"
+        style={{
+          opacity: contentOpacity,
+          fontFamily: "var(--font-space-mono, ui-monospace, monospace)",
+        }}
+      >
+        <div className="w-full h-[min(425.25px,40.5vh)] lg:h-[min(472.5px,52.5vh)]">
+          <ChatInterface variant="panel" className="!w-full !h-full max-w-none" />
+        </div>
       </motion.div>
 
       {/* ── DEV: border toggle ── */}
