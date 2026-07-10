@@ -14,8 +14,8 @@ const techStack = [
   { label: "Blazor", logo: simpleIcon("blazor") },
   { label: "PostgreSQL", logo: simpleIcon("postgresql") },
   {
-    label: "AWS",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
+    label: "Azure",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg",
     tint: true,
   },
   { label: "Ethereum", logo: simpleIcon("ethereum") },
