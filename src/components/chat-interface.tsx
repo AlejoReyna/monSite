@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import type React from "react";
+import { Info } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
 import { useChat } from "@/hooks/useChat";
 
@@ -100,17 +101,6 @@ export default function ChatInterface({
   // Removed unused pendingUserText state
 
   const rootRef = useRef<HTMLDivElement>(null);
-  const [chatHeightPx, setChatHeightPx] = useState<number | undefined>();
-  useEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const h = entries[0].contentRect.height || el.clientHeight;
-      setChatHeightPx(Math.max(300, Math.floor(h * 0.75)));
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   /* ========= Load persisted ========= */
   useEffect(() => {
@@ -195,6 +185,7 @@ export default function ChatInterface({
   const [typewriterComplete, setTypewriterComplete] = useState(false);
   const [visibleButtons, setVisibleButtons] = useState(0);
   const [showInput, setShowInput] = useState(false);
+  const [showInfoTip, setShowInfoTip] = useState(false);
   const [lastLoginLine, setLastLoginLine] = useState("Last login: -- on ttys009");
 
   const greetings = [
@@ -314,6 +305,27 @@ export default function ChatInterface({
               <div className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600" />
               <div className="w-3 h-3 rounded-full bg-green-500 border border-green-600" />
             </div>
+            <div className="relative ml-auto">
+              <button
+                type="button"
+                aria-label={isEs ? "Información del chat" : "Chat info"}
+                className="flex items-center text-gray-400 hover:text-gray-200 transition-colors cursor-pointer"
+                onClick={() => setShowInfoTip((v) => !v)}
+                onMouseEnter={() => setShowInfoTip(true)}
+                onMouseLeave={() => setShowInfoTip(false)}
+              >
+                <Info size={16} strokeWidth={2.2} />
+              </button>
+              {showInfoTip && (
+                <div
+                  role="tooltip"
+                  className="absolute right-0 top-full mt-2 w-56 rounded-md bg-black/90 border border-gray-500/40 px-3 py-2 text-[12px] leading-5 text-gray-200 font-mono shadow-lg z-50 animate-fadeIn"
+                >
+                  This project uses Kimi 2.6, and answers take about 6 seconds
+                  <span className="absolute -top-1 right-1.5 h-2 w-2 rotate-45 bg-black/90 border-l border-t border-gray-500/40" />
+                </div>
+              )}
+            </div>
           </div>
 
         {/* Contenido — min-h-0 + scroll interno para que el texto de portada/comandos no quede cortado */}
@@ -336,11 +348,8 @@ export default function ChatInterface({
             {/* Chat messages */}
             {(sorted.length > 0 || showChat) && (
               <div
-                className="space-y-4 overflow-y-auto shrink-0"
-                style={{
-                  height: chatHeightPx ? `${chatHeightPx - 120}px` : "400px",
-                  maxHeight: chatHeightPx ? `${chatHeightPx - 120}px` : "400px",
-                }}
+                className="space-y-4 overflow-y-auto flex-1 min-h-0"
+                data-carousel-scrollable="true"
               >
                 {sorted.map((m) => {
                 const isUser = m.role === "user";
