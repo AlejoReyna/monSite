@@ -1,0 +1,38 @@
+@font-face {
+  font-family: 'PokemonGBA';
+  src: url('/legacy/fonts/PokemonGBA.ttf') format('truetype');
+}
+
+.pokefolio-root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+
+  min-height: 100svh;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+.pokefolio-root * {
+  font-family: 'PokemonGBA', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  .pokefolio-root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+.pokefolio-root .background {
+  background-image: url("/legacy/background.webp");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}

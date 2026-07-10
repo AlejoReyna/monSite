@@ -1,0 +1,95 @@
+
+
+/** Back to the main (current) portfolio.
+    La barra es un grid de 3 columnas (botón · título · hueco) para que el
+    título quede centrado de verdad sin solaparse nunca con el botón. **/
+.pokefolio-root .nav-grid {
+    align-items: center;
+    column-gap: 0.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    padding-inline: 0.75rem;
+}
+
+.pokefolio-root .nav-grid .nav-text {
+    text-align: center;
+}
+
+.pokefolio-root .nav-back {
+    color: inherit;
+    justify-self: start;
+    text-decoration: none;
+    transition: transform 0.3s ease-in-out;
+    white-space: nowrap;
+}
+
+.pokefolio-root .nav-back:hover {
+    transform: translateX(-3px);
+}
+
+/** CSS for the smallest screens **/
+@media (min-width: 360px) {
+    .pokefolio-root .nav-text {
+        font-size: 0.6rem;
+    }
+
+    .pokefolio-root .nav-back {
+        font-size: 0.6rem;
+    }
+
+    /* En pantallas chicas solo cabe la flecha junto al título centrado */
+    .pokefolio-root .nav-back-label {
+        display: none;
+    }
+}
+
+/** CSS for small screens **/
+@media (min-width: 576px) {
+    .pokefolio-root .nav-text  {
+        font-size: 0.7rem;
+    }
+}
+
+/** CSS for medium screens **/
+@media (min-width: 768px) {
+    .pokefolio-root .nav-text {
+        font-size: 0.9rem;
+    }
+}
+
+/** CSS for large screens **/
+@media (min-width: 992px) {
+    .pokefolio-root .nav-text {
+    font-size: 1.1rem;
+    }
+}
+
+/** CSS for extra-large screens **/
+@media (min-width:1200px) {
+    .pokefolio-root .nav-text {
+        font-size: 1.3rem;
+    }
+}
+
+/** Back-to-main sizes mirror .nav-text at each breakpoint **/
+@media (min-width: 576px) {
+    .pokefolio-root .nav-back {
+        font-size: 0.7rem;
+    }
+
+    .pokefolio-root .nav-back-label {
+        display: inline;
+    }
+}
+
+@media (min-width: 768px) {
+    .pokefolio-root .nav-back {
+        font-size: 0.9rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .pokefolio-root .nav-back {
+        font-size: 1.1rem;
+    }
+}
