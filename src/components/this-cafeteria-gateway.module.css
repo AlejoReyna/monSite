@@ -115,6 +115,22 @@
   width: auto;
 }
 
+.deployNetworkText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.deployChain {
+  color: var(--cafeteria-muted);
+  font-family: "Inter", var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(0.68rem, 1.6vw, 0.92rem);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-shadow: 0 0.08rem 0.6rem rgba(0, 0, 0, 0.6);
+}
+
 .deployName {
   color: var(--cafeteria-ink);
   font-family: "Inter", var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;

@@ -315,49 +315,69 @@
   }
 
   .inner {
-    gap: clamp(1rem, 4vw, 1.8rem);
+    align-items: center;
+    gap: clamp(1rem, 4vw, 1.8rem) clamp(0.9rem, 4vw, 1.5rem);
     grid-template-areas:
-      "copy"
-      "media"
-      "details"
-      "grid"
-      "tech";
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto auto;
+      "copy copy"
+      "media details"
+      "grid grid"
+      "tech tech";
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    grid-template-rows: auto auto auto auto;
     max-height: none;
     padding-top: clamp(4rem, 10svh, 5.5rem);
   }
 
   .deployBadge {
-    align-items: center;
+    align-items: flex-start;
     display: flex;
-    flex-direction: row;
-    gap: 0.4rem;
+    flex-direction: column;
+    gap: 0.22rem;
     margin-top: clamp(2rem, 6vh, 3.5rem);
-    max-width: min(13rem, 52vw);
+    max-width: none;
+    padding: 0.45rem 0.9rem 0.55rem;
+  }
+
+  .deployLabel {
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+    white-space: nowrap;
   }
 
   .mobileTitle {
-    display: grid;
+    align-items: baseline;
+    display: flex;
+    flex-wrap: nowrap;
     font-family: "Munro Narrow", var(--font-space-mono), ui-monospace, monospace;
-    font-size: clamp(2rem, 7.8vw, 3rem);
+    font-size: clamp(0.75rem, 4.1vw, 1.3rem);
     font-weight: 400;
+    gap: 0.22em;
+    justify-content: flex-end;
+    left: clamp(0.85rem, 3.4vw, 3rem);
     letter-spacing: 0;
     line-height: 0.88;
     margin: 0;
     max-width: none;
     pointer-events: none;
     position: absolute;
-    right: clamp(1.5rem, 6vw, 5rem);
-    text-align: left;
+    right: clamp(0.85rem, 3.4vw, 3rem);
+    text-align: right;
     text-shadow: 0 8px 28px rgba(34, 7, 60, 0.5);
     top: clamp(5.1rem, 9svh, 6.4rem);
+    white-space: nowrap;
     z-index: 3;
   }
 
   .mobileTitle span {
-    display: block;
+    align-items: baseline;
+    display: inline-flex;
     white-space: nowrap;
+  }
+
+  .mobileTitle .logoWord {
+    height: 0.5em;
+    margin-inline: 0.02em;
+    max-width: 1.7em;
   }
 
   .copy {
@@ -368,9 +388,10 @@
   }
 
   .details {
-    justify-items: center;
+    align-content: center;
+    justify-items: start;
     padding-right: 0;
-    text-align: center;
+    text-align: left;
   }
 
   .title {
@@ -380,7 +401,7 @@
   }
 
   .lead {
-    max-width: 35rem;
+    max-width: none;
   }
 
   .techRow {
@@ -390,13 +411,15 @@
   }
 
   .media {
+    justify-items: center;
     min-height: auto;
     padding-left: 0;
   }
 
   .media img {
-    max-height: min(40svh, 24rem);
-    max-width: min(78vw, 22rem);
+    max-height: min(34svh, 18rem);
+    max-width: 100%;
+    width: 100%;
   }
 
   .contributionGrid {
@@ -409,12 +432,12 @@
     padding-bottom: 1.15rem;
   }
 
-  .title {
-    font-size: clamp(2.65rem, 17vw, 4.35rem);
+  .inner {
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
   }
 
-  .deployBadge {
-    max-width: min(8rem, 36vw);
+  .title {
+    font-size: clamp(2.65rem, 17vw, 4.35rem);
   }
 
   .deployName {
@@ -427,8 +450,7 @@
   }
 
   .mobileTitle {
-    font-size: clamp(1.7rem, 7.4vw, 2.25rem);
-    right: 1.25rem;
+    font-size: clamp(0.68rem, 4.3vw, 1rem);
     top: clamp(4.9rem, 8.6svh, 6.1rem);
   }
 
@@ -443,8 +465,8 @@
   }
 
   .media img {
-    max-height: 34svh;
-    max-width: min(80vw, 20rem);
+    max-height: 28svh;
+    max-width: 100%;
   }
 
   .contributionGrid {

@@ -80,7 +80,7 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
         <motion.span className={styles.deployLabel} variants={item}>
           Deployed on
         </motion.span>
-        <motion.div className={styles.deployNetwork} variants={item} aria-label="Sepolia">
+        <motion.div className={styles.deployNetwork} variants={item} aria-label="Ethereum Sepolia">
           <img
             className={styles.deployLogo}
             src="/sepolia_eth.png"
@@ -88,7 +88,10 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
             aria-hidden="true"
             loading="lazy"
           />
-          <span className={styles.deployName}>Sepolia</span>
+          <span className={styles.deployNetworkText}>
+            <span className={styles.deployChain}>Ethereum</span>
+            <span className={styles.deployName}>Sepolia</span>
+          </span>
         </motion.div>
       </motion.div>
 

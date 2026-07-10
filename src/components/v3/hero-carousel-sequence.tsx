@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type TouchEvent, type WheelEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type TouchEvent } from "react";
 import { animate, motion, useMotionValue, useMotionValueEvent, useTransform } from "framer-motion";
 import HeroV2 from "@/components/v2/hero-v2";
 // import ProjectsCarousel from "@/components/v3/projects-carousel";
@@ -35,9 +35,9 @@ type SequencePanel = 0 | 1 | 2 | 3 | 4;
 
 const PANELS: { id: SequencePanel; label: string }[] = [
   { id: 0, label: "Inicio" },
-  { id: 1, label: "NoNamedBot" },
+  { id: 1, label: "This Cafetería" },
   { id: 2, label: "Plebes" },
-  { id: 3, label: "This Cafetería" },
+  { id: 3, label: "NoNamedBot" },
   { id: 4, label: "Wedding Service" },
 ];
 const LAST_PANEL = (PANELS.length - 1) as SequencePanel;
@@ -74,7 +74,6 @@ export default function HeroCarouselSequence() {
   const isRevealedRef = useRef(false);
   const activePanelRef = useRef<SequencePanel>(0);
   const [activePanel, setActivePanelState] = useState<SequencePanel>(0);
-  const [hasInteracted, setHasInteracted] = useState(false);
   const touchStartYRef = useRef<number | null>(null);
 
   // ── Control de gesto de rueda (anti doble-salto por inercia) ──────────────
@@ -153,7 +152,7 @@ export default function HeroCarouselSequence() {
       const currentPanel = activePanelRef.current;
       isAnimatingRef.current = true;
       setNavFontMode(
-        nextPanel === 3 ? "cafeteria" : nextPanel === 4 ? "wedding" : "default"
+        nextPanel === 1 ? "cafeteria" : nextPanel === 4 ? "wedding" : "default"
       );
       setActivePanel(nextPanel);
       isRevealedRef.current = false;
@@ -230,7 +229,6 @@ export default function HeroCarouselSequence() {
   // Salto a un panel concreto (rueda, teclado, swipe o clic en los puntos).
   const goToPanel = useCallback(
     (next: SequencePanel) => {
-      setHasInteracted((prev) => (prev ? prev : true));
       animateToPanel(next);
     },
     [animateToPanel]
@@ -260,9 +258,9 @@ export default function HeroCarouselSequence() {
   }, []);
 
   const handleWheel = useCallback(
-    (event: WheelEvent<HTMLDivElement>) => {
+    (event: globalThis.WheelEvent) => {
       const interactiveTarget = (event.target as HTMLElement | null)?.closest(
-        "input, textarea, select, button, a"
+        "input, textarea, select"
       );
       if (interactiveTarget) return;
 
@@ -271,6 +269,11 @@ export default function HeroCarouselSequence() {
         wheelAccumRef.current = 0;
         return;
       }
+
+      // Sin esto, el navegador desplaza la página de verdad en paralelo a
+      // nuestra animación por transform: doble movimiento, sensación de
+      // lentitud y un hueco del fondo (blanco) asomando en el borde superior.
+      event.preventDefault();
 
       // Bloqueado (gesto en curso, animando o enfriando): tragamos la inercia y
       // mantenemos vivo el temporizador hasta que la rueda quede en silencio.
@@ -293,6 +296,15 @@ export default function HeroCarouselSequence() {
     },
     [scheduleUnlock, stepPanel]
   );
+
+  // Listener nativo y no-pasivo: solo así preventDefault() realmente bloquea
+  // el scroll del documento (un onWheel de React es pasivo por defecto).
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    node.addEventListener("wheel", handleWheel, { passive: false });
+    return () => node.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
 
   const handleTouchStart = useCallback((event: TouchEvent<HTMLDivElement>) => {
     touchStartYRef.current = event.touches[0]?.clientY ?? null;
@@ -391,7 +403,6 @@ export default function HeroCarouselSequence() {
     <div
       ref={containerRef}
       id="work"
-      onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       style={{ height: "100svh", position: "relative", zIndex: 1, touchAction: activePanel === 2 ? "pan-y" : "pan-x" }}
@@ -430,7 +441,7 @@ export default function HeroCarouselSequence() {
             willChange: "transform",
           }}
         >
-          <NoNamedBotGateway isActive={activePanel === 1} />
+          <ThisCafeteriaGateway isActive={activePanel === 1} />
         </motion.div>
 
         <motion.div
@@ -456,7 +467,7 @@ export default function HeroCarouselSequence() {
             willChange: "transform",
           }}
         >
-          <ThisCafeteriaGateway isActive={activePanel === 3} />
+          <NoNamedBotGateway isActive={activePanel === 3} />
         </motion.div>
 
         <motion.div
@@ -491,41 +502,6 @@ export default function HeroCarouselSequence() {
           </div>
         </motion.div>
         */}
-      </div>
-
-      {/* ── Indicador de progreso / navegación por secciones ──────────────── */}
-      <nav className="hcs-progress" aria-label="Secciones del portafolio">
-        <ul className="hcs-progress__list">
-          {PANELS.map((panel) => {
-            const isCurrent = panel.id === activePanel;
-            return (
-              <li key={panel.id} className="hcs-progress__item">
-                <button
-                  type="button"
-                  className={`hcs-progress__dot${isCurrent ? " is-active" : ""}`}
-                  aria-label={panel.label}
-                  aria-current={isCurrent ? "true" : undefined}
-                  onClick={() => goToPanel(panel.id)}
-                >
-                  <span className="hcs-progress__label">{panel.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/* ── Pista "scroll para explorar" (se desvanece tras interactuar) ──── */}
-      <div
-        className={`hcs-scroll-cue${
-          hasInteracted || activePanel !== 0 ? " is-hidden" : ""
-        }`}
-        aria-hidden="true"
-      >
-        <span className="hcs-scroll-cue__text">Desliza para explorar</span>
-        <span className="hcs-scroll-cue__mouse">
-          <span className="hcs-scroll-cue__wheel" />
-        </span>
       </div>
     </div>
   );

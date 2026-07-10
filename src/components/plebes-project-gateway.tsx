@@ -132,17 +132,7 @@ export default function PlebesProjectGateway({ isActive = false }: { isActive?: 
         initial="hidden"
         animate={isActive ? "show" : "hidden"}
       >
-        <span>
-          {isEs ? (
-            <>
-              Desarrollador<br />del
-            </>
-          ) : (
-            <>
-              Developer<br />for the
-            </>
-          )}
-        </span>
+        <span>{isEs ? "Desarrollador del" : "Developer for the"}</span>
         <span>
           <img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" />
           {isEs ? " Proyecto" : " Project"}
