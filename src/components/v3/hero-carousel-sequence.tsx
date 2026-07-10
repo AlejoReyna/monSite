@@ -45,6 +45,40 @@ const PANELS: { id: SequencePanel; label: string }[] = [
 const LAST_PANEL = (PANELS.length - 1) as SequencePanel;
 const PANEL_SCROLLABLE_SELECTOR = "[data-carousel-scrollable='true']";
 
+// Color de la barra superior del navegador por panel. Se aplica por dos vías
+// porque Safari cambió de mecanismo: hasta Safari 18 se lee el
+// <meta name="theme-color"> (el primero válido gana, según la doc de WebKit);
+// Safari 26 ignora el meta y muestrea el background-color CSS del body.
+const PANEL_THEME_COLORS: Record<SequencePanel, string> = {
+  0: "#2f1e2f", // Hero
+  1: "#2f1e2f", // Artisanal Brew (This Cafetería)
+  2: "hsl(319, 43%, 28%)", // Plebes
+  3: "#000000", // NoNamedBot
+  4: "#3f3a35", // Wedding invitations
+  5: "#222634", // Get in touch
+};
+
+// Valores del layout raíz a restaurar cuando la secuencia se desmonta.
+const DEFAULT_THEME_COLOR = "#f9faf7";
+const DEFAULT_BODY_BG = "var(--gic-off-white)";
+
+const applyThemeColor = (color: string) => {
+  const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+  if (metas.length === 0) {
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = color;
+    document.head.appendChild(meta);
+  } else {
+    metas.forEach((meta) => {
+      // Sin media queries: el color del panel manda en claro y oscuro.
+      meta.removeAttribute("media");
+      meta.content = color;
+    });
+  }
+  document.body.style.backgroundColor = color;
+};
+
 const clampPanel = (value: number): SequencePanel =>
   Math.max(0, Math.min(LAST_PANEL, value)) as SequencePanel;
 
@@ -107,6 +141,20 @@ export default function HeroCarouselSequence() {
     document.documentElement.classList.add("is-sequence-locked");
     return () => {
       document.documentElement.classList.remove("is-sequence-locked");
+    };
+  }, []);
+
+  // La barra del navegador acompaña al panel visible (en ambos sentidos de
+  // navegación). Se dispara al INICIO de la transición para que el tinte
+  // cambie junto con el deslizamiento del panel.
+  useEffect(() => {
+    applyThemeColor(PANEL_THEME_COLORS[activePanel]);
+  }, [activePanel]);
+
+  useEffect(() => {
+    return () => {
+      applyThemeColor(DEFAULT_THEME_COLOR);
+      document.body.style.backgroundColor = DEFAULT_BODY_BG;
     };
   }, []);
 

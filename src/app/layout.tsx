@@ -72,7 +72,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Alexis' desktop" />
-        <meta name="theme-color" content="#f9faf7" />
+        {/* theme-color se declara una sola vez (metadata.other); en el home
+            la secuencia de paneles lo actualiza dinámicamente por panel */}
         <meta name="format-detection" content="telephone=no" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         {/* iOS splash screen color */}
