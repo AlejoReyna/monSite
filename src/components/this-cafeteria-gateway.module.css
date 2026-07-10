@@ -264,6 +264,19 @@
   width: 100%;
 }
 
+/* Desktop: tech stack lives under the "Deployed on" badge (top-left). */
+.techRowTop {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  pointer-events: auto;
+}
+
+/* Mobile: tech stack moves back to the bottom of the content block. */
+.techRowBottom {
+  display: none;
+}
+
 .techChip {
   display: inline-flex;
 }
@@ -315,6 +328,14 @@
     left: 1.1rem;
     margin-top: clamp(2rem, 6vh, 3.5rem);
     max-width: none;
+  }
+
+  .techRowTop {
+    display: none;
+  }
+
+  .techRowBottom {
+    display: flex;
   }
 }
 

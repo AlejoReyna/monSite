@@ -61,6 +61,19 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
     },
   };
 
+  const renderTechItems = () =>
+    techStack.map((tech) => (
+      <motion.li key={tech.label} className={styles.techChip} variants={logoItem}>
+        <img
+          className={`${styles.techLogo} ${"tint" in tech && tech.tint ? styles.techLogoTint : ""}`}
+          src={tech.logo}
+          alt={tech.label}
+          title={tech.label}
+          loading="lazy"
+        />
+      </motion.li>
+    ));
+
   return (
     <section className={styles.screen} aria-labelledby="this-cafeteria-title">
       <motion.div
@@ -93,6 +106,14 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
             <span className={styles.deployName}>Sepolia</span>
           </span>
         </motion.div>
+
+        <motion.ul
+          className={`${styles.techRow} ${styles.techRowTop}`}
+          variants={logoGroup}
+          aria-label="Artisanal Brew tech stack"
+        >
+          {renderTechItems()}
+        </motion.ul>
       </motion.div>
 
       <motion.div
@@ -132,18 +153,12 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
             </a>
           </motion.div>
 
-          <motion.ul className={styles.techRow} variants={logoGroup} aria-label="Artisanal Brew tech stack">
-            {techStack.map((tech) => (
-              <motion.li key={tech.label} className={styles.techChip} variants={logoItem}>
-                <img
-                  className={`${styles.techLogo} ${"tint" in tech && tech.tint ? styles.techLogoTint : ""}`}
-                  src={tech.logo}
-                  alt={tech.label}
-                  title={tech.label}
-                  loading="lazy"
-                />
-              </motion.li>
-            ))}
+          <motion.ul
+            className={`${styles.techRow} ${styles.techRowBottom}`}
+            variants={logoGroup}
+            aria-label="Artisanal Brew tech stack"
+          >
+            {renderTechItems()}
           </motion.ul>
         </div>
       </motion.div>

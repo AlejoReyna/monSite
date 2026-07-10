@@ -16,6 +16,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Lock document scrolling while the full-screen panel sequence is mounted.
+   Without this, mobile Safari lets the user drag the whole page (100vh body
+   vs 100svh visible viewport + rubber-band overscroll). Panel changes are
+   driven by swipe gestures, not native scroll. */
+html.is-sequence-locked,
+html.is-sequence-locked body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 /* ============================================
    GIC — General Intelligence Company Tokens
    From: src/contexts/DESIGN.md

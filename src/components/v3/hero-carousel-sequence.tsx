@@ -97,6 +97,15 @@ export default function HeroCarouselSequence() {
     []
   );
 
+  // Mientras la secuencia está montada, el documento no debe poder desplazarse:
+  // los cambios de panel se hacen por gesto (swipe/rueda), no por scroll nativo.
+  useEffect(() => {
+    document.documentElement.classList.add("is-sequence-locked");
+    return () => {
+      document.documentElement.classList.remove("is-sequence-locked");
+    };
+  }, []);
+
   useEffect(() => {
     document.body.classList.remove("is-cafeteria-panel-active");
     document.body.classList.remove("is-wedding-panel-active");
