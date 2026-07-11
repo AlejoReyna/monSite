@@ -353,25 +353,27 @@
   }
 
   .mobileTitle {
-    align-items: baseline;
+    align-items: flex-end;
     display: flex;
+    flex-direction: column;
     flex-wrap: nowrap;
     font-family: "Munro Narrow", var(--font-space-mono), ui-monospace, monospace;
-    font-size: clamp(0.75rem, 4.1vw, 1.3rem);
+    font-size: clamp(1.5rem, 5vw, 2.1rem);
     font-weight: 400;
-    gap: 0.22em;
-    justify-content: flex-end;
-    left: clamp(0.85rem, 3.4vw, 3rem);
+    gap: 0.04em;
+    justify-content: flex-start;
+    left: auto;
     letter-spacing: 0;
-    line-height: 0.88;
+    line-height: 0.92;
     margin: 0;
     max-width: none;
     pointer-events: none;
     position: absolute;
-    right: clamp(0.85rem, 3.4vw, 3rem);
+    right: clamp(1rem, 4.5vw, 2.5rem);
     text-align: right;
     text-shadow: 0 8px 28px rgba(34, 7, 60, 0.5);
-    top: clamp(5.1rem, 9svh, 6.4rem);
+    text-transform: lowercase;
+    top: clamp(4.5rem, 8svh, 5.8rem);
     white-space: nowrap;
     z-index: 3;
   }
@@ -383,9 +385,9 @@
   }
 
   .mobileTitle .logoWord {
-    height: 0.5em;
-    margin-inline: 0.02em;
-    max-width: 1.7em;
+    height: 0.62em;
+    margin-inline: 0.06em 0.16em;
+    max-width: none;
   }
 
   .copy {
@@ -458,8 +460,8 @@
   }
 
   .mobileTitle {
-    font-size: clamp(0.68rem, 4.3vw, 1rem);
-    top: clamp(4.9rem, 8.6svh, 6.1rem);
+    font-size: clamp(1.3rem, 6vw, 1.85rem);
+    top: clamp(4.3rem, 7.6svh, 5.4rem);
   }
 
   .lead {
