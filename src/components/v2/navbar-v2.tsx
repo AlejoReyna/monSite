@@ -292,6 +292,57 @@ export default function NavbarV2() {
           border-color: rgba(139, 115, 85, 0.5) !important;
         }
 
+        /* Panel de contacto pixel: fuente Press Start 2P y botón cuadrado NES */
+        body.is-pixel-panel-active .nav-v2-shell,
+        body.is-pixel-panel-active .nav-v2-shell * {
+          font-family: var(--font-press-start), "Courier New", ui-monospace, monospace !important;
+          letter-spacing: 0.02em !important;
+        }
+
+        body.is-pixel-panel-active .nav-v2-shell {
+          color: #ffffff;
+          text-shadow: 2px 2px 0 rgba(20, 20, 20, 0.6);
+        }
+
+        body.is-pixel-panel-active .nav-v2-shell a,
+        body.is-pixel-panel-active .nav-v2-shell button {
+          color: #ffffff !important;
+          text-shadow: 2px 2px 0 rgba(20, 20, 20, 0.6);
+        }
+
+        body.is-pixel-panel-active .nav-desktop a {
+          font-size: 0.85rem !important;
+        }
+
+        body.is-pixel-panel-active .nav-mobile a {
+          font-size: 0.62rem !important;
+        }
+
+        body.is-pixel-panel-active .nav-v2-shell a span {
+          color: #ffcf5c !important;
+        }
+
+        body.is-pixel-panel-active .nav-contact-pill {
+          background: rgba(12, 12, 16, 0.96) !important;
+          border: 2px solid #000000 !important;
+          border-radius: 0 !important;
+          box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.45);
+          color: #ffcf5c !important;
+          font-size: 0.6rem !important;
+          letter-spacing: 0.08em !important;
+          text-shadow: none;
+        }
+
+        body.is-pixel-panel-active .nav-mobile .nav-contact-pill {
+          font-size: 0.5rem !important;
+        }
+
+        body.is-pixel-panel-active .nav-contact-pill:hover {
+          background: rgba(12, 12, 16, 0.96) !important;
+          border-color: #ffcf5c !important;
+          color: #ffffff !important;
+        }
+
         body.is-nav-font-transitioning .nav-v2-shell a,
         body.is-nav-font-transitioning .nav-v2-shell button {
           animation: nav-font-crossfade 520ms cubic-bezier(0.16, 1, 0.3, 1) both;

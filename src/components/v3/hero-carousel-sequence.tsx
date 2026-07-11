@@ -55,7 +55,7 @@ const PANEL_THEME_COLORS: Record<SequencePanel, string> = {
   2: "hsl(319, 43%, 28%)", // Plebes
   3: "#000000", // NoNamedBot
   4: "#3f3a35", // Wedding invitations
-  5: "#222634", // Get in touch
+  5: "#1c1033", // Get in touch — banda superior del atardecer pixelado
 };
 
 // Valores del layout raíz a restaurar cuando la secuencia se desmonta.
@@ -127,10 +127,11 @@ export default function HeroCarouselSequence() {
   const touchScrollableRef = useRef<HTMLElement | null>(null);
 
   const setNavFontMode = useCallback(
-    (mode: "default" | "cafeteria" | "wedding" | "invitation") => {
+    (mode: "default" | "cafeteria" | "wedding" | "invitation" | "pixel") => {
       document.body.classList.toggle("is-cafeteria-panel-active", mode === "cafeteria");
       document.body.classList.toggle("is-wedding-panel-active", mode === "wedding");
       document.body.classList.toggle("is-invitation-panel-active", mode === "invitation");
+      document.body.classList.toggle("is-pixel-panel-active", mode === "pixel");
     },
     []
   );
@@ -162,12 +163,14 @@ export default function HeroCarouselSequence() {
     document.body.classList.remove("is-cafeteria-panel-active");
     document.body.classList.remove("is-wedding-panel-active");
     document.body.classList.remove("is-invitation-panel-active");
+    document.body.classList.remove("is-pixel-panel-active");
     document.body.classList.remove("is-nav-font-transitioning");
 
     return () => {
       document.body.classList.remove("is-cafeteria-panel-active");
       document.body.classList.remove("is-wedding-panel-active");
       document.body.classList.remove("is-invitation-panel-active");
+      document.body.classList.remove("is-pixel-panel-active");
       document.body.classList.remove("is-nav-font-transitioning");
     };
   }, []);
@@ -218,7 +221,13 @@ export default function HeroCarouselSequence() {
       const currentPanel = activePanelRef.current;
       isAnimatingRef.current = true;
       setNavFontMode(
-        nextPanel === 1 ? "cafeteria" : nextPanel === 4 ? "wedding" : "default"
+        nextPanel === 1
+          ? "cafeteria"
+          : nextPanel === 4
+            ? "wedding"
+            : nextPanel === 5
+              ? "pixel"
+              : "default"
       );
       setActivePanel(nextPanel);
       isRevealedRef.current = false;

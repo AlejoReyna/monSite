@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Bebas_Neue, Cormorant_Garamond, Space_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Bebas_Neue, Cormorant_Garamond, Space_Mono, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 import AppChrome from "@/components/app-chrome";
 
@@ -54,6 +54,14 @@ const spaceMono = Space_Mono({
   display: "swap",
 });
 
+/* ── Pixel font — Get in touch panel ── */
+const pressStart = Press_Start_2P({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-press-start",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Alexis' desktop",
   description: "Fullstack Developer | Building modern, fast, and accessible web experiences.",
@@ -85,7 +93,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${bebas.variable} ${cormorant.variable} ${spaceMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${bebas.variable} ${cormorant.variable} ${spaceMono.variable} ${pressStart.variable} antialiased`}
         style={{ backgroundColor: "var(--gic-off-white)", color: "var(--gic-dark-charcoal)" }}
       >
         <LanguageProvider>

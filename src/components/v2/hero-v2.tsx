@@ -2,10 +2,8 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
 import ChatInterface from "@/components/chat-interface";
-import { useLanguage } from "@/components/lang-context";
 
 /* ═══════════════════════════════════════════
    Hero V2 — Night Sky / GIC style
@@ -50,8 +48,6 @@ export default function HeroV2({
 }: HeroV2Props) {
   const heroRef = useRef<HTMLElement>(null);
   const [devBorder, setDevBorder] = useState(false);
-  const { language } = useLanguage();
-  const isEs = language === "es";
 
   // Remonta la terminal al cruzar el breakpoint lg: el offset de drag de
   // framer-motion vive como transform inline y sobrevive al cambio de CSS
@@ -312,27 +308,6 @@ export default function HeroV2({
           <ChatInterface variant="panel" className="!w-full !h-full max-w-none" />
         </div>
       </motion.div>
-
-      {/* ── Legacy portfolio link ── */}
-      <Link
-        href="/legacy"
-        className="absolute z-40 top-16 left-4 lg:top-auto lg:bottom-6 lg:left-6"
-        style={{
-          fontFamily: "var(--font-space-mono, ui-monospace, monospace)",
-          fontSize: "0.8rem",
-          letterSpacing: "0.2em",
-          textTransform: "uppercase",
-          color: "#ffffff",
-          background: "rgba(255,255,255,0.07)",
-          border: "1px solid rgba(255,255,255,0.22)",
-          borderRadius: 999,
-          padding: "10px 18px",
-          textDecoration: "none",
-          transition: "border-color 0.2s, background 0.2s",
-        }}
-      >
-        {isEs ? "Ver portafolio anterior ↗" : "Visit legacy portfolio ↗"}
-      </Link>
 
       {/* ── DEV: border toggle ── */}
       <button
