@@ -55,7 +55,7 @@ const PANEL_THEME_COLORS: Record<SequencePanel, string> = {
   2: "hsl(319, 43%, 28%)", // Plebes
   3: "#000000", // NoNamedBot
   4: "#3f3a35", // Wedding invitations
-  5: "#222634", // Get in touch
+  5: "#1c1033", // Get in touch — banda superior del atardecer pixelado
 };
 
 // Valores del layout raíz a restaurar cuando la secuencia se desmonta.

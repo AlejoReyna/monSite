@@ -29,6 +29,74 @@ interface FormState {
 
 const INITIAL_FORM: FormState = { name: "", email: "", message: "", botcheck: "" };
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Nube pixel-art estilo Super Mario 2: contorno negro, cuerpo blanco,
+   festones abajo. 'X' = contorno, 'W' = blanco. `stretch` repite la columna
+   central para formar nubes largas, igual que hacían los tiles del NES.
+   ──────────────────────────────────────────────────────────────────────────── */
+const CLOUD_ROWS = [
+  "......XXXX......",
+  "....XXWWWWXX....",
+  "...XWWWWWWWWX...",
+  "..XWWWWWWWWWWX..",
+  ".XWWWWWWWWWWWWX.",
+  "XWWWWWWWWWWWWWWX",
+  "XWWWWWWWWWWWWWWX",
+  "XWWWWWWWWWWWWWWX",
+  ".XWWWWWWWWWWWWX.",
+  "..XXWWXXXXWWXX..",
+  "....XX....XX....",
+];
+
+function PixelCloud({ className, stretch = 0 }: { className?: string; stretch?: number }) {
+  const mid = 8;
+  const stretched =
+    stretch > 0
+      ? CLOUD_ROWS.map((row) => row.slice(0, mid) + row[mid].repeat(stretch) + row.slice(mid))
+      : CLOUD_ROWS;
+  const width = stretched[0].length;
+  const height = stretched.length;
+
+  // Ojos estilo Mario cartoon: dos óvalos negros verticales centrados.
+  const center = Math.floor(width / 2);
+  const eyeCols = [center - 2, center + 1];
+  const eyeRows = [4, 5, 6];
+  const rows = stretched.map((row, y) => {
+    if (!eyeRows.includes(y)) return row;
+    let out = row;
+    for (const x of eyeCols) {
+      if (out[x] === "W") out = out.slice(0, x) + "X" + out.slice(x + 1);
+    }
+    return out;
+  });
+
+  return (
+    <svg
+      className={className}
+      viewBox={`0 0 ${width} ${height}`}
+      style={{ aspectRatio: `${width} / ${height}` }}
+      role="presentation"
+      aria-hidden="true"
+    >
+      {rows.flatMap((row, y) =>
+        Array.from(row).map((cell, x) =>
+          cell === "." ? null : (
+            <rect
+              key={`${x}-${y}`}
+              x={x}
+              y={y}
+              width={1}
+              height={1}
+              fill={cell === "X" ? "#141414" : "#ffffff"}
+              shapeRendering="crispEdges"
+            />
+          )
+        )
+      )}
+    </svg>
+  );
+}
+
 const SOCIAL_LINKS = [
   {
     id: "github",
@@ -143,6 +211,14 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
       aria-labelledby="contact-gateway-title"
       data-carousel-scrollable="true"
     >
+      {/* Cielo SMB2: nubes pixel-art a la deriva, detrás del contenido */}
+      <div className={styles.cloudLayer} aria-hidden="true">
+        <PixelCloud className={`${styles.cloud} ${styles.cloudA}`} />
+        <PixelCloud className={`${styles.cloud} ${styles.cloudB}`} stretch={16} />
+        <PixelCloud className={`${styles.cloud} ${styles.cloudC}`} />
+        <PixelCloud className={`${styles.cloud} ${styles.cloudD}`} stretch={8} />
+      </div>
+
       <motion.div
         className={styles.inner}
         variants={container}
@@ -150,9 +226,17 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
         animate={isActive ? "show" : "hidden"}
       >
         <motion.h2 id="contact-gateway-title" className={styles.title} variants={item}>
-          <span className={styles.titlePrompt}>&gt;</span>{" "}
-          {isEs ? "hablemos" : "let's get in touch"}
-          <span className={styles.titleCursor} aria-hidden="true" />
+          <span className={styles.srOnly}>
+            {isEs ? "¡hablemos!" : "let's get in touch!"}
+          </span>
+          {(isEs ? ["HABLEMOS!"] : ["LETS GET", "IN TOUCH!"]).map((line, i, lines) => (
+            <span key={line} className={styles.titleLine} aria-hidden="true">
+              {line}
+              {i === lines.length - 1 && (
+                <span className={styles.titleCursor} />
+              )}
+            </span>
+          ))}
         </motion.h2>
 
         <motion.p className={styles.lead} variants={item}>
