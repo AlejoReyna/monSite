@@ -305,11 +305,19 @@
 
 @media (max-width: 820px) {
   .screen {
-    height: auto;
+    /* Lock to the viewport so overflow-y:auto becomes a real scroll region.
+       With height:auto the panel grew to fit its content and never scrolled,
+       so the contribution tiles below the fold were clipped by the carousel's
+       overflow:hidden wrapper and unreachable. A fixed height lets the
+       sequence's canScrollPanel() absorb the swipe and scroll through the
+       tiles before advancing to the next panel. */
+    height: 100svh;
+    max-height: 100svh;
     min-height: 100svh;
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
+    padding-bottom: clamp(1.75rem, 6svh, 3rem);
     padding-top: clamp(4.75rem, 9svh, 5.6rem);
     scrollbar-gutter: stable;
   }
