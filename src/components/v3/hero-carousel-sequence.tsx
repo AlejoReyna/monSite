@@ -51,7 +51,7 @@ const PANEL_SCROLLABLE_SELECTOR = "[data-carousel-scrollable='true']";
 // Safari 26 ignora el meta y muestrea el background-color CSS del body.
 const PANEL_THEME_COLORS: Record<SequencePanel, string> = {
   0: "#2f1e2f", // Hero
-  1: "#2f1e2f", // Artisanal Brew (This Cafetería)
+  1: "#16110d", // Artisanal Brew (This Cafetería) — matches the panel's own background
   2: "hsl(319, 43%, 28%)", // Plebes
   3: "#000000", // NoNamedBot
   4: "#3f3a35", // Wedding invitations
