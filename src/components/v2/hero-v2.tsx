@@ -3,7 +3,6 @@
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
-import Script from "next/script";
 import ChatInterface from "@/components/chat-interface";
 
 /* ═══════════════════════════════════════════
@@ -251,23 +250,27 @@ export default function HeroV2({
 
         {/* ── Credly badge ── */}
         <motion.div
-          className="absolute z-20 right-3 top-[5%] w-[150px] md:right-6 lg:right-3 lg:top-[12%]"
-          initial={{ opacity: 0, y: 8, scale: 0.65 }}
-          animate={{ opacity: 1, y: 0, scale: 0.65 }}
+          className="absolute z-20 right-3 top-[5%] w-[100px] md:right-6 lg:right-3 lg:top-[12%]"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
           style={{ transformOrigin: "top right" }}
         >
-          <div
-            data-iframe-width="150"
-            data-iframe-height="270"
-            data-share-badge-id="a58ebe0a-da77-4ffe-8499-3d46b84b2059"
-            data-share-badge-host="https://www.credly.com"
-          />
-          <Script
-            id="credly-badge-script"
-            src="https://cdn.credly.com/assets/utilities/embed.js"
-            strategy="lazyOnload"
-          />
+          <a
+            href="https://www.credly.com/badges/a58ebe0a-da77-4ffe-8499-3d46b84b2059"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="AWS Certified AI Practitioner badge"
+          >
+            <Image
+              src="/credly-badge.png"
+              alt="AWS Certified AI Practitioner"
+              width={100}
+              height={100}
+              className="rounded-lg shadow-lg"
+              style={{ width: "100%", height: "auto" }}
+            />
+          </a>
         </motion.div>
 
         {/* ── Scroll hint — a scribbled comic aside beside the art ── */}
