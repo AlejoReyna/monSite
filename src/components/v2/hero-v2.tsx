@@ -250,11 +250,10 @@ export default function HeroV2({
 
         {/* ── Credly badge ── */}
         <motion.div
-          className="absolute z-20 right-3 top-[5%] w-[100px] md:right-6 lg:right-3 lg:top-[12%]"
+          className="absolute z-20 right-3 top-[22%] w-[90px] md:right-6 lg:left-2 lg:right-auto lg:top-[38%] origin-top-right lg:origin-top-left"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
-          style={{ transformOrigin: "top right" }}
         >
           <a
             href="https://www.credly.com/badges/a58ebe0a-da77-4ffe-8499-3d46b84b2059"
@@ -267,7 +266,7 @@ export default function HeroV2({
               alt="AWS Certified AI Practitioner"
               width={100}
               height={100}
-              className="rounded-lg shadow-lg"
+              className="rounded-lg shadow-lg badge-float"
               style={{ width: "100%", height: "auto" }}
             />
           </a>
@@ -316,7 +315,19 @@ export default function HeroV2({
 
 
       {/* ── Draggable terminal ── */}
-      <style>{`.comic-terminal, .comic-terminal * { font-family: var(--font-space-mono, ui-monospace, monospace) !important; }`}</style>
+      <style>{`
+        .comic-terminal, .comic-terminal * { font-family: var(--font-space-mono, ui-monospace, monospace) !important; }
+        @keyframes badgeFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        .badge-float {
+          animation: badgeFloat 2.8s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .badge-float { animation: none; }
+        }
+      `}</style>
       <motion.div
         key={isDesktop ? "terminal-lg" : "terminal-sm"}
         drag
