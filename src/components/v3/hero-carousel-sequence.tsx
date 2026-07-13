@@ -112,6 +112,7 @@ export default function HeroCarouselSequence() {
   const activePanelRef = useRef<SequencePanel>(0);
   const [activePanel, setActivePanelState] = useState<SequencePanel>(0);
   const touchStartYRef = useRef<number | null>(null);
+  const touchScrollStartRef = useRef<number>(0);
 
   // ── Control de gesto de rueda (anti doble-salto por inercia) ──────────────
   const navLockedRef = useRef(false); // true mientras dura un gesto + enfriamiento
@@ -386,7 +387,9 @@ export default function HeroCarouselSequence() {
 
   const handleTouchStart = useCallback((event: TouchEvent<HTMLDivElement>) => {
     touchStartYRef.current = event.touches[0]?.clientY ?? null;
-    touchScrollableRef.current = getScrollablePanel(event.target);
+    const scrollablePanel = getScrollablePanel(event.target);
+    touchScrollableRef.current = scrollablePanel;
+    touchScrollStartRef.current = scrollablePanel?.scrollTop ?? 0;
   }, []);
 
   const handleTouchEnd = useCallback(
@@ -403,7 +406,13 @@ export default function HeroCarouselSequence() {
       const deltaY = startY - endY;
       if (Math.abs(deltaY) < SWIPE_THRESHOLD) return;
 
-      if (scrollablePanel && canScrollPanel(scrollablePanel, deltaY)) return;
+      // If the same swipe already scrolled a scrollable panel, don't also
+      // advance the carousel. The user must release and swipe again to move on.
+      if (scrollablePanel) {
+        const scrolled = Math.abs(scrollablePanel.scrollTop - touchScrollStartRef.current);
+        if (scrolled > 5) return;
+        if (canScrollPanel(scrollablePanel, deltaY)) return;
+      }
 
       stepPanel(deltaY > 0 ? 1 : -1);
     },

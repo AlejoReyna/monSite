@@ -268,7 +268,7 @@ export default function ChatInterface({
 
   const rootClassName = isPanel
     ? [
-        "pointer-events-auto relative z-10 flex flex-col w-full rounded-lg border border-gray-500/35 bg-black/30 backdrop-blur-md shadow-2xl shadow-black/35 overflow-hidden min-h-0",
+        "pointer-events-auto relative z-10 flex flex-col w-full rounded-lg border border-gray-500/35 bg-black/40 backdrop-blur-md shadow-2xl shadow-black/35 overflow-hidden min-h-0",
         terminalClassName,
         className,
       ]
@@ -282,7 +282,7 @@ export default function ChatInterface({
         .join(" ");
 
   const innerShellClassName = [
-    "pointer-events-auto w-full rounded-lg border border-gray-500/35 bg-black/30 backdrop-blur-md shadow-2xl shadow-black/35 overflow-hidden max-h-[35vh] lg:h-auto flex flex-col",
+    "pointer-events-auto w-full rounded-lg border border-gray-500/35 bg-black/40 backdrop-blur-md shadow-2xl shadow-black/35 overflow-hidden max-h-[35vh] lg:h-auto flex flex-col",
     terminalClassName,
   ]
     .filter(Boolean)
@@ -297,7 +297,7 @@ export default function ChatInterface({
         <>
           {/* Terminal header */}
           <div
-            className={`flex items-center px-4 py-3 bg-black/40 border-b border-gray-500/35 shrink-0 ${isPanel ? "cursor-default" : "cursor-move"}`}
+            className={`flex items-center px-4 py-3 bg-black/50 border-b border-gray-500/35 shrink-0 ${isPanel ? "cursor-default" : "cursor-move"}`}
             {...(!isPanel ? { "data-drag-handle": "" } : {})}
           >
             <div className="flex items-center gap-2">
