@@ -411,7 +411,9 @@
   font-weight: 300;
   letter-spacing: 0.18em;
   line-height: 1.12;
+  overflow-wrap: normal;
   text-transform: uppercase;
+  word-break: keep-all;
 }
 
 .titleScript {
