@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import styles from "./this-cafeteria-gateway.module.css";
 
@@ -25,6 +26,20 @@ const techStack = [
 ] as const;
 
 export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: boolean }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (isActive) {
+      video.play().catch(() => {
+        // Autoplay may be blocked by the browser; the poster/overlay still shows.
+      });
+    } else {
+      video.pause();
+    }
+  }, [isActive]);
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -37,7 +52,7 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.08, delayChildren: 1.05 },
+      transition: { staggerChildren: 0, delayChildren: 1.05 },
     },
   };
 
@@ -82,7 +97,19 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
         initial={{ opacity: 0 }}
         animate={isActive ? { opacity: 1 } : { opacity: 0 }}
         transition={{ duration: 1, delay: 0.1 }}
-      />
+      >
+        <video
+          ref={videoRef}
+          className={styles.backgroundVideo}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+        >
+          <source src="/bg_video.mp4" type="video/mp4" />
+        </video>
+      </motion.div>
 
       <motion.div
         className={styles.deployBadge}
@@ -96,7 +123,7 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
         <motion.div className={styles.deployNetwork} variants={item} aria-label="Ethereum Sepolia">
           <img
             className={styles.deployLogo}
-            src="/sepolia_eth.png"
+            src="/eth_logo.png"
             alt=""
             aria-hidden="true"
             loading="lazy"

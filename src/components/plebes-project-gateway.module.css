@@ -29,14 +29,25 @@
   box-sizing: border-box;
   color: var(--plebes-ink);
   display: grid;
-  height: 100vh;
+  grid-template-rows: 1fr;
   height: 100svh;
-  min-height: 100vh;
+  max-height: 100svh;
   min-height: 100svh;
   overflow: hidden;
-  overscroll-behavior: contain;
   padding: clamp(3.75rem, 6vw, 5rem) clamp(1.25rem, 5vw, 4rem) clamp(1.25rem, 3vw, 2rem);
   position: relative;
+}
+
+.scrollBody {
+  box-sizing: border-box;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  position: relative;
+  scrollbar-gutter: stable;
+  width: 100%;
+  z-index: 1;
 }
 
 .screen::after {
@@ -57,16 +68,14 @@
   grid-template-areas:
     "copy media"
     "details media"
-    "grid grid"
-    "tech tech";
+    "grid grid";
   grid-template-columns: minmax(0, 1.08fr) minmax(16rem, 0.86fr);
   margin-inline: auto;
-  max-height: 100%;
+  max-height: none;
   max-width: 1240px;
   padding-top: clamp(2.75rem, 6vh, 4.25rem);
   position: relative;
   width: 100%;
-  z-index: 1;
 }
 
 .deployBadge {
@@ -92,7 +101,7 @@
 
 .deployLabel {
   color: #ffffff;
-  font-family: "Comic Sans MS", "Comic Sans", cursive;
+  font-family: "Comic Sans MS", "Comic Sans", var(--font-geist-sans), "Inter", "Helvetica Neue", Arial, sans-serif;
   font-size: clamp(0.74rem, 1.3vw, 0.9rem);
   font-weight: 700;
   letter-spacing: 0;
@@ -116,7 +125,7 @@
 
 .deployName {
   color: #ffffff;
-  font-family: "Comic Sans MS", "Comic Sans", cursive;
+  font-family: "Comic Sans MS", "Comic Sans", var(--font-geist-sans), "Inter", "Helvetica Neue", Arial, sans-serif;
   font-size: clamp(0.9rem, 2vw, 1.12rem);
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -204,39 +213,6 @@
   transform: translateY(-2px);
 }
 
-.techRow {
-  align-items: center;
-  border-top: 1px solid var(--plebes-line);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem 0.9rem;
-  grid-area: tech;
-  justify-content: flex-start;
-  list-style: none;
-  margin: 0;
-  max-width: 100%;
-  padding: 0.7rem 0 0;
-  width: 100%;
-}
-
-.techChip {
-  display: inline-flex;
-}
-
-.techLogo {
-  display: block;
-  height: clamp(1rem, 2.9vw, 1.2rem);
-  object-fit: contain;
-  opacity: 0.82;
-  transition: opacity 160ms ease, transform 160ms ease;
-  width: auto;
-}
-
-.techChip:hover .techLogo {
-  opacity: 1;
-  transform: translateY(-2px);
-}
-
 .media {
   align-items: center;
   display: grid;
@@ -305,21 +281,12 @@
 
 @media (max-width: 820px) {
   .screen {
-    /* Lock to the viewport so overflow-y:auto becomes a real scroll region.
-       With height:auto the panel grew to fit its content and never scrolled,
-       so the contribution tiles below the fold were clipped by the carousel's
-       overflow:hidden wrapper and unreachable. A fixed height lets the
-       sequence's canScrollPanel() absorb the swipe and scroll through the
-       tiles before advancing to the next panel. */
-    height: 100svh;
-    max-height: 100svh;
-    min-height: 100svh;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    /* Keep the panel locked to exactly one viewport so the dark background
+       fills the screen and the next carousel panel never peeks through.
+       The top padding is tall enough to clear the fixed badge + mobile title
+       so the scrollable content starts below them instead of sliding under. */
     padding-bottom: clamp(1.75rem, 6svh, 3rem);
-    padding-top: clamp(4.75rem, 9svh, 5.6rem);
-    scrollbar-gutter: stable;
+    padding-top: clamp(7.75rem, 15svh, 9.5rem);
   }
 
   .inner {
@@ -328,12 +295,11 @@
     grid-template-areas:
       "copy copy"
       "media details"
-      "grid grid"
-      "tech tech";
+      "grid grid";
     grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto auto;
     max-height: none;
-    padding-top: clamp(4rem, 10svh, 5.5rem);
+    padding-top: clamp(0.75rem, 2svh, 1.25rem);
   }
 
   .deployBadge {
@@ -358,7 +324,7 @@
     flex-direction: column;
     flex-wrap: nowrap;
     font-family: "Munro Narrow", var(--font-space-mono), ui-monospace, monospace;
-    font-size: clamp(1.5rem, 5vw, 2.1rem);
+    font-size: clamp(2.4rem, 7.5vw, 3.6rem);
     font-weight: 400;
     gap: 0.04em;
     justify-content: flex-start;
@@ -385,8 +351,8 @@
   }
 
   .mobileTitle .logoWord {
-    height: 0.62em;
-    margin-inline: 0.06em 0.16em;
+    height: 0.72em;
+    margin-inline: 0.06em 0.12em;
     max-width: none;
   }
 
@@ -412,12 +378,6 @@
 
   .lead {
     max-width: none;
-  }
-
-  .techRow {
-    justify-content: center;
-    margin-inline: auto;
-    max-width: min(100%, 30rem);
   }
 
   .media {

@@ -29,7 +29,7 @@
 }
 
 .backgroundCol {
-  background: url("https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1600&q=80") center / cover;
+  background: #16110d;
   height: 100%;
   inset: 0;
   min-height: 100dvh;
@@ -37,6 +37,13 @@
   position: absolute;
   width: 100%;
   z-index: 1;
+}
+
+.backgroundVideo {
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  width: 100%;
 }
 
 .backgroundCol::after {
@@ -109,10 +116,22 @@
 }
 
 .deployLogo {
+  animation: deployLogoFloat 3s ease-in-out infinite;
   display: block;
   height: clamp(2.35rem, 6vw, 3.5rem);
   object-fit: contain;
   width: auto;
+}
+
+@keyframes deployLogoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deployLogo {
+    animation: none;
+  }
 }
 
 .deployNetworkText {
