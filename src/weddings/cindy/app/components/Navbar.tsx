@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect, useRef, useCallback } from 'react';
+import DisabledRsvpButton from '@/weddings/shared/disabled-rsvp-button';
 import { withBasePath } from '../../lib/basePath';
 
 interface NavigationItem {
@@ -23,8 +24,6 @@ const rightNavItems = navigationItems.slice(3);
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const STATUS_BAR_DEBUG = process.env.NODE_ENV !== 'production';
-const RSVP_WHATSAPP_MESSAGE = 'Confirmo mi asistencia a la boda de Cindy & Jorge el 22 de agosto del 2026.💍\nLos nombres de las personas confirmadas en esta invitación son: ____';
-const RSVP_WHATSAPP_HREF = `https://wa.me/5218132382398?text=${encodeURIComponent(RSVP_WHATSAPP_MESSAGE)}`;
 const MONOGRAM_MASK = `url('${withBasePath("/weddings/cindy/Diseño sin título.png")}')`;
 
 // Converts "r,g,b" string → "#rrggbb" for use in meta tags.
@@ -381,11 +380,6 @@ const Navbar = ({ visible = true }: NavbarProps) => {
   const handleNavClick = (id: string) => {
     setIsMobileMenuOpen(false);
 
-    if (id === 'rsvp') {
-      window.open(RSVP_WHATSAPP_HREF, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
     setTimeout(() => {
       const section = document.getElementById(id);
       if (!section) return;
@@ -397,6 +391,104 @@ const Navbar = ({ visible = true }: NavbarProps) => {
 
       window.scrollTo({ top: targetTop, behavior: 'smooth' });
     }, 300);
+  };
+
+  const renderDesktopLink = (item: NavigationItem) => {
+    const classes = `text-[13px] garamond-300 tracking-[0.25em] transition-all duration-400 relative group py-1 inline-flex items-center ${textCls}`;
+    if (item.id === 'rsvp') {
+      return (
+        <DisabledRsvpButton className={classes}>
+          {item.label.toUpperCase()}
+        </DisabledRsvpButton>
+      );
+    }
+    return (
+      <a
+        href={`#${item.id}`}
+        onClick={(e) => {
+          e.preventDefault();
+          handleNavClick(item.id);
+        }}
+        className={classes}
+      >
+        {item.label.toUpperCase()}
+        <span
+          className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[1px] w-0 group-hover:w-full transition-all duration-500 ease-out"
+          style={{ backgroundColor: lineColor }}
+        />
+        <span
+          className={`absolute -bottom-3.5 left-1/2 -translate-x-1/2 w-[3px] h-[3px] rounded-full transition-all duration-500 ${
+            activeSection === item.id ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
+          }`}
+          style={{ backgroundColor: dotColor }}
+        />
+      </a>
+    );
+  };
+
+  const renderTabletLink = (item: NavigationItem) => {
+    const classes = `garamond-300 tracking-[0.12em] transition-colors duration-400 px-1 inline-flex items-center ${textCls}`;
+    if (item.id === 'rsvp') {
+      return (
+        <DisabledRsvpButton className={classes}>
+          {item.label.toUpperCase()}
+        </DisabledRsvpButton>
+      );
+    }
+    return (
+      <a
+        href={`#${item.id}`}
+        onClick={(e) => {
+          e.preventDefault();
+          handleNavClick(item.id);
+        }}
+        className={classes}
+      >
+        {item.label.toUpperCase()}
+      </a>
+    );
+  };
+
+  const renderMobileLink = (item: NavigationItem, index: number) => {
+    const classes = `group flex items-center gap-3 py-3.5 garamond-300 text-[13px] tracking-[0.22em] uppercase transition-all duration-400 ${
+      activeSection === item.id ? 'text-[#543c24]' : 'text-[#8B7355]/50 hover:text-[#543c24]'
+    }`;
+    const menuStyle: React.CSSProperties = {
+      opacity: isMobileMenuOpen ? 1 : 0,
+      transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(16px)',
+      transition: 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      transitionDelay: isMobileMenuOpen ? `${150 + index * 70}ms` : '0ms',
+    };
+    if (item.id === 'rsvp') {
+      return (
+        <DisabledRsvpButton className={classes} style={menuStyle}>
+          <span
+            className={`block w-1 h-1 rounded-full transition-all duration-300 ${
+              activeSection === item.id ? 'bg-[#C4985B] scale-100' : 'bg-transparent scale-0'
+            }`}
+          />
+          <span>{item.label.toUpperCase()}</span>
+        </DisabledRsvpButton>
+      );
+    }
+    return (
+      <a
+        href={`#${item.id}`}
+        onClick={(e) => {
+          e.preventDefault();
+          handleNavClick(item.id);
+        }}
+        className={classes}
+        style={menuStyle}
+      >
+        <span
+          className={`block w-1 h-1 rounded-full transition-all duration-300 ${
+            activeSection === item.id ? 'bg-[#C4985B] scale-100' : 'bg-transparent scale-0'
+          }`}
+        />
+        <span>{item.label.toUpperCase()}</span>
+      </a>
+    );
   };
 
   // ── Render ──
@@ -443,30 +535,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
           <ul className="flex items-center justify-end gap-8 xl:gap-10">
             {leftNavItems.map((item) => (
               <li key={item.id}>
-                <a
-                  href={`#${item.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleNavClick(item.id);
-                  }}
-                  className={`text-[13px] garamond-300 tracking-[0.25em] transition-all duration-400 relative group py-1 ${textCls}`}
-                >
-                  {item.label.toUpperCase()}
-                  {/* Hover underline */}
-                  <span
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[1px] w-0 group-hover:w-full transition-all duration-500 ease-out"
-                    style={{ backgroundColor: lineColor }}
-                  />
-                  {/* Active section dot */}
-                  <span
-                    className={`absolute -bottom-3.5 left-1/2 -translate-x-1/2 w-[3px] h-[3px] rounded-full transition-all duration-500 ${
-                      activeSection === item.id
-                        ? 'opacity-100 scale-100'
-                        : 'opacity-0 scale-0'
-                    }`}
-                    style={{ backgroundColor: dotColor }}
-                  />
-                </a>
+                {renderDesktopLink(item)}
               </li>
             ))}
           </ul>
@@ -499,28 +568,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
           <ul className="flex items-center justify-start gap-8 xl:gap-10">
             {rightNavItems.map((item) => (
               <li key={item.id}>
-                <a
-                  href={`#${item.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleNavClick(item.id);
-                  }}
-                  className={`text-[13px] garamond-300 tracking-[0.25em] transition-all duration-400 relative group py-1 ${textCls}`}
-                >
-                  {item.label.toUpperCase()}
-                  <span
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[1px] w-0 group-hover:w-full transition-all duration-500 ease-out"
-                    style={{ backgroundColor: lineColor }}
-                  />
-                  <span
-                    className={`absolute -bottom-3.5 left-1/2 -translate-x-1/2 w-[3px] h-[3px] rounded-full transition-all duration-500 ${
-                      activeSection === item.id
-                        ? 'opacity-100 scale-100'
-                        : 'opacity-0 scale-0'
-                    }`}
-                    style={{ backgroundColor: dotColor }}
-                  />
-                </a>
+                {renderDesktopLink(item)}
               </li>
             ))}
           </ul>
@@ -533,16 +581,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
           <ul className="flex items-center justify-end gap-3 text-[13px]">
             {navigationItems.slice(0, 2).map((item) => (
               <li key={item.id}>
-                <a
-                  href={`#${item.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleNavClick(item.id);
-                  }}
-                  className={`garamond-300 tracking-[0.12em] transition-colors duration-400 px-1 ${textCls}`}
-                >
-                  {item.label.toUpperCase()}
-                </a>
+                {renderTabletLink(item)}
               </li>
             ))}
           </ul>
@@ -573,16 +612,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
           <ul className="flex items-center justify-start gap-3 text-[13px]">
             {navigationItems.slice(2, 4).map((item) => (
               <li key={item.id}>
-                <a
-                  href={`#${item.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleNavClick(item.id);
-                  }}
-                  className={`garamond-300 tracking-[0.12em] transition-colors duration-400 px-1 ${textCls}`}
-                >
-                  {item.label.toUpperCase()}
-                </a>
+                {renderTabletLink(item)}
               </li>
             ))}
           </ul>
@@ -737,36 +767,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
             <ul className="flex-1 space-y-1">
               {navigationItems.map((item, i) => (
                 <li key={item.id}>
-                  <a
-                    href={`#${item.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleNavClick(item.id);
-                    }}
-                    className={`group flex items-center gap-3 py-3.5 garamond-300 text-[13px] tracking-[0.22em] uppercase transition-all duration-400 ${
-                      activeSection === item.id
-                        ? 'text-[#543c24]'
-                        : 'text-[#8B7355]/50 hover:text-[#543c24]'
-                    }`}
-                    style={{
-                      opacity: isMobileMenuOpen ? 1 : 0,
-                      transform: isMobileMenuOpen
-                        ? 'translateX(0)'
-                        : 'translateX(16px)',
-                      transition: `all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)`,
-                      transitionDelay: isMobileMenuOpen ? `${150 + i * 70}ms` : '0ms',
-                    }}
-                  >
-                    {/* Active indicator dot */}
-                    <span
-                      className={`block w-1 h-1 rounded-full transition-all duration-300 ${
-                        activeSection === item.id
-                          ? 'bg-[#C4985B] scale-100'
-                          : 'bg-transparent scale-0'
-                      }`}
-                    />
-                    <span>{item.label.toUpperCase()}</span>
-                  </a>
+                  {renderMobileLink(item, i)}
                   {/* Separator line */}
                   {i < navigationItems.length - 1 && (
                     <div className="h-[0.5px] bg-[#C4985B]/10 ml-4" />

@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from 'react';
 import { FaWhatsapp, FaCalendarPlus } from 'react-icons/fa';
+import DisabledRsvpButton from '@/weddings/shared/disabled-rsvp-button';
 import MessageSection from './MessageSection';
 import { useStatusBarSection } from '../../hooks/useStatusBarManager';
 import { useTheme } from '../context/ThemeContext';
@@ -180,16 +181,13 @@ export default function RSVPSection() {
               
               {/* Buttons */}
               <div className="flex flex-col gap-4 items-center">
-                <button 
-                  className="group inline-flex items-center gap-3 px-8 py-3 bg-white/15 backdrop-blur-md border border-white/30 text-white font-light tracking-[0.1em] hover:bg-white/25 hover:border-white/50 transition-all duration-400 relative overflow-hidden garamond-300 uppercase text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-1 w-full justify-center"
-                  onClick={() => {
-                    window.open('https://wa.me/528132382398?text=Confirmo%20mi%20asistencia%20a%20la%20boda%20de%20Andrea%20%26%20Aldo%20el%2018%20de%20octubre%20del%202025.%20💍%0ALos%20nombres%20de%20las%20personas%20confirmadas%20en%20esta%20invitación%20son%3A%20____________', '_blank');
-                  }}
+                <DisabledRsvpButton
+                  className="group inline-flex items-center gap-3 px-8 py-3 bg-white/15 backdrop-blur-md border border-white/30 text-white font-light tracking-[0.1em] hover:bg-white/25 hover:border-white/50 transition-all duration-400 relative overflow-hidden garamond-300 uppercase text-sm shadow-lg w-full justify-center"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
                   <FaWhatsapp className="text-lg relative z-10 transform group-hover:scale-110 transition-transform duration-300" />
                   <span className="relative z-10">Confirmar por WhatsApp</span>
-                </button>
+                </DisabledRsvpButton>
                 
                 <button 
                   className="group inline-flex items-center gap-3 px-8 py-3 bg-white/15 backdrop-blur-md border border-white/30 text-white font-light tracking-[0.1em] hover:bg-white/25 hover:border-white/50 transition-all duration-400 relative overflow-hidden garamond-300 uppercase text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-1 w-full justify-center"

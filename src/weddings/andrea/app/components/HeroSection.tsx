@@ -1,5 +1,6 @@
 "use client"
 import CountdownTimer from '../../components/CountdownTimer';
+import DisabledRsvpButton from '@/weddings/shared/disabled-rsvp-button';
 import { useStatusBarSection } from '../../hooks/useStatusBarManager';
 import { useTheme } from '../context/ThemeContext';
 
@@ -68,16 +69,11 @@ const HeroSection = () => {
 
         {/* Botón confirmar asistencia (MISMO LUGAR, ÚLTIMO EN APARECER) */}
         <div className="text-center animate-fade-in-center animate-delay-1800">
-          <button
-            onClick={() => {
-              window.open('https://wa.me/528132382398?text=Confirmo%20mi%20asistencia%20a%20la%20boda%20de%20Andrea%20%26%20Aldo%20el%2018%20de%20octubre%20del%202025.%20💍%0ALos%20nombres%20de%20las%20personas%20confirmadas%20en%20esta%20invitación%20son%3A%20____________', '_blank');
-            }}
-            className="group inline-flex items-center px-6 sm:px-8 py-2.5 sm:py-3 bg-black/50 backdrop-blur-sm border border-white/40 text-white/95 hover:bg-black/70 hover:border-white/60 transition-all duration-500 text-sm sm:text-base transform hover:scale-105 sm:hover:scale-110"
-          >
+          <DisabledRsvpButton className="group inline-flex items-center px-6 sm:px-8 py-2.5 sm:py-3 bg-black/50 backdrop-blur-sm border border-white/40 text-white/95 hover:bg-black/70 hover:border-white/60 transition-all duration-500 text-sm sm:text-base transform hover:scale-105 sm:hover:scale-110">
             <span className="garamond-300 tracking-[0.15em] sm:tracking-[0.2em]">
               CONFIRMAR ASISTENCIA
             </span>
-          </button>
+          </DisabledRsvpButton>
         </div>
       </div>
 

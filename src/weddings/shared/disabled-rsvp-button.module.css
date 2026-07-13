@@ -1,0 +1,43 @@
+.wrapper {
+  cursor: not-allowed;
+  display: inline-flex;
+  position: relative;
+}
+
+.tooltip {
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 6px;
+  bottom: calc(100% + 8px);
+  color: #fff;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.72rem;
+  left: 50%;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  max-width: 220px;
+  opacity: 0;
+  padding: 8px 12px;
+  pointer-events: none;
+  position: absolute;
+  text-align: center;
+  transform: translateX(-50%);
+  transition: opacity 0.25s ease;
+  white-space: normal;
+  width: max-content;
+  z-index: 100;
+}
+
+.tooltip::after {
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+  content: "";
+  left: 50%;
+  position: absolute;
+  top: 100%;
+  transform: translateX(-50%);
+}
+
+.wrapper:hover .tooltip,
+.wrapper:focus-visible .tooltip {
+  opacity: 1;
+}

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { withBasePath } from '../../lib/basePath';
 
 import CountdownTimer from '../../components/CountdownTimer';
+import DisabledRsvpButton from '@/weddings/shared/disabled-rsvp-button';
 import SongPlayer from './SongPlayer';
 
 const HERO_PHOTO_ONE = withBasePath('/weddings/cindy/assets/hero-0624.jpg');
@@ -57,9 +58,6 @@ const HeroSection = ({ entered = false, immediate = false, revealed = false }: H
     month: 'long',
     year: 'numeric',
   });
-  const ctaMessage = 'Confirmo mi asistencia a la boda de Cindy & Jorge el 22 de agosto del 2026.💍\nLos nombres de las personas confirmadas en esta invitación son: ____';
-  const ctaWhatsappHref = `https://wa.me/5218132382398?text=${encodeURIComponent(ctaMessage)}`;
-
   return (
     <section
       id="hero-section"
@@ -140,26 +138,13 @@ const HeroSection = ({ entered = false, immediate = false, revealed = false }: H
 
         {/* ── Bottom group: CTA + timer (positioned independently) ───────── */}
         <div className="hero-bottom-group absolute inset-x-0 bottom-[10vh] flex flex-col items-center gap-3">
-          <a
-            href={ctaWhatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`hero-cta-btn ${immediate ? 'hero-cta-btn--immediate' : loaded ? 'hero-cta-btn--animate' : ''}`}
-            style={immediate ? undefined : {
-              '--btn-delay': `${POST_NAMES + 1000}ms`,
-              '--btn-draw-duration': '0.8s',
-              '--btn-fill-delay': `${POST_NAMES + 1000 + 800}ms`,
-            } as React.CSSProperties}
+          <DisabledRsvpButton
+            className={`hero-cta-btn border border-white/70 rounded-lg bg-[rgba(101,67,33,0.35)] backdrop-blur-sm ${immediate ? 'hero-cta-btn--immediate' : loaded ? 'hero-cta-btn--animate' : ''}`}
           >
-            <span
-              className={`hero-cta-border-el ${immediate ? 'hero-cta-border-el--immediate' : loaded ? 'hero-cta-border-el--draw' : ''} ${borderDrawn ? 'hero-cta-border-el--solid' : ''}`}
-              onAnimationEnd={() => setBorderDrawn(true)}
-            />
-            <span className={`hero-cta-bg ${immediate ? 'hero-cta-bg--immediate' : loaded ? 'hero-cta-bg--visible' : ''}`} />
             <span className={`hero-cta-label ${immediate ? 'hero-cta-label--immediate' : loaded ? 'hero-cta-label--visible' : ''}`}>
               Confirma Tu Asistencia
             </span>
-          </a>
+          </DisabledRsvpButton>
 
           <div
             className={`hero-timer-wrap ${
