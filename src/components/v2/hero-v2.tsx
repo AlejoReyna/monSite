@@ -5,6 +5,86 @@ import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
 import ChatInterface from "@/components/chat-interface";
 
+type ScrollHintProps = { onDone?: () => void; arrowDrawn: boolean };
+function ScrollHint({ onDone, arrowDrawn }: ScrollHintProps) {
+  const words = SCROLL_PROMPT.toLowerCase().split(" ");
+  const container = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08, delayChildren: 0.9 },
+    },
+  };
+  const child = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const },
+    },
+  };
+
+  return (
+    <motion.div
+      className="pointer-events-none select-none absolute z-20 flex flex-col items-end text-right right-3 top-[30%] w-[120px] md:right-6 lg:right-auto lg:left-2 lg:top-1/2 lg:w-[150px] lg:items-start lg:text-left"
+      style={{ rotate: -4, color: "rgba(255,255,255,0.55)", gap: 6 }}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, delay: 0.75, ease: [0.22, 1, 0.36, 1] as const }}
+    >
+      <motion.span
+        style={{
+          fontFamily: "var(--gic-font-comic)",
+          fontSize: "clamp(0.95rem, 1.5vw, 1.25rem)",
+          lineHeight: 1.25,
+          textShadow: "0 1px 6px rgba(0,0,0,0.5)",
+          minHeight: "2.6em",
+        }}
+        variants={container}
+        initial="hidden"
+        animate="visible"
+        onAnimationComplete={onDone}
+      >
+        {words.map((word, i) => (
+          <motion.span
+            key={i}
+            variants={child}
+            style={{ display: "inline-block", marginRight: "0.28em" }}
+          >
+            {word}
+          </motion.span>
+        ))}
+      </motion.span>
+      <svg
+        viewBox="0 0 54 78"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="block w-[20px] h-[29px] lg:w-[22px] lg:h-[33px] mr-3 lg:mr-0 lg:ml-3"
+      >
+        <motion.path
+          d="M17 4 C17 36, 38 38, 38 68"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={arrowDrawn ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
+          transition={{ pathLength: { duration: 0.55, ease: "easeOut" }, opacity: { duration: 0.2 } }}
+        />
+        <motion.path
+          d="M29 60 L38 69 L47 60"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={arrowDrawn ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
+          transition={{ pathLength: { duration: 0.35, ease: "easeOut", delay: 0.45 }, opacity: { duration: 0.2, delay: 0.45 } }}
+        />
+      </svg>
+    </motion.div>
+  );
+}
+
 /* ═══════════════════════════════════════════
    Hero V2 — Night Sky / GIC style
    ═══════════════════════════════════════════ */
@@ -48,6 +128,7 @@ export default function HeroV2({
 }: HeroV2Props) {
   const heroRef = useRef<HTMLElement>(null);
   const [devBorder, setDevBorder] = useState(false);
+  const [scrollHintDone, setScrollHintDone] = useState(false);
 
   // Remonta la terminal al cruzar el breakpoint lg: el offset de drag de
   // framer-motion vive como transform inline y sobrevive al cambio de CSS
@@ -100,7 +181,7 @@ export default function HeroV2({
           ([a, b]) => Number(a) * Number(b)
         )
       : baseGifOpacity;
-  const assetZoom = 1.4;
+  const assetZoom = 1.65;
   const gifScale = useTransform(smooth, [0, 1], embed ? [assetZoom, assetZoom] : [assetZoom, 0.93 * assetZoom]);
 
   return (
@@ -154,7 +235,7 @@ export default function HeroV2({
             initial={{ opacity: embed ? 1 : 0, y: embed ? 0 : 16 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.75, delay: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
-            className={`relative lg:mr-[15%] w-full h-full min-h-[50vh] lg:min-h-[min(83.6vh,665px)] pt-0 lg:pt-16 mt-[-3vh] lg:mt-[60px] overflow-hidden pointer-events-none origin-top rounded-lg ${devBorder ? "border-2 border-rose-400" : ""}`}
+            className={`relative lg:mr-[15%] w-full h-full min-h-[56vh] lg:min-h-[min(88vh,700px)] pt-0 lg:pt-16 mt-[-3vh] lg:mt-[60px] overflow-hidden pointer-events-none origin-top rounded-lg ${devBorder ? "border-2 border-rose-400" : ""}`}
             style={{ opacity: gifOpacity, scale: gifScale }}
             aria-hidden
           >
@@ -165,7 +246,7 @@ export default function HeroV2({
               priority
               unoptimized
               sizes="(min-width: 1400px) min(540px, 46vw), 0px"
-              className="object-contain object-center"
+              className="object-contain object-[center_18%] lg:object-center"
             />
             {/* ── Dev: head divider line ── */}
             {devBorder && (
@@ -248,45 +329,8 @@ export default function HeroV2({
           </div>
         </div>
 
-        {/* ── Scroll hint — a scribbled comic aside beside the art ── */}
-        <motion.div
-          className="pointer-events-none select-none absolute z-20 flex flex-col items-end text-right right-3 top-[30%] w-[110px] md:right-6 lg:right-auto lg:left-2 lg:top-1/2 lg:w-[130px] lg:items-start lg:text-left"
-          style={{ rotate: -4, color: "rgba(255,255,255,0.55)", gap: 4 }}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.75, ease: [0.22, 1, 0.36, 1] as const }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--gic-font-comic)",
-              fontSize: "clamp(0.74rem, 1.1vw, 0.86rem)",
-              lineHeight: 1.3,
-              textShadow: "0 1px 6px rgba(0,0,0,0.5)",
-            }}
-          >
-            {SCROLL_PROMPT.toLowerCase()}
-          </span>
-          <svg
-            viewBox="0 0 54 78"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="block w-[16px] h-[23px] mr-3 lg:mr-0 lg:ml-3"
-          >
-            <path
-              d="M17 4 C17 36, 38 38, 38 68"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M29 60 L38 69 L47 60"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </motion.div>
+        {/* ── Scroll hint — scrambled text + drawn arrow ── */}
+        <ScrollHint onDone={() => setScrollHintDone(true)} arrowDrawn={scrollHintDone} />
       </motion.div>
 
 
@@ -298,7 +342,7 @@ export default function HeroV2({
         dragMomentum={false}
         dragConstraints={heroRef}
         dragElastic={0}
-        className="absolute z-30 cursor-grab active:cursor-grabbing comic-terminal bottom-0 lg:bottom-auto lg:top-[22%] left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto lg:right-[8%] w-[96vw] lg:w-[min(546px,44.1vw)]"
+        className="absolute z-30 cursor-grab active:cursor-grabbing comic-terminal bottom-[6.5%] lg:bottom-auto lg:top-[22%] left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto lg:right-[8%] w-[96vw] lg:w-[min(546px,44.1vw)]"
         style={{
           opacity: contentOpacity,
           fontFamily: "var(--font-space-mono, ui-monospace, monospace)",
