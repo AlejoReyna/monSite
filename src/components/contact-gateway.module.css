@@ -349,6 +349,24 @@
   color: #84cc16;
 }
 
+/* ── Avión de papel pixelado: overlay centrado en la terminal ── */
+.planeOverlay {
+  align-items: center;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.plane {
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.55));
+  height: auto;
+  image-rendering: pixelated;
+  width: clamp(3.5rem, 12vw, 6rem);
+}
+
 .error {
   color: #f87171;
   font-family: var(--px-font);

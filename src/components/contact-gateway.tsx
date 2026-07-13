@@ -11,8 +11,8 @@ import styles from "./contact-gateway.module.css";
    Pega tu access key aquí o defínela en .env.local como
    NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ──────────────────────────────────────────────────────────────────────────── */
-const WEB3FORMS_ACCESS_KEY =
-  process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY ?? "YOUR_WEB3FORMS_ACCESS_KEY_HERE";
+const WEB3FORMS_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY ?? "741c3f3b-5f5c-47e9-8dc4-3cf958848b98";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 
 const MESSAGE_MAX = 1000;
@@ -97,6 +97,61 @@ function PixelCloud({ className, stretch = 0 }: { className?: string; stretch?: 
   );
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Avión de papel pixelado — aparece centrado en la terminal y vuela hacia
+   arriba-derecha cuando el mensaje se confirma enviado.
+   ──────────────────────────────────────────────────────────────────────────── */
+const PLANE_ROWS = [
+  "..........X",
+  ".........XX",
+  "........XXX",
+  ".......XXXX",
+  "......XXXXX",
+  ".....XXXXXX",
+  "....XXXXXXX",
+  "...XXXXXXXX",
+  "..XXXXXXXXX",
+  ".XXXXXXXXXX",
+  "XXXXXXXXXXX",
+  "....XXXXXXX",
+  ".....XXXXXX",
+  "......XXXXX",
+  ".......XXXX",
+  "........XXX",
+  ".........XX",
+  "..........X",
+];
+
+function PixelPaperPlane({ className }: { className?: string }) {
+  const width = PLANE_ROWS[0]?.length ?? 0;
+  const height = PLANE_ROWS.length;
+  return (
+    <svg
+      className={className}
+      viewBox={`0 0 ${width} ${height}`}
+      style={{ aspectRatio: `${width} / ${height}`, imageRendering: "pixelated" }}
+      role="presentation"
+      aria-hidden="true"
+    >
+      {PLANE_ROWS.flatMap((row, y) =>
+        Array.from(row).map((cell, x) =>
+          cell === "." ? null : (
+            <rect
+              key={`${x}-${y}`}
+              x={x}
+              y={y}
+              width={1}
+              height={1}
+              fill="#ffffff"
+              shapeRendering="crispEdges"
+            />
+          )
+        )
+      )}
+    </svg>
+  );
+}
+
 const SOCIAL_LINKS = [
   {
     id: "github",
@@ -154,7 +209,7 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
+          access_key: WEB3FORMS_PUBLIC_KEY,
           subject: `New message from alexisreyna.dev — ${form.name.trim()}`,
           from_name: "alexisreyna.dev",
           name: form.name.trim(),
@@ -369,6 +424,36 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
               )}
             </AnimatePresence>
           </form>
+
+          {/* Paper plane fly-out animation — only after confirmed send */}
+          <AnimatePresence>
+            {status === "success" && (
+              <motion.div
+                className={styles.planeOverlay}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.div
+                  initial={{ x: 0, y: 0, scale: 0.4, opacity: 0, rotate: -15 }}
+                  animate={{
+                    x: [0, 40, 90, 160],
+                    y: [0, -40, -110, -200],
+                    scale: [0.4, 0.9, 1.1, 0.85],
+                    opacity: [0, 1, 1, 0],
+                    rotate: [-15, -35, -45, -55],
+                  }}
+                  transition={{
+                    duration: 1.4,
+                    ease: "easeOut",
+                    times: [0, 0.25, 0.6, 1],
+                  }}
+                >
+                  <PixelPaperPlane className={styles.plane} />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         <motion.div
