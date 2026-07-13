@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactElement } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./wedding-service-gateway.module.css";
+import AndreaInlineInvitation from "@/components/weddings/inline-andrea";
+import CindyInlineInvitation from "@/components/weddings/inline-cindy";
 
 const previewProjects = [
   {
     id: "andrea" as const,
-    href: "https://aldoyandrea.com",
-    label: "View deploy",
+    label: "View invitation",
     story: {
       title: "Andrea & Aldo",
       spec: "Production SPA — 2025",
@@ -17,8 +18,7 @@ const previewProjects = [
   },
   {
     id: "cindy" as const,
-    href: "https://cindyjorge.com",
-    label: "REVEALING IN AUGUST",
+    label: "View invitation",
     story: {
       title: "Cindy & Jorge",
       spec: "Interactive Core — 2026",
@@ -48,23 +48,25 @@ const formatNumber = (value: number) => value.toString().padStart(2, "0");
 
 function AndreaHeroPreview() {
   return (
-    <div className={styles.heroShell}>
-      <div className={styles.andreaOverlay} />
-      <div className={styles.andreaTopOverlay} />
+    <div className={`${styles.heroFull} ${styles.andreaFull}`}>
+      <div className={styles.heroShell}>
+        <div className={styles.andreaOverlay} />
+        <div className={styles.andreaTopOverlay} />
 
-      <div className={styles.andreaContent}>
-        <div className={styles.andreaDate}>SÁBADO 18 DE OCTUBRE</div>
-        <div className={styles.andreaNames}>
-          <h3>ANDREA</h3>
-          <span>&amp;</span>
-          <h3>ALDO</h3>
+        <div className={styles.andreaContent}>
+          <div className={styles.andreaDate}>SÁBADO 18 DE OCTUBRE</div>
+          <div className={styles.andreaNames}>
+            <h3>ANDREA</h3>
+            <span>&amp;</span>
+            <h3>ALDO</h3>
+          </div>
+          <p className={styles.andreaKicker}>ACOMPÁÑANOS A CELEBRAR</p>
+          <span className={styles.andreaButton}>CONFIRMAR ASISTENCIA</span>
         </div>
-        <p className={styles.andreaKicker}>ACOMPÁÑANOS A CELEBRAR</p>
-        <span className={styles.andreaButton}>CONFIRMAR ASISTENCIA</span>
-      </div>
 
-      <div className={styles.andreaTimer}>
-        <Countdown targetDate="2025-10-18T00:00:00" variant="andrea" />
+        <div className={styles.andreaTimer}>
+          <Countdown targetDate="2025-10-18T00:00:00" variant="andrea" />
+        </div>
       </div>
     </div>
   );
@@ -75,38 +77,40 @@ function CindyHeroPreview() {
   const jorge = "Jorge".split("");
 
   return (
-    <div className={styles.heroShell}>
-      <div className={styles.cindyVisualShell}>
-        <div className={styles.cindyOverlay} />
-      </div>
-
-      <div className={styles.cindyContent}>
-        <div className={styles.cindyTopSpacer} />
-        <div className={styles.cindyCenterGroup}>
-          <div>
-            <h3 className={styles.cindyNamesText}>
-              {cindy.map((char, index) => (
-                <span key={`cindy-${index}`}>{char}</span>
-              ))}
-            </h3>
-            <p className={styles.cindyAmpersand}>&amp;</p>
-            <h3 className={styles.cindyNamesText}>
-              {jorge.map((char, index) => (
-                <span key={`jorge-${index}`}>{char}</span>
-              ))}
-            </h3>
-          </div>
-          <div className={styles.cindyDate}>22 de agosto de 2026</div>
+    <div className={`${styles.heroFull} ${styles.cindyFull}`}>
+      <div className={styles.heroShell}>
+        <div className={styles.cindyVisualShell}>
+          <div className={styles.cindyOverlay} />
         </div>
 
-        <div className={styles.cindyBottomGroup}>
-          <span className={styles.cindyButton}>
-            <span className={styles.cindyButtonBorder} />
-            <span className={styles.cindyButtonBg} />
-            <span className={styles.cindyButtonLabel}>Confirma Tu Asistencia</span>
-          </span>
-          <div className={styles.cindyTimer}>
-            <Countdown targetDate="2026-08-22T00:00:00" variant="cindy" />
+        <div className={styles.cindyContent}>
+          <div className={styles.cindyTopSpacer} />
+          <div className={styles.cindyCenterGroup}>
+            <div>
+              <h3 className={styles.cindyNamesText}>
+                {cindy.map((char, index) => (
+                  <span key={`cindy-${index}`}>{char}</span>
+                ))}
+              </h3>
+              <p className={styles.cindyAmpersand}>&amp;</p>
+              <h3 className={styles.cindyNamesText}>
+                {jorge.map((char, index) => (
+                  <span key={`jorge-${index}`}>{char}</span>
+                ))}
+              </h3>
+            </div>
+            <div className={styles.cindyDate}>22 de agosto de 2026</div>
+          </div>
+
+          <div className={styles.cindyBottomGroup}>
+            <span className={styles.cindyButton}>
+              <span className={styles.cindyButtonBorder} />
+              <span className={styles.cindyButtonBg} />
+              <span className={styles.cindyButtonLabel}>Confirma Tu Asistencia</span>
+            </span>
+            <div className={styles.cindyTimer}>
+              <Countdown targetDate="2026-08-22T00:00:00" variant="cindy" />
+            </div>
           </div>
         </div>
       </div>
@@ -197,77 +201,88 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
       draggedRef.current = false;
       return;
     }
-    setExpanded((prev) => (prev === null ? id : prev));
+    setExpanded(id);
   };
 
   const columnGrow = (id: "andrea" | "cindy") =>
     expanded === null ? 1 : expanded === id ? 1 : 0;
+
+  // Escribe una línea del título letra a letra cuando el panel se activa.
+  const renderTypedLine = (text: string, baseDelayMs: number) =>
+    text.split("").map((char, index) => (
+      <span
+        key={index}
+        aria-hidden="true"
+        className={`${styles.typeChar}${isActive ? ` ${styles.typeCharOn}` : ""}`}
+        style={{ animationDelay: `${baseDelayMs + index * 45}ms` }}
+      >
+        {char === " " ? "\u00A0" : char}
+      </span>
+    ));
 
   const renderColumn = (
     id: "andrea" | "cindy",
     colClass: string,
     project: (typeof previewProjects)[number],
     Preview: () => ReactElement,
+    Invitation: () => ReactElement,
     wideHint = false
   ) => {
     const open = expanded === id;
+    const canFocus = expanded === null || open;
     return (
       <motion.div
         className={`${styles.previewCol} ${colClass}${open ? ` ${styles.previewColOpen}` : ""}`}
         style={{ flexBasis: 0, minWidth: 0 }}
         animate={{ flexGrow: columnGrow(id) }}
         transition={EXPAND_TRANSITION}
-        role="button"
-        tabIndex={expanded === null || open ? 0 : -1}
-        aria-label={`${project.story.title} — abrir invitación`}
-        onClick={() => handleColumnActivate(id)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            handleColumnActivate(id);
-          }
-        }}
+        role={open ? undefined : "button"}
+        tabIndex={canFocus ? 0 : -1}
+        aria-label={open ? undefined : `${project.story.title} — abrir invitación`}
+        onClick={open ? undefined : () => handleColumnActivate(id)}
+        onKeyDown={
+          open
+            ? undefined
+            : (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleColumnActivate(id);
+                }
+              }
+        }
       >
         <div className={styles.innerPreviewWrapper}>
-          <Preview />
-          <motion.div
-            className={styles.colFooter}
-            animate={{ opacity: expanded ? 0 : 1 }}
-            transition={{ duration: 0.3 }}
-            style={{ pointerEvents: "none" }}
-          >
-            <span
-              className={`${styles.colHint} ${styles.colHintAction}${
-                wideHint ? ` ${styles.colHintActionWide}` : ""
-              }`}
-            >
-              {project.label}
-            </span>
-          </motion.div>
-        </div>
-
-        {/* CTA visible solo cuando la columna está expandida */}
-        <AnimatePresence>
-          {open && (
+          {open ? (
             <motion.div
-              className={styles.expandOverlay}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 16 }}
-              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+              className={styles.invitationScroller}
+              data-carousel-scrollable="true"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className={styles.expandSpec}>{project.story.spec}</span>
-              <a
-                className={styles.expandCta}
-                href={project.href}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Ver invitación <span aria-hidden="true">→</span>
-              </a>
+              <Invitation />
             </motion.div>
+          ) : (
+            <>
+              <Preview />
+              <motion.div
+                className={styles.colFooter}
+                animate={{ opacity: expanded ? 0 : 1 }}
+                transition={{ duration: 0.3 }}
+                style={{ pointerEvents: "none" }}
+              >
+                <span
+                  className={`${styles.colHint} ${styles.colHintAction}${
+                    wideHint ? ` ${styles.colHintActionWide}` : ""
+                  }`}
+                >
+                  {project.label}
+                </span>
+              </motion.div>
+            </>
           )}
-        </AnimatePresence>
+        </div>
       </motion.div>
     );
   };
@@ -287,8 +302,8 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
         transition={{ duration: 1, delay: 0.1 }}
       >
         <div className={styles.previewGrid}>
-          {renderColumn("andrea", styles.andreaCol, previewProjects[0], AndreaHeroPreview)}
-          {renderColumn("cindy", styles.cindyCol, previewProjects[1], CindyHeroPreview, true)}
+          {renderColumn("andrea", styles.andreaCol, previewProjects[0], AndreaHeroPreview, AndreaInlineInvitation)}
+          {renderColumn("cindy", styles.cindyCol, previewProjects[1], CindyHeroPreview, CindyInlineInvitation, true)}
         </div>
       </motion.div>
 
@@ -310,12 +325,12 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
         )}
       </AnimatePresence>
 
-      {/* FOREGROUND CENTRAL: se oculta al expandir una columna */}
+      {/* Copy central — se oculta al expandir una columna */}
       <motion.div
         className={styles.foreground}
-        initial={{ clipPath: "circle(0% at 50% 50%)" }}
-        animate={isActive ? { clipPath: "circle(150% at 50% 50%)" } : { clipPath: "circle(0% at 50% 50%)" }}
-        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isActive && !expanded ? 1 : 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         style={{ pointerEvents: "none" }}
       >
         <div className={styles.foregroundInner} style={{ pointerEvents: expanded ? "none" : "auto" }}>
@@ -325,12 +340,16 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
             transition={{ duration: 0.35, ease: "easeInOut" }}
           >
             <h2 id="wedding-service-title" className={styles.title}>
-              Wedding websites, beautifully made.
+              <span className={styles.titleLine} aria-label="Two years in a row">
+                {renderTypedLine("Two years in a row", 350)}
+              </span>
+              <span className={`${styles.titleScript}${isActive ? ` ${styles.titleScriptOn}` : ""}`}>
+                taking part in
+              </span>
+              <span className={styles.titleLine} aria-label="unforgettable moments">
+                {renderTypedLine("unforgettable moments", 1750)}
+              </span>
             </h2>
-            <p className={styles.engineeringSubtitle}>
-              Fluidly animated Single Page Applications featuring high-performance image optimization & strict mobile-first UI architecture.
-            </p>
-
             <p className={styles.swipeHint}>Swipe or tap to view each invitation</p>
           </motion.div>
         </div>
