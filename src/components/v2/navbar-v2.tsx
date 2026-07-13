@@ -236,8 +236,8 @@ export default function NavbarV2() {
 
         body.is-wedding-panel-active .nav-v2-shell,
         body.is-wedding-panel-active .nav-v2-shell * {
-          font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace !important;
-          letter-spacing: 0 !important;
+          font-family: var(--font-cormorant), Georgia, 'Times New Roman', serif !important;
+          letter-spacing: 0.08em !important;
         }
 
         body.is-wedding-panel-active .nav-v2-shell {
@@ -258,6 +258,13 @@ export default function NavbarV2() {
         body.is-wedding-panel-active .nav-contact-pill {
           background: rgba(0, 0, 0, 0.28) !important;
           border-color: rgba(255, 255, 255, 0.38) !important;
+        }
+
+        /* Cuando una invitación de boda está expandida, ocultamos la navbar del portfolio */
+        body.is-wedding-preview-active .nav-v2-shell {
+          opacity: 0 !important;
+          pointer-events: none !important;
+          transform: translateY(-110%) !important;
         }
 
         /* Panel claro de invitación: texto oscuro serif sobre marfil */

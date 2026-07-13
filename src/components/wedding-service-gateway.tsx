@@ -164,6 +164,12 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
     if (!isActive) setExpanded(null);
   }, [isActive]);
 
+  // Ocultamos la navbar principal del portfolio mientras una invitación está expandida.
+  useEffect(() => {
+    document.body.classList.toggle("is-wedding-preview-active", expanded !== null);
+    return () => document.body.classList.remove("is-wedding-preview-active");
+  }, [expanded]);
+
   // ── Swipe / drag horizontal (Pointer Events: cubre touch y ratón) ──────
   const applySwipe = (dir: "left" | "right") => {
     setExpanded((prev) => {
@@ -318,9 +324,9 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
             transition={{ duration: 0.35 }}
-            aria-label="Volver a las dos invitaciones"
+            aria-label="Back to the two invitations"
           >
-            <span aria-hidden="true">‹</span> Volver
+            <span aria-hidden="true">‹</span> Back
           </motion.button>
         )}
       </AnimatePresence>
