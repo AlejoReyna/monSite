@@ -137,10 +137,22 @@
 }
 
 .deployLogo {
+  animation: bnbLogoFloat 3s ease-in-out infinite;
   display: block;
   height: clamp(1.4rem, 3.6vw, 2.1rem);
   object-fit: contain;
   width: auto;
+}
+
+@keyframes bnbLogoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deployLogo {
+    animation: none;
+  }
 }
 
 .wordmark {

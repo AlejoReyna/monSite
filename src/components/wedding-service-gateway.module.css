@@ -985,11 +985,12 @@
   }
 
   .titleLine {
-    font-size: clamp(1.2rem, 5.6vw, 1.75rem);
-    letter-spacing: 0.14em;
+    font-size: clamp(0.95rem, 4.8vw, 1.75rem);
+    letter-spacing: clamp(0.08em, 1.4vw, 0.14em);
+    white-space: nowrap;
   }
 
   .titleScript {
-    font-size: clamp(1.35rem, 5.4vw, 1.9rem);
+    font-size: clamp(1.15rem, 4.6vw, 1.9rem);
   }
 }

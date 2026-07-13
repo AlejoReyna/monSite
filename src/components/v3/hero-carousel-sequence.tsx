@@ -221,7 +221,7 @@ export default function HeroCarouselSequence() {
       const currentPanel = activePanelRef.current;
       isAnimatingRef.current = true;
       setNavFontMode(
-        nextPanel === 1
+        nextPanel === 1 || nextPanel === 3
           ? "cafeteria"
           : nextPanel === 4
             ? "wedding"

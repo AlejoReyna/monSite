@@ -8,13 +8,6 @@ import styles from "./plebes-project-gateway.module.css";
 const simpleIcon = (slug: string, color = "fff7ff") =>
   `https://cdn.simpleicons.org/${slug}/${color}`;
 
-const techStack = [
-  { label: "ICP", logo: simpleIcon("internetcomputer") },
-  { label: "Motoko", logo: "/motoko.svg" },
-  { label: "Web3", logo: simpleIcon("web3dotjs") },
-  { label: "Figma", logo: simpleIcon("figma") },
-] as const;
-
 const contributions = [
   {
     key: "homepage",
@@ -80,11 +73,6 @@ export default function PlebesProjectGateway({ isActive = false }: { isActive?: 
     show: { opacity: 1, y: 0, transition: { duration: 0.58, ease: [0.16, 1, 0.3, 1] as const } },
   };
 
-  const logoGroup = {
-    hidden: { opacity: 1 },
-    show: { opacity: 1, transition: { staggerChildren: 0.09, delayChildren: 0.15 } },
-  };
-
   const badgeReveal = {
     hidden: { clipPath: "inset(0 100% 0 0)" },
     show: {
@@ -104,7 +92,7 @@ export default function PlebesProjectGateway({ isActive = false }: { isActive?: 
   };
 
   return (
-    <section className={styles.screen} aria-labelledby="plebes-project-title" data-carousel-scrollable="true">
+    <section className={styles.screen} aria-labelledby="plebes-project-title">
       <motion.div
         className={styles.deployBadge}
         variants={badgeReveal}
@@ -139,81 +127,64 @@ export default function PlebesProjectGateway({ isActive = false }: { isActive?: 
         </span>
       </motion.h2>
 
-      <div className={styles.inner}>
-        <motion.div 
-          className={styles.copy}
-          variants={container}
-          initial="hidden"
-          animate={isActive ? "show" : "hidden"}
-        >
-          <motion.h2 id="plebes-project-title" className={styles.title} variants={item}>
-            {isEs ? "desarrollador del proyecto" : "developer for the"}{" "}
-            <img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" />
-            {!isEs && " project"}
-          </motion.h2>
-        </motion.div>
+      <div className={styles.scrollBody} data-carousel-scrollable="true">
+        <div className={styles.inner}>
+          <motion.div
+            className={styles.copy}
+            variants={container}
+            initial="hidden"
+            animate={isActive ? "show" : "hidden"}
+          >
+            <motion.h2 id="plebes-project-title" className={styles.title} variants={item}>
+              {isEs ? "desarrollador del proyecto" : "developer for the"}{" "}
+              <img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" />
+              {!isEs && " project"}
+            </motion.h2>
+          </motion.div>
 
-        <motion.div 
-          className={styles.media}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={isActive ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
-          transition={{ duration: 1, delay: 0.4 }}
-        >
-          <img src="/mon_frame.png" alt="Mon frame artwork for the Plebes project" />
-        </motion.div>
+          <motion.div
+            className={styles.media}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={isActive ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
+            transition={{ duration: 1, delay: 0.4 }}
+          >
+            <img src="/mon_frame.png" alt="Mon frame artwork for the Plebes project" />
+          </motion.div>
 
-        <motion.div
-          className={styles.details}
-          variants={container}
-          initial="hidden"
-          animate={isActive ? "show" : "hidden"}
-        >
-          <motion.p className={styles.lead} variants={item}>
-            {isEs
-              ? "Como Desarrollador Frontend, rediseñé la homepage de Plebes, construí un flujo de depósito de 4 pasos e integré conversión ckBTC para esta DAO de NFTs en vivo sobre Internet Computer Protocol."
-              : "As a Frontend Developer, I redesigned the Plebes homepage, built a 4-step deposit flow, and worked on ckBTC multichain integration for this live NFT DAO on Internet Computer Protocol."}
-          </motion.p>
-          <motion.a className={styles.cta} href="https://plebes.xyz" target="_blank" rel="noreferrer" variants={item}>
-            <span>{isEs ? "Visitar plebes.xyz" : "Visit plebes.xyz"}</span>
-            <ExternalLink aria-hidden="true" size={16} strokeWidth={2.4} />
-          </motion.a>
-        </motion.div>
+          <motion.div
+            className={styles.details}
+            variants={container}
+            initial="hidden"
+            animate={isActive ? "show" : "hidden"}
+          >
+            <motion.p className={styles.lead} variants={item}>
+              {isEs
+                ? "Como Desarrollador Frontend, rediseñé la homepage de Plebes, construí un flujo de depósito de 4 pasos e integré conversión ckBTC para esta DAO de NFTs en vivo sobre Internet Computer Protocol."
+                : "As a Frontend Developer, I redesigned the Plebes homepage, built a 4-step deposit flow, and worked on ckBTC multichain integration for this live NFT DAO on Internet Computer Protocol."}
+            </motion.p>
+            <motion.a className={styles.cta} href="https://plebes.xyz" target="_blank" rel="noreferrer" variants={item}>
+              <span>{isEs ? "Visitar plebes.xyz" : "Visit plebes.xyz"}</span>
+              <ExternalLink aria-hidden="true" size={16} strokeWidth={2.4} />
+            </motion.a>
+          </motion.div>
 
-        <motion.div
-          className={styles.contributionGrid}
-          variants={grid}
-          initial="hidden"
-          animate={isActive ? "show" : "hidden"}
-          aria-label={isEs ? "Contribuciones en Plebes" : "Plebes contributions"}
-        >
-          {contributions.map((contribution, index) => (
-            <motion.article className={styles.contributionTile} variants={tile} key={contribution.key}>
-              <span className={styles.tileIndex}>{String(index + 1).padStart(2, "0")}</span>
-              <h3>{isEs ? contribution.title.es : contribution.title.en}</h3>
-              <p>{isEs ? contribution.body.es : contribution.body.en}</p>
-            </motion.article>
-          ))}
-        </motion.div>
+          <motion.div
+            className={styles.contributionGrid}
+            variants={grid}
+            initial="hidden"
+            animate={isActive ? "show" : "hidden"}
+            aria-label={isEs ? "Contribuciones en Plebes" : "Plebes contributions"}
+          >
+            {contributions.map((contribution, index) => (
+              <motion.article className={styles.contributionTile} variants={tile} key={contribution.key}>
+                <span className={styles.tileIndex}>{String(index + 1).padStart(2, "0")}</span>
+                <h3>{isEs ? contribution.title.es : contribution.title.en}</h3>
+                <p>{isEs ? contribution.body.es : contribution.body.en}</p>
+              </motion.article>
+            ))}
+          </motion.div>
 
-        <motion.ul
-          className={styles.techRow}
-          variants={logoGroup}
-          initial="hidden"
-          animate={isActive ? "show" : "hidden"}
-          aria-label="Plebes tech stack"
-        >
-          {techStack.map((tech) => (
-            <motion.li key={tech.label} className={styles.techChip} variants={logoItem}>
-              <img
-                className={styles.techLogo}
-                src={tech.logo}
-                alt={tech.label}
-                title={tech.label}
-                loading="lazy"
-              />
-            </motion.li>
-          ))}
-        </motion.ul>
+        </div>
       </div>
     </section>
   );
