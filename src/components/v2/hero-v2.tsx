@@ -250,7 +250,7 @@ export default function HeroV2({
 
         {/* ── Credly badge ── */}
         <motion.div
-          className="absolute z-20 right-3 top-[22%] w-[90px] md:right-6 lg:left-2 lg:right-auto lg:top-[38%] origin-top-right lg:origin-top-left"
+          className="absolute z-20 right-3 top-[14%] w-[72px] md:right-6 md:w-[80px] lg:left-2 lg:right-auto lg:top-[38%] lg:w-[90px] origin-top-right lg:origin-top-left"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
