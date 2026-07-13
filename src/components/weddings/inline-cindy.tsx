@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useRef } from "react";
 import "@/weddings/cindy/globals.css";
 import { InlineWeddingProvider } from "@/weddings/shared/inline-context";
 import { ThemeProvider } from "@/weddings/cindy/app/context/ThemeContext";
@@ -14,36 +15,129 @@ import GiftEnvelopeBannerSection from "@/weddings/cindy/app/components/GiftEnvel
 import HotelsSection from "@/weddings/cindy/app/components/HotelsSection";
 import RSVPSection from "@/weddings/cindy/app/components/RSVPSection";
 import MinimalistFooter from "@/weddings/cindy/app/components/Footer";
+import { useNotchColor } from "@/weddings/cindy/hooks/useNotchColor";
 
 export default function CindyInlineInvitation() {
+  const heroRef = useRef<HTMLElement>(null);
+  const galleryRef = useRef<HTMLElement>(null);
+  const parentsRef = useRef<HTMLElement>(null);
+  const itineraryRef = useRef<HTMLElement>(null);
+  const locationRef = useRef<HTMLElement>(null);
+  const dressCodeRef = useRef<HTMLElement>(null);
+  const giftRef = useRef<HTMLElement>(null);
+  const hotelsRef = useRef<HTMLElement>(null);
+  const rsvpRef = useRef<HTMLElement>(null);
+
+  const notchRefs = useMemo(
+    () => [
+      heroRef,
+      galleryRef,
+      parentsRef,
+      itineraryRef,
+      locationRef,
+      dressCodeRef,
+      giftRef,
+      hotelsRef,
+      rsvpRef,
+    ],
+    []
+  );
+  const notchColors = useMemo(
+    () => [
+      "#9b9b9b",
+      "#edeae4",
+      "#f9f8f4",
+      "#f8f6f3",
+      "#f3ebe2",
+      "#f3ebe2",
+      "#fefefe",
+      "#ffffff",
+      "#7b7774",
+    ],
+    []
+  );
+
+  useNotchColor({
+    refs: notchRefs,
+    colors: notchColors,
+    defaultColor: "#ffffff",
+  });
+
   return (
     <div className="wc-scope">
       <InlineWeddingProvider>
         <ThemeProvider>
           <Navbar visible />
-          <HeroSection entered immediate revealed />
-          <section id="galeria">
+          <section ref={heroRef}>
+            <div
+              aria-hidden="true"
+              className="safari-tint-sentinel"
+              style={{ backgroundColor: "#9b9b9b" }}
+            />
+            <HeroSection entered immediate revealed />
+          </section>
+          <section ref={galleryRef} id="galeria">
+            <div
+              aria-hidden="true"
+              className="safari-tint-sentinel"
+              style={{ backgroundColor: "#edeae4" }}
+            />
             <Gallery3D />
           </section>
-          <section id="padres">
+          <section ref={parentsRef} id="padres">
+            <div
+              aria-hidden="true"
+              className="safari-tint-sentinel"
+              style={{ backgroundColor: "#f9f8f4" }}
+            />
             <ParentsSection />
           </section>
-          <section id="itinerario">
+          <section ref={itineraryRef} id="itinerario">
+            <div
+              aria-hidden="true"
+              className="safari-tint-sentinel"
+              style={{ backgroundColor: "#f8f6f3" }}
+            />
             <ItinerarySection />
           </section>
-          <section id="ubicacion">
+          <section ref={locationRef} id="ubicacion">
+            <div
+              aria-hidden="true"
+              className="safari-tint-sentinel"
+              style={{ backgroundColor: "#f3ebe2" }}
+            />
             <LocationSection />
           </section>
-          <section id="dresscode">
+          <section ref={dressCodeRef} id="dresscode">
+            <div
+              aria-hidden="true"
+              className="safari-tint-sentinel"
+              style={{ backgroundColor: "#f3ebe2" }}
+            />
             <DressCodeSection />
           </section>
-          <section id="regalos">
+          <section ref={giftRef} id="regalos">
+            <div
+              aria-hidden="true"
+              className="safari-tint-sentinel"
+              style={{ backgroundColor: "#fefefe" }}
+            />
             <GiftEnvelopeBannerSection />
           </section>
-          <section id="hoteles">
+          <section ref={hotelsRef} id="hoteles">
+            <div
+              aria-hidden="true"
+              className="safari-tint-sentinel"
+              style={{ backgroundColor: "#ffffff" }}
+            />
             <HotelsSection />
           </section>
-          <section id="rsvp">
+          <section ref={rsvpRef} id="rsvp">
+            <div
+              aria-hidden="true"
+              className="safari-tint-sentinel"
+              style={{ backgroundColor: "#7b7774" }}
+            />
             <RSVPSection />
           </section>
           <div id="footer">

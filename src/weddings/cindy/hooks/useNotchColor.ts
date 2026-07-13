@@ -1,6 +1,5 @@
 "use client";
 import { useLayoutEffect, RefObject } from 'react';
-import { useInlineWedding } from '@/weddings/shared/inline-context';
 
 interface UseNotchColorProps {
   /** Ordered list of section refs. Priority is given to the first intersecting one. */
@@ -18,9 +17,6 @@ export const useNotchColor = ({
   defaultColor = '#ffffff',
   isNightMode = false,
 }: UseNotchColorProps): void => {
-  const inline = useInlineWedding();
-  if (inline) return;
-
   useLayoutEffect(() => {
     // ── Helpers ─────────────────────────────────────────────────────────────
 
@@ -124,6 +120,14 @@ export const useNotchColor = ({
 
     const visualViewport = window.visualViewport;
 
+    // When embedded in the portfolio scroller, listen to that container instead
+    // of the window, because the invitation scrolls inside a nested overflow
+    // container rather than the document body.
+    const scroller =
+      refs[0]?.current?.closest<HTMLElement>('[data-carousel-scrollable="true"]') ??
+      null;
+    const scrollTarget = scroller ?? window;
+
     applyColor(defaultColor);
     scheduleUpdate();
 
@@ -131,7 +135,7 @@ export const useNotchColor = ({
       window.setTimeout(scheduleUpdate, delay),
     );
 
-    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    scrollTarget.addEventListener('scroll', scheduleUpdate, { passive: true });
     window.addEventListener('resize', scheduleUpdate);
     window.addEventListener('orientationchange', scheduleUpdate);
     window.addEventListener('pageshow', scheduleUpdate);
@@ -148,7 +152,7 @@ export const useNotchColor = ({
       }
 
       settleTimers.forEach((timerId) => window.clearTimeout(timerId));
-      window.removeEventListener('scroll', scheduleUpdate);
+      scrollTarget.removeEventListener('scroll', scheduleUpdate);
       window.removeEventListener('resize', scheduleUpdate);
       window.removeEventListener('orientationchange', scheduleUpdate);
       window.removeEventListener('pageshow', scheduleUpdate);

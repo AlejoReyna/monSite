@@ -248,6 +248,30 @@ export default function HeroV2({
           </div>
         </div>
 
+        {/* ── Credly badge ── */}
+        <motion.div
+          className="absolute z-20 right-3 top-[14%] w-[72px] md:right-6 md:w-[80px] lg:left-2 lg:right-auto lg:top-[38%] lg:w-[90px] origin-top-right lg:origin-top-left"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
+        >
+          <a
+            href="https://www.credly.com/badges/a58ebe0a-da77-4ffe-8499-3d46b84b2059"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="AWS Certified AI Practitioner badge"
+          >
+            <Image
+              src="/credly-badge.png"
+              alt="AWS Certified AI Practitioner"
+              width={100}
+              height={100}
+              className="rounded-lg shadow-lg badge-float"
+              style={{ width: "100%", height: "auto" }}
+            />
+          </a>
+        </motion.div>
+
         {/* ── Scroll hint — a scribbled comic aside beside the art ── */}
         <motion.div
           className="pointer-events-none select-none absolute z-20 flex flex-col items-end text-right right-3 top-[30%] w-[110px] md:right-6 lg:right-auto lg:left-2 lg:top-1/2 lg:w-[130px] lg:items-start lg:text-left"
@@ -291,7 +315,19 @@ export default function HeroV2({
 
 
       {/* ── Draggable terminal ── */}
-      <style>{`.comic-terminal, .comic-terminal * { font-family: var(--font-space-mono, ui-monospace, monospace) !important; }`}</style>
+      <style>{`
+        .comic-terminal, .comic-terminal * { font-family: var(--font-space-mono, ui-monospace, monospace) !important; }
+        @keyframes badgeFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        .badge-float {
+          animation: badgeFloat 2.8s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .badge-float { animation: none; }
+        }
+      `}</style>
       <motion.div
         key={isDesktop ? "terminal-lg" : "terminal-sm"}
         drag
