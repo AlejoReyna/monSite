@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactElement } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./wedding-service-gateway.module.css";
+import DisabledRsvpButton from "@/weddings/shared/disabled-rsvp-button";
 import AndreaInlineInvitation from "@/components/weddings/inline-andrea";
 import CindyInlineInvitation from "@/components/weddings/inline-cindy";
 
@@ -61,7 +62,9 @@ function AndreaHeroPreview() {
             <h3>ALDO</h3>
           </div>
           <p className={styles.andreaKicker}>ACOMPÁÑANOS A CELEBRAR</p>
-          <span className={styles.andreaButton}>CONFIRMAR ASISTENCIA</span>
+          <DisabledRsvpButton className={styles.andreaButton}>
+            CONFIRMAR ASISTENCIA
+          </DisabledRsvpButton>
         </div>
 
         <div className={styles.andreaTimer}>
@@ -103,11 +106,11 @@ function CindyHeroPreview() {
           </div>
 
           <div className={styles.cindyBottomGroup}>
-            <span className={styles.cindyButton}>
+            <DisabledRsvpButton className={styles.cindyButton}>
               <span className={styles.cindyButtonBorder} />
               <span className={styles.cindyButtonBg} />
               <span className={styles.cindyButtonLabel}>Confirma Tu Asistencia</span>
-            </span>
+            </DisabledRsvpButton>
             <div className={styles.cindyTimer}>
               <Countdown targetDate="2026-08-22T00:00:00" variant="cindy" />
             </div>

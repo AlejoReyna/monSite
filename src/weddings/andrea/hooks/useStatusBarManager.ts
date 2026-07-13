@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef } from 'react';
-import { useInlineWedding } from '@/weddings/shared/inline-context';
 
 interface StatusBarSection {
   id: string;
@@ -145,9 +144,7 @@ export const useStatusBarSection = ({
   defaultColor = '#ffffff',
   isNightMode = false
 }: UseStatusBarSectionProps) => {
-  const inline = useInlineWedding();
   const sectionRef = useRef<HTMLElement>(null);
-  if (inline) return sectionRef;
 
   useEffect(() => {
     // Configurar el manager
