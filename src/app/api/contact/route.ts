@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const WEB3FORMS_ACCESS_KEY =
+  process.env.NEXT_WEB3FORMS_KEY ?? "741c3f3b-5f5c-47e9-8dc4-3cf958848b98";
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -14,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = {
-      access_key: process.env.NEXT_WEB3FORMS_KEY,
+      access_key: WEB3FORMS_ACCESS_KEY,
       name: name,
       email: email,
       message: message,
