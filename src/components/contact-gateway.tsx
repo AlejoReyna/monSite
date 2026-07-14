@@ -12,7 +12,7 @@ import styles from "./contact-gateway.module.css";
    NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ──────────────────────────────────────────────────────────────────────────── */
 const WEB3FORMS_ACCESS_KEY =
-  process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY ?? "YOUR_WEB3FORMS_ACCESS_KEY_HERE";
+  process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY ?? "741c3f3b-5f5c-47e9-8dc4-3cf958848b98";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 
 const MESSAGE_MAX = 1000;
