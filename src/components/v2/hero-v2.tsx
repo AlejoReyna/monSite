@@ -154,7 +154,7 @@ export default function HeroV2({
             initial={{ opacity: embed ? 1 : 0, y: embed ? 0 : 16 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.75, delay: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
-            className={`relative lg:mr-[15%] w-full h-full min-h-[50vh] lg:min-h-[min(83.6vh,665px)] pt-0 lg:pt-16 mt-[-3vh] lg:mt-[60px] overflow-hidden pointer-events-none origin-top rounded-lg ${devBorder ? "border-2 border-rose-400" : ""}`}
+            className={`relative lg:mr-[15%] w-full h-full min-h-[50vh] lg:min-h-[min(83.6vh,665px)] pt-0 lg:pt-16 mt-[-14vh] lg:mt-[60px] overflow-hidden pointer-events-none origin-top rounded-lg ${devBorder ? "border-2 border-rose-400" : ""}`}
             style={{ opacity: gifOpacity, scale: gifScale }}
             aria-hidden
           >
@@ -274,40 +274,63 @@ export default function HeroV2({
 
         {/* ── Scroll hint — a scribbled comic aside beside the art ── */}
         <motion.div
-          className="pointer-events-none select-none absolute z-20 flex flex-col items-end text-right right-3 top-[30%] w-[110px] md:right-6 lg:right-auto lg:left-2 lg:top-1/2 lg:w-[130px] lg:items-start lg:text-left"
-          style={{ rotate: -4, color: "rgba(255,255,255,0.55)", gap: 4 }}
+          className="pointer-events-none select-none absolute z-20 flex flex-col items-end text-right right-3 top-[27%] w-[110px] md:right-6 md:left-6 md:top-1/2 md:w-[195px] md:items-start md:text-left lg:right-auto lg:left-6 lg:top-1/2 lg:w-[195px] lg:items-start lg:text-left"
+          style={{ rotate: -4, color: "rgba(255,255,255,0.9)", gap: 4 }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.75, ease: [0.22, 1, 0.36, 1] as const }}
         >
-          <span
+          <motion.span
+            className="text-[clamp(0.9rem,2.4vw,1.1rem)] md:text-[clamp(1.11rem,1.65vw,1.29rem)]"
             style={{
               fontFamily: "var(--gic-font-comic)",
-              fontSize: "clamp(0.74rem, 1.1vw, 0.86rem)",
               lineHeight: 1.3,
               textShadow: "0 1px 6px rgba(0,0,0,0.5)",
             }}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.08, delayChildren: 0.2 } },
+              hidden: {},
+            }}
           >
-            {SCROLL_PROMPT.toLowerCase()}
-          </span>
+            {SCROLL_PROMPT.toLowerCase().split(" ").map((word, i) => (
+              <motion.span
+                key={i}
+                className="inline-block mr-[0.3em]"
+                variants={{
+                  hidden: { opacity: 0, scale: 0.96 },
+                  visible: { opacity: 1, scale: 1, transition: { duration: 0.25, ease: "easeOut" } },
+                }}
+              >
+                {word}
+              </motion.span>
+            ))}
+          </motion.span>
           <svg
             viewBox="0 0 54 78"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="block w-[16px] h-[23px] mr-3 lg:mr-0 lg:ml-3"
+            className="block w-[16px] h-[23px] mr-3 md:w-[24px] md:h-[35px] md:mr-0 md:ml-3"
           >
-            <path
+            <motion.path
               d="M17 4 C17 36, 38 38, 38 68"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.9, ease: "easeInOut" }}
             />
-            <path
+            <motion.path
               d="M29 60 L38 69 L47 60"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ duration: 0.35, delay: 1.3, ease: "easeInOut" }}
             />
           </svg>
         </motion.div>
@@ -334,7 +357,7 @@ export default function HeroV2({
         dragMomentum={false}
         dragConstraints={heroRef}
         dragElastic={0}
-        className="absolute z-30 cursor-grab active:cursor-grabbing comic-terminal bottom-0 lg:bottom-auto lg:top-[22%] left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto lg:right-[8%] w-[96vw] lg:w-[min(546px,44.1vw)]"
+        className="absolute z-30 cursor-grab active:cursor-grabbing comic-terminal bottom-[7vh] lg:bottom-auto lg:top-[22%] left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto lg:right-[8%] w-[96vw] lg:w-[min(546px,44.1vw)]"
         style={{
           opacity: contentOpacity,
           fontFamily: "var(--font-space-mono, ui-monospace, monospace)",
