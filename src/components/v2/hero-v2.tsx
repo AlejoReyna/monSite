@@ -397,7 +397,7 @@ export default function HeroV2({
         className="hidden md:block absolute bottom-3 right-3 z-50 text-[0.65rem] tracking-wider text-white/40 hover:text-white/80 transition-colors pointer-events-auto"
         style={{ fontFamily: "ui-monospace, monospace" }}
       >
-        @jayivee._
+        Artist: @jayivee._
       </a>
     </section>
   );
