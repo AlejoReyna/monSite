@@ -388,6 +388,17 @@ export default function HeroV2({
         {devBorder ? "[border: on]" : "[border: off]"}
       </button>
       ── */}
+
+      {/* ── Instagram credit ── */}
+      <a
+        href="https://www.instagram.com/jayivee._/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute bottom-3 left-3 z-50 text-[0.65rem] tracking-wider text-white/40 hover:text-white/80 transition-colors pointer-events-auto"
+        style={{ fontFamily: "ui-monospace, monospace" }}
+      >
+        @jayivee._
+      </a>
     </section>
   );
 }
