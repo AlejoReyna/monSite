@@ -368,7 +368,7 @@ export default function HeroV2({
         </div>
       </motion.div>
 
-      {/* ── DEV: border toggle ── */}
+      {/* ── DEV: border toggle (commented out) ──
       <button
         onClick={() => setDevBorder(v => !v)}
         className="absolute bottom-3 right-3 z-50 pointer-events-auto"
@@ -387,6 +387,7 @@ export default function HeroV2({
       >
         {devBorder ? "[border: on]" : "[border: off]"}
       </button>
+      ── */}
     </section>
   );
 }
