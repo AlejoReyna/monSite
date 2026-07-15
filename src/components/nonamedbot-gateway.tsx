@@ -159,9 +159,9 @@ export default function NoNamedBotGateway({ isActive = false }: { isActive?: boo
         animate={isActive ? "show" : "hidden"}
       >
         <div className={styles.content}>
-          <motion.h1 id="nonamedbot-title" className={styles.wordmark} variants={item}>
+          <motion.h2 id="nonamedbot-title" className={styles.wordmark} variants={item}>
             NoNamedBot
-          </motion.h1>
+          </motion.h2>
 
           <motion.p className={styles.subtitle} variants={item}>
             {copy.subtitle}
