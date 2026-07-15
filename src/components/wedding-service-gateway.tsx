@@ -27,10 +27,35 @@ const TITLE_COPY: Record<Language, { line1: string; script: string; line3: strin
   },
 };
 
+const WEDDING_GATEWAY_COPY: Record<Language, {
+  viewInvitation: string;
+  swipeHint: string;
+  backAria: string;
+  backLabel: string;
+}> = {
+  en: {
+    viewInvitation: "View invitation",
+    swipeHint: "Swipe or tap to view each invitation",
+    backAria: "Back to the two invitations",
+    backLabel: "Back",
+  },
+  es: {
+    viewInvitation: "Ver invitación",
+    swipeHint: "Desliza o toca para ver cada invitación",
+    backAria: "Volver a las dos invitaciones",
+    backLabel: "Volver",
+  },
+  zh: {
+    viewInvitation: "查看邀请函",
+    swipeHint: "滑动或点击查看每张邀请函",
+    backAria: "返回两个邀请函",
+    backLabel: "返回",
+  },
+};
+
 const previewProjects = [
   {
     id: "andrea" as const,
-    label: "View invitation",
     story: {
       title: "Andrea & Aldo",
       spec: "Production SPA — 2025",
@@ -39,7 +64,6 @@ const previewProjects = [
   },
   {
     id: "cindy" as const,
-    label: "View invitation",
     story: {
       title: "Cindy & Jorge",
       spec: "Interactive Core — 2026",
@@ -178,6 +202,7 @@ const EXPAND_TRANSITION = { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const };
 export default function WeddingServiceGateway({ isActive = false }: { isActive?: boolean }) {
   const { language } = useLanguage();
   const titleCopy = TITLE_COPY[language];
+  const gatewayCopy = WEDDING_GATEWAY_COPY[language];
   const [expanded, setExpanded] = useState<ExpandedId>(null);
 
   const pointerStartX = useRef<number | null>(null);
@@ -308,7 +333,7 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
                     wideHint ? ` ${styles.colHintActionWide}` : ""
                   }`}
                 >
-                  {project.label}
+                  {gatewayCopy.viewInvitation}
                 </span>
               </motion.div>
             </>
@@ -349,9 +374,9 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
             transition={{ duration: 0.35 }}
-            aria-label="Back to the two invitations"
+            aria-label={gatewayCopy.backAria}
           >
-            <span aria-hidden="true">‹</span> Back
+            <span aria-hidden="true">‹</span> {gatewayCopy.backLabel}
           </motion.button>
         )}
       </AnimatePresence>
@@ -381,7 +406,7 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
                 {renderTypedLine(titleCopy.line3, 1750)}
               </span>
             </h2>
-            <p className={styles.swipeHint}>Swipe or tap to view each invitation</p>
+            <p className={styles.swipeHint}>{gatewayCopy.swipeHint}</p>
           </motion.div>
         </div>
       </motion.div>
