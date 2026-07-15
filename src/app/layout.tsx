@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Bebas_Neue, Cormorant_Garamond, Space_Mono, Press_St
 import "./globals.css";
 import AppChrome from "@/components/app-chrome";
 
-import { LanguageProvider, LanguageFade, LanguageAnnouncer } from "@/components/lang-context";
+import { LanguageProvider, LanguageFade } from "@/components/lang-context";
 import { NavigationProvider } from "@/contexts/navigation-context";
 
 // Function to generate iOS meta tags for status bar styling
@@ -126,7 +126,6 @@ export default function RootLayout({
         }}
       >
         <LanguageProvider>
-          <LanguageAnnouncer />
           <NavigationProvider>
             <LanguageFade>
               <a id="top" />

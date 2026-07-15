@@ -6,6 +6,12 @@ export type Language = "en" | "es" | "zh";
 
 const LANGUAGE_ORDER: Language[] = ["en", "es", "zh"];
 
+const PAGE_TITLES: Record<Language, string> = {
+  en: "Alexis Reyna — Full-stack Developer",
+  es: "Alexis Reyna — Desarrollador Full-stack",
+  zh: "Alexis Reyna — 全栈开发者",
+};
+
 type LanguageContextValue = {
   language: Language;
   setLanguage: (lang: Language) => void;
@@ -42,10 +48,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [language]);
 
-  // Keep <html lang="..."> in sync without making layout.tsx a client component.
+  // Keep <html lang="..."> and document.title in sync without making layout.tsx a client component.
   useEffect(() => {
     if (typeof document !== "undefined") {
       document.documentElement.lang = language;
+      document.title = PAGE_TITLES[language];
     }
   }, [language]);
 
