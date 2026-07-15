@@ -335,7 +335,7 @@ export default function ChatInterface({
             {!showChat && (
               <div className="shrink-0 font-mono text-[14px] lg:text-[16px] xl:text-[17px] leading-6">
                 <span className="text-gray-200">&gt;</span>
-                <span className="text-gray-400 ml-2">alexis-ai</span>
+                <span className="text-gray-400 ml-2">Alexis-K2.6</span>
                 <span className="text-gray-100 ml-2">
                   {displayed || text}
                   {!showNamePrompt && displayed.length < text.length && (
@@ -362,7 +362,7 @@ export default function ChatInterface({
                       <div className="mb-2">
                         <div className="text-[14px] lg:text-[16px] xl:text-[17px]">
                           <span className="text-gray-200">&gt;</span>
-                          <span className="text-gray-400 ml-2">alexis-ai</span>
+                          <span className="text-gray-400 ml-2">Alexis-K2.6</span>
                           <span className="text-gray-100 ml-2">{content}</span>
                         </div>
                         <div className="text-[14px] text-gray-500 mt-1">
@@ -400,7 +400,7 @@ export default function ChatInterface({
               <div className="bg-black/30 border-l-4 border-red-500 text-red-100 p-4 rounded font-mono text-[14px] lg:text-[16px] xl:text-[17px] animate-fadeIn shrink-0">
                 <div className="flex items-center text-[14px] mb-2">
                   <span className="text-gray-200">&gt;</span>
-                  <span className="text-gray-400 ml-2">alexis-ai</span>
+                  <span className="text-gray-400 ml-2">Alexis-K2.6</span>
                   <span className="text-red-300 ml-2">error</span>
                 </div>
                 <div className="ml-6">
