@@ -23,8 +23,8 @@ const COMIC_MESSAGES = [
 ];
 
 const SCROLL_PROMPT: Record<Language, string> = {
-  en: "SCROLL DOWN TO SEE MY PROJECTS!",
-  es: "¡Desliza hacia abajo para ver mis proyectos!",
+  en: "scroll down to see my projects!",
+  es: "Desliza hacia abajo para ver mis proyectos!",
   zh: "向下滚动查看我的项目！",
 };
 type HeroV2Props = {
@@ -301,7 +301,7 @@ export default function HeroV2({
               hidden: {},
             }}
           >
-            {SCROLL_PROMPT[language].toLowerCase().split(" ").map((word, i) => (
+            {SCROLL_PROMPT[language].split(" ").map((word, i) => (
               <motion.span
                 key={i}
                 className="inline-block mr-[0.3em]"
