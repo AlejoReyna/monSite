@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Bebas_Neue, Cormorant_Garamond, Space_Mono, Press_St
 import "./globals.css";
 import AppChrome from "@/components/app-chrome";
 
-import { LanguageProvider, LanguageFade } from "@/components/lang-context";
+import { LanguageProvider, LanguageFade, LanguageAnnouncer } from "@/components/lang-context";
 import { NavigationProvider } from "@/contexts/navigation-context";
 
 // Function to generate iOS meta tags for status bar styling
@@ -62,9 +62,34 @@ const pressStart = Press_Start_2P({
   display: "swap",
 });
 
+const SITE_URL = "https://www.alexisreyna.dev";
+const OG_IMAGE = "/og-image.png";
+
 export const metadata: Metadata = {
-  title: "Alexis' desktop",
-  description: "Fullstack Developer | Building modern, fast, and accessible web experiences.",
+  title: "Alexis Reyna — Fullstack Developer",
+  description:
+    "Fullstack Developer building modern, fast, and accessible web experiences with React, Next.js, TypeScript, Node.js and AI.",
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "Alexis Reyna",
+    title: "Alexis Reyna — Fullstack Developer",
+    description:
+      "Fullstack Developer building modern, fast, and accessible web experiences with React, Next.js, TypeScript, Node.js and AI.",
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "Alexis Reyna — Fullstack Developer portfolio preview",
+      },
+    ],
+  },
   other: generateiOSMetaTags(),
 };
 
@@ -101,6 +126,7 @@ export default function RootLayout({
         }}
       >
         <LanguageProvider>
+          <LanguageAnnouncer />
           <NavigationProvider>
             <LanguageFade>
               <a id="top" />

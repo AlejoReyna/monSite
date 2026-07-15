@@ -204,11 +204,11 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
         animate={isActive ? "show" : "hidden"}
       >
         <div className={styles.content}>
-          <motion.h1 id="this-cafeteria-title" className={styles.wordmark} variants={item}>
+          <motion.h2 id="this-cafeteria-title" className={styles.wordmark} variants={item}>
             <span className={styles.wordmarkTop}>{copy.wordmarkTop}</span>
             {" "}
             <span className={styles.wordmarkBottom}>{copy.wordmarkBottom}</span>
-          </motion.h1>
+          </motion.h2>
 
           <motion.p className={styles.lead} variants={item}>
             {copy.lead}

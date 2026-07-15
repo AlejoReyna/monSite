@@ -182,11 +182,20 @@ export default function NavbarV2() {
           border-color: rgba(255, 255, 255, 0.38) !important;
         }
 
-        /* Smaller pill on mobile only */
+        /* Smaller pill on mobile only — fixed width so language changes
+           don't shift the navbar elements. Width is based on the longest
+           current translation ("GET IN TOUCH →"). */
         .nav-mobile .nav-contact-pill {
           font-size: 0.66rem !important;
           letter-spacing: 0.18em !important;
           padding: 7px 13px !important;
+          width: 12rem !important;
+          max-width: 12rem !important;
+          box-sizing: border-box !important;
+          flex-shrink: 0 !important;
+          white-space: nowrap !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
         }
 
         body.is-cafeteria-panel-active .nav-v2-shell,
