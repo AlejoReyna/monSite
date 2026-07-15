@@ -43,7 +43,7 @@ const COPY: Record<Language, {
     deployAria: "Ethereum Sepolia",
     wordmarkTop: "Artisanal",
     wordmarkBottom: "Brew",
-    lead: "Una plataforma de comercio ASP.NET lista para la nube para café de especialidad — tiendas Blazor, pedidos protegidos por Identity y pagos, staking y recompensas en Ethereum Sepolia.",
+    lead: "Una plataforma e-commerce en ASP.NET preparada para la nube y orientada al café de especialidad: interfaces de tienda con Blazor, pedidos asegurados mediante Identity, además de pagos, staking y recompensas en la red Ethereum Sepolia.",
     ctaPrimary: "Ver despliegue",
     ctaSecondary: "GitHub repo",
     techAriaLabel: "Stack tecnológico de Artisanal Brew",
