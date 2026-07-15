@@ -45,7 +45,7 @@ const COPY: Record<Language, {
     wordmarkBottom: "Brew",
     lead: "Una plataforma de comercio ASP.NET lista para la nube para café de especialidad — tiendas Blazor, pedidos protegidos por Identity y pagos, staking y recompensas en Ethereum Sepolia.",
     ctaPrimary: "Ver despliegue",
-    ctaSecondary: "Documentación",
+    ctaSecondary: "GitHub repo",
     techAriaLabel: "Stack tecnológico de Artisanal Brew",
   },
   zh: {

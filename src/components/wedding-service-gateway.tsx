@@ -6,6 +6,26 @@ import styles from "./wedding-service-gateway.module.css";
 import DisabledRsvpButton from "@/weddings/shared/disabled-rsvp-button";
 import AndreaInlineInvitation from "@/components/weddings/inline-andrea";
 import CindyInlineInvitation from "@/components/weddings/inline-cindy";
+import { useLanguage } from "@/components/lang-context";
+import type { Language } from "@/components/lang-context";
+
+const TITLE_COPY: Record<Language, { line1: string; script: string; line3: string }> = {
+  en: {
+    line1: "Two years in a row",
+    script: "taking part in",
+    line3: "unforgettable moments",
+  },
+  es: {
+    line1: "Dos años seguidos",
+    script: "formando parte de",
+    line3: "momentos inolvidables",
+  },
+  zh: {
+    line1: "连续两年",
+    script: "参与",
+    line3: "难忘时刻",
+  },
+};
 
 const previewProjects = [
   {
@@ -156,6 +176,8 @@ const SWIPE_DISTANCE = 45;
 const EXPAND_TRANSITION = { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const };
 
 export default function WeddingServiceGateway({ isActive = false }: { isActive?: boolean }) {
+  const { language } = useLanguage();
+  const titleCopy = TITLE_COPY[language];
   const [expanded, setExpanded] = useState<ExpandedId>(null);
 
   const pointerStartX = useRef<number | null>(null);
@@ -349,14 +371,14 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
             transition={{ duration: 0.35, ease: "easeInOut" }}
           >
             <h2 id="wedding-service-title" className={styles.title}>
-              <span className={styles.titleLine} aria-label="Two years in a row">
-                {renderTypedLine("Two years in a row", 350)}
+              <span className={styles.titleLine} aria-label={titleCopy.line1}>
+                {renderTypedLine(titleCopy.line1, 350)}
               </span>
               <span className={`${styles.titleScript}${isActive ? ` ${styles.titleScriptOn}` : ""}`}>
-                taking part in
+                {titleCopy.script}
               </span>
-              <span className={styles.titleLine} aria-label="unforgettable moments">
-                {renderTypedLine("unforgettable moments", 1750)}
+              <span className={styles.titleLine} aria-label={titleCopy.line3}>
+                {renderTypedLine(titleCopy.line3, 1750)}
               </span>
             </h2>
             <p className={styles.swipeHint}>Swipe or tap to view each invitation</p>

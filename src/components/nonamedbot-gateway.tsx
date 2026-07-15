@@ -36,7 +36,7 @@ const COPY: Record<Language, {
     lead: "En su núcleo, un {accent} — un bot de Python pensado para producción para la BNB Hack AI Trading Agent Edition. Evalúa tokens de alta liquidez en BNB Chain con barreras de seguridad conscientes del régimen y ejecuta swaps de autocustodia a través de TWAK, para que Python nunca tenga una clave de trading.",
     leadAccent: "agente TWAK",
     ctaPrimary: "Ver despliegue",
-    ctaSecondary: "Documentación",
+    ctaSecondary: "GitHub repo",
     techAriaLabel: "Stack tecnológico de NoNamedBot",
   },
   zh: {
