@@ -109,4 +109,3 @@ Language state lives in `src/components/lang-context.tsx` (`useLanguage()` → `
 
 - The animated hero GIF is served `unoptimized`; an MP4/WebM would decode lighter if performance matters.
 - Panels use `100svh` and gesture handling tuned for mobile; test scroll-vs-advance behavior on a real device when changing panel heights.
-- The mobile navbar contact pill has a fixed width so language switches don't shift the surrounding elements.
