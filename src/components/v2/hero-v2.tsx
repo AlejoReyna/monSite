@@ -370,6 +370,14 @@ export default function HeroV2({
           fontFamily: "var(--font-space-mono, ui-monospace, monospace)",
         }}
       >
+        <a
+          href="https://www.instagram.com/jayivee._/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute -top-6 left-0 z-50 text-[0.55rem] lg:text-[0.6rem] text-gray-500 hover:text-gray-300 transition-colors font-mono tracking-wider pointer-events-auto"
+        >
+          Artist: @jayivee._
+        </a>
         <div className="w-full h-[min(425.25px,40.5vh)] lg:h-[min(472.5px,52.5vh)]">
           <ChatInterface variant="panel" className="!w-full !h-full max-w-none" />
         </div>
