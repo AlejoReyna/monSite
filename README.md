@@ -3,7 +3,7 @@
 - **Live:** https://www.alexisreyna.dev
 - **Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 · Framer Motion
 
-A bilingual (EN/ES) portfolio built as a full-screen, swipe-driven "desktop." The home page is a sequence of panels you move through with the wheel or a swipe, each one a mini case study, plus a draggable AI chat terminal that answers questions about my work.
+A trilingual (EN/ES/ZH) portfolio built as a full-screen, swipe-driven "desktop." The home page is a sequence of panels you move through with the wheel or a swipe, each one a mini case study, plus a draggable AI chat terminal that answers questions about my work.
 
 ---
 
@@ -17,6 +17,18 @@ npm run dev        # http://localhost:3000 (Turbopack)
 Other scripts: `npm run build` → `npm start`, and `npm run lint`.
 
 Path alias: `@/*` resolves to `src/*` (see `tsconfig.json`).
+
+---
+
+## SEO & social metadata
+
+`src/app/layout.tsx` sets the global metadata for `https://www.alexisreyna.dev`:
+
+- Canonical URL via `alternates.canonical`.
+- Open Graph title, description, site name and a 1200×630 `og-image.png`.
+- A single `<h1>` per page; panel wordmarks use `<h2>`.
+
+Update `public/og-image.png` if you change the preview image.
 
 ### Environment variables
 
@@ -78,9 +90,9 @@ A wheel/swipe-driven sequence that advances one panel at a time and tints the br
 
 ---
 
-## Internationalization (EN/ES)
+## Internationalization (EN/ES/ZH)
 
-Language state lives in `src/components/lang-context.tsx` (`useLanguage()` → `language`, `toggleLanguage`, `toggleWithFade`) and is persisted to `localStorage`. `LanguageFade` masks the swap with a short opacity transition. The app mounts in English first to avoid a post-hydration flip.
+Language state lives in `src/components/lang-context.tsx` (`useLanguage()` → `language`, `setLanguage`, `toggleLanguage`, `toggleWithFade`) and is persisted to `localStorage`. `LanguageFade` masks the swap with a short opacity transition. The app mounts in English first to avoid a post-hydration flip, and `<html lang>` is updated client-side to match the active language.
 
 ---
 
@@ -97,3 +109,4 @@ Language state lives in `src/components/lang-context.tsx` (`useLanguage()` → `
 
 - The animated hero GIF is served `unoptimized`; an MP4/WebM would decode lighter if performance matters.
 - Panels use `100svh` and gesture handling tuned for mobile; test scroll-vs-advance behavior on a real device when changing panel heights.
+- The mobile navbar contact pill has a fixed width so language switches don't shift the surrounding elements.
