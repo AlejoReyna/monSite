@@ -319,14 +319,6 @@ export default function ChatInterface({
 
   return (
     <div ref={rootRef} className={rootClassName}>
-      <a
-        href="https://www.instagram.com/jayivee._/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute -top-5 left-0 z-50 text-[0.55rem] lg:text-[0.6rem] text-gray-500 hover:text-gray-300 transition-colors font-mono tracking-wider"
-      >
-        Artist: @jayivee._
-      </a>
       {terminalFrame(
         <>
           {/* Terminal header */}
@@ -334,10 +326,21 @@ export default function ChatInterface({
             className={`flex items-center px-4 py-3 bg-black/40 border-b border-gray-500/35 shrink-0 ${isPanel ? "cursor-default" : "cursor-move"}`}
             {...(!isPanel ? { "data-drag-handle": "" } : {})}
           >
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500 border border-red-600" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600" />
-              <div className="w-3 h-3 rounded-full bg-green-500 border border-green-600" />
+            <div className="flex flex-col gap-1">
+              <a
+                href="https://www.instagram.com/jayivee._/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[0.55rem] lg:text-[0.6rem] text-gray-500 hover:text-gray-300 transition-colors font-mono tracking-wider"
+                style={{ lineHeight: 1 }}
+              >
+                Artist: @jayivee._
+              </a>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500 border border-red-600" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600" />
+                <div className="w-3 h-3 rounded-full bg-green-500 border border-green-600" />
+              </div>
             </div>
             <div className="flex items-center gap-3 ml-auto">
               <a
