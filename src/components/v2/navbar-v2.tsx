@@ -62,85 +62,89 @@ export default function NavbarV2() {
           borderBottom: "1px solid transparent",
         }}
       >
-        {/* ── Desktop ── */}
-        <nav style={{
-          display: "none",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 clamp(24px, 5vw, 64px)",
-          height: 56,
-        }}
-          className="nav-desktop"
-        >
-          {/* Brand */}
-          <Link
-            href="/"
-            onClick={() => handleNav("home")}
+        <nav aria-label="Primary">
+          {/* ── Desktop ── */}
+          <div
+            className="nav-desktop"
             style={{
-              fontFamily: "var(--font-bebas, sans-serif)",
-              fontSize: "1.25rem",
-              letterSpacing: "0.08em",
-              color: navInk,
-              textDecoration: "none",
-              lineHeight: 1,
+              display: "none",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 clamp(24px, 5vw, 64px)",
+              height: 56,
             }}
           >
-            <span style={{ color: navTag }}>&lt;</span>
-            {" "}Alexis Reyna{" "}
-            <span style={{ color: navTag }}>&gt;</span>
-          </Link>
-
-          {/* CTA */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <LanguageSwitcher />
-            <button
-              onClick={() => handleNav("contact")}
-              className="nav-contact-pill"
-              style={contactPillStyle}
+            {/* Brand */}
+            <Link
+              href="/"
+              onClick={() => handleNav("home")}
+              style={{
+                fontFamily: "var(--font-bebas, sans-serif)",
+                fontSize: "1.25rem",
+                letterSpacing: "0.08em",
+                color: navInk,
+                textDecoration: "none",
+                lineHeight: 1,
+              }}
             >
-              {t("getInTouch", language)}
-            </button>
+              <span style={{ color: navTag }}>&lt;</span>
+              {" "}Alexis Reyna{" "}
+              <span style={{ color: navTag }}>&gt;</span>
+            </Link>
+
+            {/* CTA */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <LanguageSwitcher />
+              <button
+                onClick={() => handleNav("contact")}
+                className="nav-contact-pill"
+                style={contactPillStyle}
+              >
+                {t("getInTouch", language)}
+              </button>
+            </div>
+          </div>
+
+          {/* ── Mobile bar ── */}
+          <div
+            className="nav-mobile"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 24px",
+              height: 52,
+            }}
+          >
+            <Link
+              href="/"
+              onClick={() => handleNav("home")}
+              style={{
+                fontFamily: "var(--font-bebas, sans-serif)",
+                fontSize: "0.98rem",
+                letterSpacing: "0.08em",
+                color: navInk,
+                textDecoration: "none",
+                lineHeight: 1,
+              }}
+            >
+              <span style={{ color: navTag }}>&lt;</span>
+              {" "}Alexis Reyna{" "}
+              <span style={{ color: navTag }}>&gt;</span>
+            </Link>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <LanguageSwitcher size="sm" />
+              <button
+                onClick={() => handleNav("contact")}
+                className="nav-contact-pill"
+                style={contactPillStyle}
+              >
+                {t("getInTouch", language)}
+              </button>
+            </div>
           </div>
         </nav>
-
-        {/* ── Mobile bar ── */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 24px",
-          height: 52,
-        }}
-          className="nav-mobile"
-        >
-          <Link
-            href="/"
-            onClick={() => handleNav("home")}
-            style={{
-              fontFamily: "var(--font-bebas, sans-serif)",
-              fontSize: "0.98rem",
-              letterSpacing: "0.08em",
-              color: navInk,
-              textDecoration: "none",
-              lineHeight: 1,
-            }}
-          >
-            <span style={{ color: navTag }}>&lt;</span>
-            {" "}Alexis Reyna{" "}
-            <span style={{ color: navTag }}>&gt;</span>
-          </Link>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <LanguageSwitcher size="sm" />
-            <button
-              onClick={() => handleNav("contact")}
-              className="nav-contact-pill"
-              style={contactPillStyle}
-            >
-              {t("getInTouch", language)}
-            </button>
-          </div>
-        </div>
       </header>
 
       <style>{`
@@ -182,20 +186,11 @@ export default function NavbarV2() {
           border-color: rgba(255, 255, 255, 0.38) !important;
         }
 
-        /* Smaller pill on mobile only — fixed width so language changes
-           don't shift the navbar elements. Width is based on the longest
-           current translation ("GET IN TOUCH →"). */
+        /* Smaller pill on mobile only */
         .nav-mobile .nav-contact-pill {
           font-size: 0.66rem !important;
           letter-spacing: 0.18em !important;
           padding: 7px 13px !important;
-          width: 12rem !important;
-          max-width: 12rem !important;
-          box-sizing: border-box !important;
-          flex-shrink: 0 !important;
-          white-space: nowrap !important;
-          overflow: hidden !important;
-          text-overflow: ellipsis !important;
         }
 
         body.is-cafeteria-panel-active .nav-v2-shell,
