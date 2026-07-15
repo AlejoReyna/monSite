@@ -374,7 +374,7 @@ export default function HeroV2({
           href="https://www.instagram.com/jayivee._/"
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute -top-6 left-0 z-50 text-[0.55rem] lg:text-[0.6rem] text-gray-500 hover:text-gray-300 transition-colors font-mono tracking-wider pointer-events-auto"
+          className="absolute -top-6 left-0 z-50 text-[0.55rem] lg:text-[0.6rem] text-white/40 hover:text-white/80 transition-colors font-mono tracking-wider pointer-events-auto md:hidden"
         >
           Artist: @jayivee._
         </a>
