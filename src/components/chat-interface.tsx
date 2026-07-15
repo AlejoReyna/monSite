@@ -323,7 +323,7 @@ export default function ChatInterface({
         href="https://www.instagram.com/jayivee._/"
         target="_blank"
         rel="noopener noreferrer"
-        className="block text-[0.55rem] lg:text-[0.6rem] text-gray-500 hover:text-gray-300 transition-colors font-mono tracking-wider mb-1.5"
+        className="absolute -top-5 left-0 z-50 text-[0.55rem] lg:text-[0.6rem] text-gray-500 hover:text-gray-300 transition-colors font-mono tracking-wider"
       >
         Artist: @jayivee._
       </a>
