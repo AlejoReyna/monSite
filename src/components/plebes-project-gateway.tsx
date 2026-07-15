@@ -153,21 +153,29 @@ export default function PlebesProjectGateway({ isActive = false }: { isActive?: 
         initial="hidden"
         animate={isActive ? "show" : "hidden"}
       >
-        <span>
-          {language === "es"
-            ? "Desarrollador del"
-            : language === "zh"
-              ? "Plebes 项目的"
-              : "Developer for the"}
-        </span>
-        <span>
-          <img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" />
-          {language === "es"
-            ? " Proyecto"
-            : language === "zh"
-              ? "开发者"
-              : " Project"}
-        </span>
+        {language === "es" ? (
+          <>
+            <span>Desarrollador del Proyecto</span>
+            <span>
+              <img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" />
+            </span>
+          </>
+        ) : language === "zh" ? (
+          <>
+            <span>
+              <img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" />
+              项目的开发者
+            </span>
+          </>
+        ) : (
+          <>
+            <span>Developer for the</span>
+            <span>
+              <img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" />
+              Project
+            </span>
+          </>
+        )}
       </motion.h2>
 
       <div className={styles.scrollBody} data-carousel-scrollable="true">
@@ -179,13 +187,13 @@ export default function PlebesProjectGateway({ isActive = false }: { isActive?: 
             animate={isActive ? "show" : "hidden"}
           >
             <motion.h2 id="plebes-project-title" className={styles.title} variants={item}>
-              {language === "zh"
-                ? "Plebes 项目的开发者"
-                : language === "es"
-                  ? "desarrollador del proyecto"
-                  : "developer for the"}{" "}
-              <img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" />
-              {language === "en" && " project"}
+              {language === "es" ? (
+                <>Desarrollador del Proyecto <img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" /></>
+              ) : language === "zh" ? (
+                <><img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" /> 项目的开发者</>
+              ) : (
+                <>developer for the <img className={styles.logoWord} src="/plebeslogo.svg" alt="plebes" /> project</>
+              )}
             </motion.h2>
           </motion.div>
 

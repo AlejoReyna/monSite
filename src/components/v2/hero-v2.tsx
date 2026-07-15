@@ -24,7 +24,7 @@ const COMIC_MESSAGES = [
 
 const SCROLL_PROMPT: Record<Language, string> = {
   en: "SCROLL DOWN TO SEE MY PROJECTS!",
-  es: "¡DESPLÁZATE PARA VER MIS PROYECTOS!",
+  es: "¡Desliza hacia abajo para ver mis proyectos!",
   zh: "向下滚动查看我的项目！",
 };
 type HeroV2Props = {
