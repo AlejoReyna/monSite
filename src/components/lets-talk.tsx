@@ -144,18 +144,6 @@ export default function LetsTalk() {
           <ul className="mt-2 space-y-3">
             <li className="flex items-center gap-3">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/40 text-gray-200 backdrop-blur-md">
-                {/* Mail */}
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 6h16v12H4z" />
-                  <path d="M22 6l-10 7L2 6" />
-                </svg>
-              </span>
-              <a className="text-gray-300 hover:text-white transition-colors" href="mailto:hello@example.com">
-                hello@example.com
-              </a>
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/40 text-gray-200 backdrop-blur-md">
                 {/* Phone */}
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 5l4-2 4 8-3 1c1 2 3 4 5 5l1-3 8 4-2 4c-6 1-13-6-17-13z" />
