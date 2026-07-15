@@ -4,6 +4,8 @@ import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
 import ChatInterface from "@/components/chat-interface";
+import { useLanguage } from "@/components/lang-context";
+import type { Language } from "@/components/lang-context";
 
 /* ═══════════════════════════════════════════
    Hero V2 — Night Sky / GIC style
@@ -20,7 +22,11 @@ const COMIC_MESSAGES = [
   "console.log everything",
 ];
 
-const SCROLL_PROMPT = "SCROLL DOWN TO SEE MY PROJECTS!";
+const SCROLL_PROMPT: Record<Language, string> = {
+  en: "SCROLL DOWN TO SEE MY PROJECTS!",
+  es: "¡DESPLÁZATE PARA VER MIS PROYECTOS!",
+  zh: "向下滚动查看我的项目！",
+};
 type HeroV2Props = {
   /**
    * Inside `HeroCarouselSequence` the hero stays in a sticky frame; window-based
@@ -46,6 +52,7 @@ export default function HeroV2({
   noBgImage = false,
   disableBgVignette = false,
 }: HeroV2Props) {
+  const { language } = useLanguage();
   const heroRef = useRef<HTMLElement>(null);
   const [devBorder, setDevBorder] = useState(false);
 
@@ -294,7 +301,7 @@ export default function HeroV2({
               hidden: {},
             }}
           >
-            {SCROLL_PROMPT.toLowerCase().split(" ").map((word, i) => (
+            {SCROLL_PROMPT[language].toLowerCase().split(" ").map((word, i) => (
               <motion.span
                 key={i}
                 className="inline-block mr-[0.3em]"

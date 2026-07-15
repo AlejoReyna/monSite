@@ -9,6 +9,12 @@ import styles from "./plebes-project-gateway.module.css";
 const simpleIcon = (slug: string, color = "fff7ff") =>
   `https://cdn.simpleicons.org/${slug}/${color}`;
 
+const BADGE_COPY: Record<Language, { label: string; aria: string }> = {
+  en: { label: "as seen on", aria: "As seen on ICP" },
+  es: { label: "visto en", aria: "Visto en ICP" },
+  zh: { label: "见于", aria: "见于 ICP" },
+};
+
 const contributions = [
   {
     key: "homepage",
@@ -126,9 +132,9 @@ export default function PlebesProjectGateway({ isActive = false }: { isActive?: 
         initial="hidden"
         animate={isActive ? "show" : "hidden"}
         style={{ transformOrigin: "left" }}
-        aria-label="As seen on ICP"
+        aria-label={BADGE_COPY[language].aria}
       >
-        <span className={styles.deployLabel}>as seen on</span>
+        <span className={styles.deployLabel}>{BADGE_COPY[language].label}</span>
         <div className={styles.deployNetwork}>
           <img
             className={styles.deployLogo}
