@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useLanguage } from "@/components/lang-context";
+import { t } from "@/lib/translations";
+import type { Language } from "@/components/lang-context";
 
 type Service = {
   title: string;
@@ -161,13 +163,98 @@ const servicesEn: Service[] = [
   },
 ];
 
+const servicesZh: Service[] = [
+  {
+    title: "Web Apps",
+    description:
+      "使用 Next.js、React 和 TypeScript 构建的现代应用：快速、可访问且可扩展。",
+    highlights: ["SSR/SSG", "性能", "可访问性"],
+    gradientFromTo: "from-sky-500/20 to-cyan-500/10",
+    icon: ({ className }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h18M3 9h18M7 13h10M9 17h6" />
+      </svg>
+    ),
+  },
+  {
+    title: "UI/UX 与交互",
+    description:
+      "干净的界面，搭配微交互和流畅过渡，打造令人难忘的体验。",
+    highlights: ["动画", "设计系统", "响应式"],
+    gradientFromTo: "from-violet-500/20 to-fuchsia-500/10",
+    icon: ({ className }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7h16M4 12h10M4 17h7" />
+      </svg>
+    ),
+  },
+  {
+    title: "API 与后端",
+    description:
+      "使用 Node.js 和最佳实践构建稳健的 API：认证、缓存和可扩展性。",
+    highlights: ["REST/GraphQL", "认证", "可观测性"],
+    gradientFromTo: "from-amber-500/20 to-orange-500/10",
+    icon: ({ className }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v18m9-9H3" />
+      </svg>
+    ),
+  },
+  {
+    title: "性能与 SEO",
+    description:
+      "审计并优化 Core Web Vitals，以提升排名和转化率。",
+    highlights: ["CWV", "Lighthouse 95+", "技术 SEO"],
+    gradientFromTo: "from-emerald-500/20 to-teal-500/10",
+    icon: ({ className }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l7-9 7 9-7 9-7-9z" />
+      </svg>
+    ),
+  },
+  {
+    title: "端到端集成",
+    description:
+      "第三方集成（Stripe、Supabase、CMS），注重安全性和出色的开发者体验。",
+    highlights: ["Stripe", "CMS", "Supabase"],
+    gradientFromTo: "from-indigo-500/20 to-cyan-500/10",
+    icon: ({ className }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 12h12M6 12l4 4m-4-4l4-4" />
+      </svg>
+    ),
+  },
+  {
+    title: "咨询",
+    description:
+      "技术指导、代码审查和路线图，加速你的产品落地。",
+    highlights: ["架构", "最佳实践", "可扩展性"],
+    gradientFromTo: "from-pink-500/20 to-rose-500/10",
+    icon: ({ className }) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9h8m-8 4h5M5 21l2-4h10l2 4M12 3v4" />
+      </svg>
+    ),
+  },
+];
+
+const servicesByLang: Record<Language, Service[]> = {
+  en: servicesEn,
+  es: servicesEs,
+  zh: servicesZh,
+};
+
 export default function Services() {
   const { language } = useLanguage();
-  const isEs = language === 'es';
+  const services = servicesByLang[language];
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const [visibleCards, setVisibleCards] = useState<boolean[]>(
-    () => new Array((isEs ? servicesEs : servicesEn).length).fill(false)
+    () => new Array(services.length).fill(false)
   );
+
+  useEffect(() => {
+    setVisibleCards(new Array(services.length).fill(false));
+  }, [services]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -198,7 +285,7 @@ export default function Services() {
 
     cardElements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [services]);
 
   return (
     <section
@@ -221,13 +308,11 @@ export default function Services() {
       <div className="relative z-10 mx-auto max-w-6xl px-6 text-center">
         <h2 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
           <span className="bg-gradient-to-r from-white via-white to-gray-300 bg-clip-text text-transparent">
-            {isEs ? 'Servicios' : 'Services'}
+            {t('services', language)}
           </span>
         </h2>
         <p className="mx-auto mt-4 max-w-2xl text-base text-gray-400 sm:text-lg">
-          {isEs
-            ? 'Soluciones end‑to‑end con foco en rendimiento, accesibilidad y una UX impecable.'
-            : 'End‑to‑end solutions focused on performance, accessibility, and outstanding UX.'}
+          {t('servicesLead', language)}
         </p>
         <div className="mx-auto mt-6 h-px w-24 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
       </div>
@@ -235,7 +320,7 @@ export default function Services() {
       {/* Grid */}
       <div ref={sectionRef} className="relative z-10 mx-auto mt-14 max-w-6xl px-6">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {(isEs ? servicesEs : servicesEn).map((service, index) => {
+          {services.map((service, index) => {
             const isVisible = visibleCards[index];
             const translateY = isVisible ? 0 : 40;
             const opacity = isVisible ? 1 : 0;
@@ -291,7 +376,7 @@ export default function Services() {
 
                 {/* CTA */}
                 <div className="relative z-10 mt-5 inline-flex items-center gap-2 text-sm font-medium text-white/70 transition-all group-hover:text-white">
-                  <span>{isEs ? 'Más info' : 'More info'}</span>
+                  <span>{t('moreInfo', language)}</span>
                   <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -318,5 +403,3 @@ export default function Services() {
     </section>
   );
 }
-
-

@@ -94,7 +94,11 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${bebas.variable} ${cormorant.variable} ${spaceMono.variable} ${pressStart.variable} antialiased`}
-        style={{ backgroundColor: "var(--gic-off-white)", color: "var(--gic-dark-charcoal)" }}
+        style={{
+          backgroundColor: "var(--gic-off-white)",
+          color: "var(--gic-dark-charcoal)",
+          fontFamily: `var(--font-geist-sans), "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif`,
+        }}
       >
         <LanguageProvider>
           <NavigationProvider>

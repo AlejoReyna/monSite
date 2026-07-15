@@ -1,9 +1,9 @@
 "use client";
 import { useLanguage } from "@/components/lang-context";
+import { t } from "@/lib/translations";
 
 export default function Footer() {
   const { language } = useLanguage();
-  const isEs = language === "es";
 
   return (
     <footer className="relative border-t border-white/10 bg-gradient-to-b from-black via-gray-950 to-black">
@@ -32,17 +32,15 @@ export default function Footer() {
               </div>
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-gray-400">
-              {isEs
-                ? "Desarrollador Full-stack — construyo interfaces limpias, rápidas y accesibles con foco en producto."
-                : "Full-stack Developer — I build clean, fast and accessible interfaces with focus on product."}
+              {t('footerTagline', language)}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {["Next.js", "TypeScript", "React", "Node.js"].map((t) => (
+              {["Next.js", "TypeScript", "React", "Node.js"].map((t2) => (
                 <span
-                  key={t}
+                  key={t2}
                   className="rounded-full bg-white/5 px-3 py-1 text-xs text-gray-300 backdrop-blur-sm"
                 >
-                  {t}
+                  {t2}
                 </span>
               ))}
             </div>
@@ -51,14 +49,14 @@ export default function Footer() {
           {/* Compact: Contact + Social in one row */}
           <div className="flex flex-col justify-center">
             <h4 className="text-sm font-semibold uppercase tracking-wider text-white/80">
-              {isEs ? "Contacto & Redes" : "Contact & Social"}
+              {t('contactAndSocial', language)}
             </h4>
 
             <div className="mt-3 flex flex-col gap-3">
               {/* Contact line */}
               <div className="flex items-center gap-3 text-sm text-gray-400">
                 <a className="hover:text-white" href="#contact">
-                  {isEs ? "Formulario" : "Form"}
+                  {t('form', language)}
                 </a>
                 <span className="text-white/20">•</span>
                 <a className="hover:text-white" href="mailto:hello@example.com">
@@ -99,7 +97,7 @@ export default function Footer() {
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
             </svg>
-            {isEs ? "Volver arriba" : "Back to top"}
+            {t('backToTop', language)}
           </a>
         </div>
       </div>

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { cookies } from 'next/headers';
+import type { Language } from '@/components/lang-context';
 
 // ---------------------------------------------------------------------------
 // Provider resolution — mirrors the BNBHacks cascade-ai pattern
@@ -76,6 +77,23 @@ function stripHintBlock(raw: unknown): string {
   }
   return text;
 }
+
+/**
+ * Detect the requested response language from the injected hint block.
+ * Falls back to Spanish if no hint is present.
+ */
+function detectLanguageFromHint(messages: ChatMessage[]): Language {
+  const lastUser = [...messages].reverse().find(m => m.role === 'user');
+  if (!lastUser) return 'es';
+  const raw = lastUser.content;
+  if (raw.includes('Responde ÚNICAMENTE en')) {
+    if (raw.includes('中文')) return 'zh';
+    if (raw.includes('ESPAÑOL')) return 'es';
+    if (raw.includes('ENGLISH')) return 'en';
+  }
+  return 'es';
+}
+
 const MAX_PROMPTS = 20;
 const WINDOW_MS = 2.5 * 60 * 60 * 1000; // 2.5h -> 9_000_000 ms
 
@@ -104,7 +122,64 @@ function serializeQuota(q: Quota) {
  * Developer persona para Responses API
  * — breve, directo, tuteo, y con tus rutas de portfolio/contacto
  */
-const DEVELOPER_PERSONA = `Eres Alexis, desarrollador full-stack mexicano, nacido en Montemorelos, Nuevo León. Tono breve, directo y amable; tuteo; respuesta primero, luego 1–3 bullets si aportan valor; tecnologías React/Next.js/TS/Node/PostgreSQL/Rails; si piden proyectos -> /portfolio; contacto -> /contacto o alexis.reynasz@hotmail.com; no inventes; idioma del usuario o español por defecto.`;
+const DEVELOPER_PERSONA: Record<Language, string> = {
+  es: `Eres Alexis, desarrollador full-stack mexicano, nacido en Montemorelos, Nuevo León. Tono breve, directo y amable; tuteo; respuesta primero, luego 1–3 bullets si aportan valor; tecnologías React/Next.js/TS/Node/PostgreSQL/Rails; si piden proyectos -> /portfolio; contacto -> /contacto o alexis.reynasz@hotmail.com; no inventes; idioma del usuario o español por defecto.`,
+  en: `You are Alexis, a Mexican full-stack developer from Montemorelos, Nuevo León. Tone: brief, direct, and friendly; use "you"; answer first, then 1–3 bullets if they add value; technologies React/Next.js/TS/Node/PostgreSQL/Rails; projects -> /portfolio; contact -> /contacto or alexis.reynasz@hotmail.com; don't make things up; user's language or English by default.`,
+  zh: `你是 Alexis，一名来自墨西哥 Nuevo León 州 Montemorelos 的全栈开发者。语气简短、直接、友好；使用"你"称呼；先给出回答，然后视情况补充 1–3 个要点；技术栈 React/Next.js/TS/Node/PostgreSQL/Rails；若询问项目 -> /portfolio；若联系 -> /contacto 或 alexis.reynasz@hotmail.com；不要编造；使用用户的语言，默认西班牙语。`,
+};
+
+const NAME_NOTE: Record<Language, string> = {
+  es: 'El usuario se llama {userName}. Usa su nombre naturalmente.',
+  en: "The user's name is {userName}. Use it naturally.",
+  zh: '用户名为 {userName}。自然地使用这个名字。',
+};
+
+const NO_CONTENT: Record<Language, string> = {
+  es: 'No obtuve contenido.',
+  en: 'No content received.',
+  zh: '未获取到内容。',
+};
+
+const ERROR_MESSAGES: Record<Language, Record<string, string>> = {
+  es: {
+    apiKeyMissing: 'API key no configurada (provider: {provider})',
+    invalidJson: 'JSON inválido en el cuerpo del request',
+    messagesRequired: 'Mensajes requeridos (array)',
+    quotaExceeded: 'Has alcanzado el límite de {max} prompts en 2h 30m.',
+    rateLimit: 'Rate limit alcanzado. Intenta más tarde.',
+    invalidApiKey: 'API key inválida',
+    modelNotAvailable: 'Modelo no disponible para tu cuenta',
+    internalError: 'Error interno del servidor',
+    bypassActivated: 'Bypass activado: sin límite de prompts en esta sesión.',
+  },
+  en: {
+    apiKeyMissing: 'API key not configured (provider: {provider})',
+    invalidJson: 'Invalid JSON in request body',
+    messagesRequired: 'Messages required (array)',
+    quotaExceeded: 'You have reached the limit of {max} prompts in 2h 30m.',
+    rateLimit: 'Rate limit reached. Try again later.',
+    invalidApiKey: 'Invalid API key',
+    modelNotAvailable: 'Model not available for your account',
+    internalError: 'Internal server error',
+    bypassActivated: 'Bypass activated: no prompt limit for this session.',
+  },
+  zh: {
+    apiKeyMissing: '未配置 API 密钥（provider: {provider}）',
+    invalidJson: '请求体中的 JSON 无效',
+    messagesRequired: '需要消息（数组）',
+    quotaExceeded: '你已达到 {max} 条消息的 2 小时 30 分钟限制。',
+    rateLimit: '已达到速率限制。请稍后再试。',
+    invalidApiKey: 'API 密钥无效',
+    modelNotAvailable: '你的账户无法使用该模型',
+    internalError: '服务器内部错误',
+    bypassActivated: 'Bypass 已激活：本次会话无消息数量限制。',
+  },
+};
+
+function localize(key: string, lang: Language, vars: Record<string, string> = {}): string {
+  const template = ERROR_MESSAGES[lang]?.[key] ?? ERROR_MESSAGES.es[key] ?? key;
+  return template.replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? `{${name}}`);
+}
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system' | 'developer';
@@ -114,8 +189,8 @@ interface ChatMessage {
 /**
  * Helper function to get output_text from Responses API
  */
-function getOutputText(response: { output_text?: string }): string {
-  return response.output_text || 'No obtuve contenido.';
+function getOutputText(response: { output_text?: string }, lang: Language): string {
+  return response.output_text || NO_CONTENT[lang];
 }
 
 export async function POST(req: NextRequest) {
@@ -123,7 +198,7 @@ export async function POST(req: NextRequest) {
   const config = resolveProviderConfig();
   if (!config.apiKey) {
     return NextResponse.json(
-      { error: `API key no configurada (provider: ${config.provider})` },
+      { error: localize('apiKeyMissing', 'es', { provider: config.provider }) },
       { status: 503 }
     );
   }
@@ -134,7 +209,7 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     return NextResponse.json(
-      { error: 'JSON inválido en el cuerpo del request' },
+      { error: localize('invalidJson', 'es') },
       { status: 400 }
     );
   }
@@ -142,10 +217,12 @@ export async function POST(req: NextRequest) {
   const { messages, userName } = body ?? {};
   if (!Array.isArray(messages)) {
     return NextResponse.json(
-      { error: 'Mensajes requeridos (array)' },
+      { error: localize('messagesRequired', 'es') },
       { status: 400 }
     );
   }
+
+  const lang = detectLanguageFromHint(messages);
 
   // 2) Bypass secreto: si el último mensaje de usuario es la frase mágica, activa bypass y responde
   const lastUser = [...messages].reverse().find(m => m.role === 'user');
@@ -154,7 +231,7 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({
       success: true,
       model: 'gpt-5-nano',
-      message: 'Bypass activado: sin límite de prompts en esta sesión.'
+      message: localize('bypassActivated', lang),
     });
     res.cookies.set(BYPASS_COOKIE, '1', {
       httpOnly: true,
@@ -176,7 +253,7 @@ export async function POST(req: NextRequest) {
     const retryAtISO = new Date(quota.resetAt).toISOString();
     return NextResponse.json(
       {
-        error: `Has alcanzado el límite de ${MAX_PROMPTS} prompts en 2h 30m.`,
+        error: localize('quotaExceeded', lang, { max: String(MAX_PROMPTS) }),
         retryAt: retryAtISO,
       },
       { status: 429 }
@@ -192,9 +269,9 @@ export async function POST(req: NextRequest) {
   }
 
   // 4) Construir input para Responses API
-  let developerContent = DEVELOPER_PERSONA;
+  let developerContent = DEVELOPER_PERSONA[lang];
   if (userName) {
-    developerContent += `\n\nEl usuario se llama ${userName}. Usa su nombre naturalmente.`;
+    developerContent += `\n\n${NAME_NOTE[lang].replace('{userName}', userName)}`;
   }
 
   // Convertir mensajes del historial a formato de texto, filtrando system messages
@@ -210,7 +287,7 @@ export async function POST(req: NextRequest) {
     const client = createClient(config);
     if (!client) {
       return NextResponse.json(
-        { error: `API key no configurada (provider: ${config.provider})` },
+        { error: localize('apiKeyMissing', lang, { provider: config.provider }) },
         { status: 503 }
       );
     }
@@ -221,7 +298,7 @@ export async function POST(req: NextRequest) {
     if (config.provider === 'kimi') {
       // 5a) Kimi uses chat.completions (OpenAI-compatible)
       const messages: OpenAI.ChatCompletionMessageParam[] = [
-        { role: 'system', content: DEVELOPER_PERSONA + (userName ? `\n\nEl usuario se llama ${userName}. Usa su nombre naturalmente.` : '') },
+        { role: 'system', content: developerContent },
         ...SHORT_HISTORY
           .filter(msg => msg.role !== 'system')
           .map(msg => ({ role: msg.role as 'user' | 'assistant', content: msg.content })),
@@ -231,7 +308,7 @@ export async function POST(req: NextRequest) {
         messages,
         max_tokens: config.maxTokens,
       });
-      text = completion.choices[0]?.message?.content ?? 'No obtuve contenido.';
+      text = completion.choices[0]?.message?.content ?? NO_CONTENT[lang];
       usage = completion.usage ?? null;
     } else {
       // 5b) OpenAI Responses API
@@ -239,7 +316,7 @@ export async function POST(req: NextRequest) {
         model: config.model,
         input,
       });
-      text = getOutputText(resp);
+      text = getOutputText(resp, lang);
       usage = resp.usage ?? null;
     }
 
@@ -273,7 +350,7 @@ export async function POST(req: NextRequest) {
     if (err?.status === 429) {
       return NextResponse.json(
         {
-          error: 'Rate limit alcanzado. Intenta más tarde.',
+          error: localize('rateLimit', lang),
           isRateLimit: true,
         },
         { status: 429 }
@@ -281,19 +358,19 @@ export async function POST(req: NextRequest) {
     }
     if (err?.status === 401) {
       return NextResponse.json(
-        { error: 'API key inválida' },
+        { error: localize('invalidApiKey', lang) },
         { status: 401 }
       );
     }
     if (err?.status === 404) {
       return NextResponse.json(
-        { error: 'Modelo no disponible para tu cuenta' },
+        { error: localize('modelNotAvailable', lang) },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { error: localize('internalError', lang) },
       { status: 500 }
     );
   }
@@ -307,7 +384,7 @@ export async function GET() {
   const config = resolveProviderConfig();
   if (!config.apiKey) {
     return NextResponse.json(
-      { status: 'unhealthy', error: `API key no configurada (provider: ${config.provider})` },
+      { status: 'unhealthy', error: localize('apiKeyMissing', 'es', { provider: config.provider }) },
       { status: 503 }
     );
   }

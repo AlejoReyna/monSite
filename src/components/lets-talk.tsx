@@ -2,6 +2,8 @@
 
 import { useState, FormEvent } from "react";
 import { useLanguage } from "@/components/lang-context";
+import { t } from "@/lib/translations";
+import type { Language } from "@/components/lang-context";
 
 type Interest =
   | "UI/UX design"
@@ -10,9 +12,32 @@ type Interest =
   | "Design system"
   | "Other";
 
+const interestLabels: Record<Language, Record<Interest, string>> = {
+  en: {
+    "UI/UX design": "UI/UX design",
+    "Web design": "Web design",
+    "Graphic design": "Graphic design",
+    "Design system": "Design system",
+    "Other": "Other",
+  },
+  es: {
+    "UI/UX design": "UI/UX design",
+    "Web design": "Web design",
+    "Graphic design": "Graphic design",
+    "Design system": "Design system",
+    "Other": "Other",
+  },
+  zh: {
+    "UI/UX design": "UI/UX 设计",
+    "Web design": "网页设计",
+    "Graphic design": "平面设计",
+    "Design system": "设计系统",
+    "Other": "其他",
+  },
+};
+
 export default function LetsTalk() {
   const { language } = useLanguage();
-  const isEs = language === "es";
   const [selectedInterest, setSelectedInterest] = useState<Interest | null>("UI/UX design");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -58,11 +83,11 @@ export default function LetsTalk() {
         setMessage("");
         setSelectedInterest("UI/UX design");
       } else {
-        throw new Error(result.error || "Error al enviar el mensaje");
+        throw new Error(result.error || t('errorSending', language));
       }
     } catch (error) {
       console.error("Error:", error);
-      setError(isEs ? "Error al enviar el mensaje. Inténtalo de nuevo." : "Error sending message. Please try again.");
+      setError(t('errorSending', language));
     } finally {
       setIsSubmitting(false);
     }
@@ -98,24 +123,22 @@ export default function LetsTalk() {
             className="text-4xl sm:text-5xl font-bold tracking-tight"
           >
             <span className="bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
-              {isEs ? "Hablemos" : "Let’s discuss"}
+              {t('letsDiscuss', language)}
             </span>
             <br />
             <span className="font-mono font-light text-gray-300">
-              {isEs ? "de algo " : "on something "}
+              {t('onSomething', language)}
             </span>
             <span className="bg-gradient-to-r from-cyan-300 via-fuchsia-300 to-violet-300 bg-clip-text text-transparent">
-              {isEs ? "genial" : "cool"}
+              {t('cool', language)}
             </span>
             <span className="font-mono font-light text-gray-300">
-              {isEs ? " juntos" : " together"}
+              {t('together', language)}
             </span>
           </h2>
 
           <p className="text-gray-300/90 font-mono font-light leading-relaxed">
-            {isEs
-              ? "Cuéntame sobre tu idea, proyecto o lo que te gustaría construir. Respondo lo antes posible."
-              : "Tell me about your idea, project, or what you’d like to build. I’ll get back to you ASAP."}
+            {t('contactSubtitle', language)}
           </p>
 
           <ul className="mt-2 space-y-3">
@@ -183,7 +206,7 @@ export default function LetsTalk() {
           >
             <fieldset>
               <legend className="mb-3 block text-xs uppercase tracking-wider text-gray-300/80 font-mono">
-                {isEs ? "Me interesa…" : "I’m interested in…"}
+                {t('imInterestedIn', language)}
               </legend>
               <div className="flex flex-wrap gap-2">
                 {interests.map((interest) => {
@@ -199,7 +222,7 @@ export default function LetsTalk() {
                           : "border-gray-600/30 bg-gray-700/30 text-gray-200 hover:bg-gray-600/40"}`}
                       aria-pressed={isActive}
                     >
-                      {interest}
+                      {interestLabels[language][interest]}
                     </button>
                   );
                 })}
@@ -209,13 +232,13 @@ export default function LetsTalk() {
             <div className="mt-6 space-y-5">
               <div>
                 <label htmlFor="name" className="sr-only">
-                  {isEs ? "Tu nombre" : "Your name"}
+                  {t('yourName', language)}
                 </label>
                 <input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder={isEs ? "Tu nombre" : "Your name"}
+                  placeholder={t('yourName', language)}
                   className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-gray-200 placeholder-gray-400 font-mono focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   required
                   autoComplete="name"
@@ -223,14 +246,14 @@ export default function LetsTalk() {
               </div>
               <div>
                 <label htmlFor="email" className="sr-only">
-                  {isEs ? "Tu correo" : "Your email"}
+                  {t('yourEmail', language)}
                 </label>
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={isEs ? "Tu correo" : "Your email"}
+                  placeholder={t('yourEmail', language)}
                   className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-gray-200 placeholder-gray-400 font-mono focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   required
                   autoComplete="email"
@@ -238,13 +261,13 @@ export default function LetsTalk() {
               </div>
               <div>
                 <label htmlFor="message" className="sr-only">
-                  {isEs ? "Tu mensaje" : "Your message"}
+                  {t('yourMessage', language)}
                 </label>
                 <textarea
                   id="message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder={isEs ? "Tu mensaje" : "Your message"}
+                  placeholder={t('yourMessage', language)}
                   rows={5}
                   className="w-full resize-y rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-gray-200 placeholder-gray-400 font-mono focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   required
@@ -256,9 +279,7 @@ export default function LetsTalk() {
 
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs text-gray-400 font-mono">
-                  {isEs
-                    ? "Al enviar aceptas ser contactado respecto a tu solicitud."
-                    : "By sending, you agree to be contacted about your request."}
+                  {t('contactConsent', language)}
                 </p>
                 <button
                   type="submit"
@@ -267,8 +288,8 @@ export default function LetsTalk() {
                 >
                   <span>
                     {isSubmitting
-                      ? isEs ? "Enviando…" : "Sending…"
-                      : isEs ? "Enviar mensaje" : "Send Message"}
+                      ? t('sending', language)
+                      : t('sendMessage', language)}
                   </span>
                   <svg
                     className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
@@ -283,9 +304,7 @@ export default function LetsTalk() {
 
               {submitted && (
                 <p className="mt-2 text-sm text-emerald-400 font-mono">
-                  {isEs
-                    ? "¡Gracias! Me pondré en contacto pronto."
-                    : "Thanks! I'll get back to you shortly."}
+                  {t('thanksContact', language)}
                 </p>
               )}
               

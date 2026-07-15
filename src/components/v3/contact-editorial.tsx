@@ -16,6 +16,7 @@ import {
 } from "framer-motion";
 import { Github, Linkedin, Mail } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
+import { t } from "@/lib/translations";
 import "@/components/v3/v3.css";
 
 /* ─────────────────────────────────────────
@@ -51,24 +52,28 @@ const SOCIAL_LINKS: {
   href: string;
   labelEn: string;
   labelEs: string;
+  labelZh: string;
 }[] = [
   {
     id: "github",
     href: "https://github.com/AlejoReyna",
     labelEn: "GitHub profile",
     labelEs: "Perfil de GitHub",
+    labelZh: "GitHub 个人主页",
   },
   {
     id: "linkedin",
     href: "https://www.linkedin.com/in/alexis-alberto-reyna-sánchez-6953102b4",
     labelEn: "LinkedIn profile",
     labelEs: "Perfil de LinkedIn",
+    labelZh: "LinkedIn 个人主页",
   },
   {
     id: "email",
     href: "mailto:alexis.rs@inverater.com",
     labelEn: "Send email",
     labelEs: "Enviar correo",
+    labelZh: "发送邮件",
   },
 ];
 
@@ -104,7 +109,7 @@ const fieldVariant = (delay: number) => ({
 /* ─────────────────────────────────────────
    Submit button inner content
 ───────────────────────────────────────── */
-function SubmitButtonContent({ status, isEs }: { status: FormStatus; isEs: boolean }) {
+function SubmitButtonContent({ status, language }: { status: FormStatus; language: string }) {
   if (status === "loading") {
     return (
       <span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
@@ -116,11 +121,11 @@ function SubmitButtonContent({ status, isEs }: { status: FormStatus; isEs: boole
         >
           ↻
         </motion.span>
-        {isEs ? "ENVIANDO..." : "SENDING..."}
+        {language === "zh" ? "发送中..." : language === "es" ? "ENVIANDO..." : "SENDING..."}
       </span>
     );
   }
-  return <>{isEs ? "ENVIAR →" : "SEND →"}</>;
+  return <>{language === "zh" ? "发送 →" : language === "es" ? "ENVIAR →" : "SEND →"}</>;
 }
 
 /* ═══════════════════════════════════════════
@@ -128,7 +133,6 @@ function SubmitButtonContent({ status, isEs }: { status: FormStatus; isEs: boole
    ═══════════════════════════════════════════ */
 export default function ContactEditorial() {
   const { language } = useLanguage();
-  const isEs = language === "es";
 
   /* ── Refs ── */
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -206,14 +210,14 @@ export default function ContactEditorial() {
 
       if (!res.ok) {
         const data: unknown = await res.json().catch(() => ({}));
-        const msg = (data as { error?: string }).error ?? (isEs ? "Error al enviar." : "Failed to send.");
+        const msg = (data as { error?: string }).error ?? t("failedToSend", language);
         throw new Error(msg);
       }
 
       setStatus("success");
     } catch (err) {
       setStatus("error");
-      setErrorMsg(err instanceof Error ? err.message : (isEs ? "Algo salió mal." : "Something went wrong."));
+      setErrorMsg(err instanceof Error ? err.message : t("somethingWentWrong", language));
     }
   };
 
@@ -233,7 +237,7 @@ export default function ContactEditorial() {
         position: "relative",
         overflow: "hidden",
       }}
-      aria-label={isEs ? "Contacto" : "Contact"}
+      aria-label={t("contact", language)}
     >
       {/* ── 2-col grid: headline + copy (left) | form + sidebar (right) ── */}
       <div className="v3-contact-layout">
@@ -252,7 +256,12 @@ export default function ContactEditorial() {
               fontWeight: 400,
             }}
           >
-            {isEs ? (
+            {language === "zh" ? (
+              <>
+                告诉我你想{" "}
+                <span style={{ color: "var(--v3-gold)" }}>构建</span>什么。
+              </>
+            ) : language === "es" ? (
               <>
                 Cuéntame qué quieres{" "}
                 <span style={{ color: "var(--v3-gold)" }}>construir</span>.
@@ -290,12 +299,12 @@ export default function ContactEditorial() {
             style={{ position: "relative" }}
           >
             <label htmlFor="contact-name" className="sr-only">
-              {isEs ? "Tu nombre" : "Your name"}
+              {t("yourName", language)}
             </label>
             <input
               id="contact-name"
               className="v3-contact-input"
-              placeholder={isEs ? "TU NOMBRE" : "YOUR NAME"}
+              placeholder={language === "zh" ? "你的名字" : language === "es" ? "TU NOMBRE" : "YOUR NAME"}
               value={form.name}
               onChange={setField("name")}
               required
@@ -310,13 +319,13 @@ export default function ContactEditorial() {
             animate={isFormInView ? "visible" : "hidden"}
           >
             <label htmlFor="contact-email" className="sr-only">
-              {isEs ? "Tu correo" : "Your email"}
+              {t("yourEmail", language)}
             </label>
             <input
               id="contact-email"
               className="v3-contact-input"
               type="email"
-              placeholder={isEs ? "TU CORREO" : "YOUR EMAIL"}
+              placeholder={language === "zh" ? "你的邮箱" : language === "es" ? "TU CORREO" : "YOUR EMAIL"}
               value={form.email}
               onChange={setField("email")}
               required
@@ -332,12 +341,12 @@ export default function ContactEditorial() {
             style={{ position: "relative" }}
           >
             <label htmlFor="contact-subject" className="sr-only">
-              {isEs ? "Asunto breve (opcional)" : "Brief subject (optional)"}
+              {language === "zh" ? "简短主题（可选）" : language === "es" ? "Asunto breve (opcional)" : "Brief subject (optional)"}
             </label>
             <input
               id="contact-subject"
               className="v3-contact-input"
-              placeholder={isEs ? "ASUNTO BREVE" : "BRIEF SUBJECT"}
+              placeholder={language === "zh" ? "简短主题" : language === "es" ? "ASUNTO BREVE" : "BRIEF SUBJECT"}
               value={form.subject}
               onChange={setField("subject")}
               maxLength={SUBJECT_MAX}
@@ -372,12 +381,12 @@ export default function ContactEditorial() {
             animate={isFormInView ? "visible" : "hidden"}
           >
             <label htmlFor="contact-message" className="sr-only">
-              {isEs ? "Tu mensaje" : "Your message"}
+              {t("yourMessage", language)}
             </label>
             <textarea
               id="contact-message"
               className="v3-contact-input"
-              placeholder={isEs ? "TU MENSAJE" : "YOUR MESSAGE"}
+              placeholder={language === "zh" ? "你的消息" : language === "es" ? "TU MENSAJE" : "YOUR MESSAGE"}
               value={form.message}
               onChange={setField("message")}
               required
@@ -421,7 +430,9 @@ export default function ContactEditorial() {
                       textTransform: "uppercase",
                     }}
                   >
-                    {isEs
+                    {language === "zh"
+                      ? "消息已收到 · 我会尽快回复"
+                      : language === "es"
                       ? "MENSAJE RECIBIDO · TE ESCRIBO PRONTO"
                       : "MESSAGE RECEIVED · I'LL WRITE SOON"}
                   </span>
@@ -441,7 +452,7 @@ export default function ContactEditorial() {
                     cursor: !isValid ? "not-allowed" : "pointer",
                   }}
                 >
-                  <SubmitButtonContent status={status} isEs={isEs} />
+                  <SubmitButtonContent status={status} language={language} />
                 </motion.button>
               )}
             </AnimatePresence>
@@ -471,7 +482,7 @@ export default function ContactEditorial() {
           </motion.div>
         </form>
 
-        <aside className="v3-social-icon-row" aria-label={isEs ? "Redes y correo" : "Social and email"}>
+        <aside className="v3-social-icon-row" aria-label={t("socialAndEmail", language)}>
           {SOCIAL_LINKS.map((link) => (
             <a
               key={link.id}
@@ -479,7 +490,7 @@ export default function ContactEditorial() {
               target={link.href.startsWith("http") ? "_blank" : undefined}
               rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
               className="v3-social-icon-link"
-              aria-label={isEs ? link.labelEs : link.labelEn}
+              aria-label={language === "zh" ? link.labelZh : language === "es" ? link.labelEs : link.labelEn}
             >
               <SocialIcon id={link.id} />
             </a>

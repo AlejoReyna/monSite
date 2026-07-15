@@ -1,8 +1,9 @@
 "use client";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import type React from "react";
 import { Info } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
+import type { Language } from "@/components/lang-context";
 import { useChat } from "@/hooks/useChat";
 
 // Removed unused TypewriterText component and its props type
@@ -28,9 +29,75 @@ import {
   ENHANCED_SUGGESTIONS,
 } from "./data/chat-enhancements";
 
-type Lang = "en" | "es";
 type Intent = "casual" | "work" | "about" | "projects" | "contact" | "music" | "travel" | "tech";
-type Suggestion = { en: string; es: string; intent: Intent };
+type Suggestion = { en: string; es: string; zh: string; intent: Intent };
+
+const UI_LABELS: Record<Language, {
+  chatInfo: string;
+  tooltip: string;
+  autoName: string;
+  howAreYou: string;
+  howAreYouNamed: (name: string) => string;
+  commands: string;
+  placeholder: string;
+  processing: string;
+  rateLimit: string;
+}> = {
+  es: {
+    chatInfo: "Información del chat",
+    tooltip: "Este proyecto usa Kimi 2.6, y las respuestas tardan unos 6 segundos",
+    autoName: "Amigo",
+    howAreYou: "¿Cómo estás?",
+    howAreYouNamed: (name) => `¿Cómo estás, ${name}?`,
+    commands: "Comandos disponibles:",
+    placeholder: "Pregúntame algo...",
+    processing: "Procesando respuesta...",
+    rateLimit: "Límite de velocidad alcanzado. Intenta en unos segundos...",
+  },
+  en: {
+    chatInfo: "Chat info",
+    tooltip: "This project uses Kimi 2.6, and answers take about 6 seconds",
+    autoName: "Guest",
+    howAreYou: "How are you?",
+    howAreYouNamed: (name) => `How are you, ${name}?`,
+    commands: "Available commands:",
+    placeholder: "Ask me something...",
+    processing: "Processing response...",
+    rateLimit: "Rate limit reached. Try in a few seconds...",
+  },
+  zh: {
+    chatInfo: "聊天信息",
+    tooltip: "本项目使用 Kimi 2.6，回复大约需要 6 秒",
+    autoName: "朋友",
+    howAreYou: "你好吗？",
+    howAreYouNamed: (name) => `${name}，你好吗？`,
+    commands: "可用命令：",
+    placeholder: "问我点什么……",
+    processing: "正在处理回复……",
+    rateLimit: "已达到速率限制。请稍后再试……",
+  },
+};
+
+const GREETINGS: Record<Language, string[]> = {
+  en: [
+    "Hey there! I'm Alexis. I code things that live on the internet, and this AI version of me is here to chat.",
+    "Hi, I'm Alexis. Web developer by day, debugging wizard by night. This is my AI twin.",
+    "Hello! Alexis here. I turn coffee into code, and this AI knows most of my tricks.",
+    "Hey, I'm Alexis. I make pixels dance on screens, powered by AI magic.",
+  ],
+  es: [
+    "¡Hey! Soy Alexis. Programo cosas que viven en internet, y esta versión AI de mí está aquí para charlar.",
+    "Hola, soy Alexis. Desarrollador web de día, mago del debugging de noche. Este es mi gemelo AI.",
+    "¡Hola! Alexis aquí. Convierto café en código, y esta AI conoce la mayoría de mis trucos.",
+    "Hey, soy Alexis. Hago que los píxeles bailen en pantallas, con magia AI.",
+  ],
+  zh: [
+    "嘿！我是 Alexis。我编写活在互联网上的东西，这个 AI 版的我可以陪你聊天。",
+    "你好，我是 Alexis。白天是 Web 开发者，晚上是调试巫师。这是我的 AI 分身。",
+    "你好！Alexis 在此。我把咖啡变成代码，这个 AI 知道我的大部分招数。",
+    "嘿，我是 Alexis。我让像素在屏幕上跳舞，由 AI 魔法驱动。",
+  ],
+};
 
 /* ========= Utils ========= */
 const getRandomSuggestions = (all: Suggestion[], count = 5) =>
@@ -43,7 +110,7 @@ const getRandomSuggestions = (all: Suggestion[], count = 5) =>
 const HINT_START = "[[SYS]]";
 const HINT_END = "[[/SYS]]";
 const deriveIntent = detectEnhancedIntent;
-const buildHint = (intent: Intent, lang: Lang) =>
+const buildHint = (intent: Intent, lang: Language) =>
   buildEnhancedHint(intent, lang);
 const stripHintFromUserMessage = (raw: unknown) => {
   const text = (raw ?? "").toString();
@@ -73,20 +140,10 @@ export default function ChatInterface({
   terminalClassName,
   variant = "card",
 }: ChatInterfaceProps) {
-  const langCtx = useLanguage();
-  const initialCtxLang: Lang = langCtx?.language === "es" ? "es" : "en";
-  const setCtxLanguage = useCallback(
-    (l: Lang) => {
-      if (l !== langCtx.language) langCtx.toggleLanguage();
-    },
-    [langCtx]
-  );
+  const { language: currentLang } = useLanguage();
+  const labels = UI_LABELS[currentLang];
 
   /* ========= Estado base ========= */
-  const [preferredLang, setPreferredLang] = useState<Lang | null>(null);
-  const currentLang: Lang = preferredLang ?? initialCtxLang;
-  const isEs = currentLang === "es";
-
   const [userName, setUserName] = useState("");
   const [showNamePrompt, setShowNamePrompt] = useState(false);
 
@@ -107,18 +164,10 @@ export default function ChatInterface({
     try {
       const savedName =
         typeof window !== "undefined" ? (localStorage.getItem("userName") || "").trim() : "";
-      const savedLang =
-        typeof window !== "undefined"
-          ? (localStorage.getItem("preferredLanguage") as Lang | null)
-          : null;
 
-      if (savedLang === "en" || savedLang === "es") {
-        setPreferredLang(savedLang);
-        setCtxLanguage?.(savedLang);
-      }
       if (savedName) setUserName(savedName);
 
-      const needsSetup = !(savedName && (savedLang === "en" || savedLang === "es"));
+      const needsSetup = !savedName;
       setShowNamePrompt(needsSetup);
 
       if (!needsSetup) {
@@ -127,7 +176,7 @@ export default function ChatInterface({
     } catch {
       setShowNamePrompt(true);
     }
-  }, [setCtxLanguage]);
+  }, []);
 
   // Initialize suggestions on client side to prevent hydration mismatch
   useEffect(() => {
@@ -149,7 +198,7 @@ export default function ChatInterface({
     const raw = inputValue.trim();
     if (!raw || isLoading) return;
     if (!userName) {
-      const autoName = isEs ? "Amigo" : "Guest";
+      const autoName = labels.autoName;
       setUserName(autoName);
       try {
         localStorage.setItem("userName", autoName);
@@ -167,7 +216,7 @@ export default function ChatInterface({
   const handleSuggestionClick = (text: string, intent: Intent) => {
     if (isLoading) return;
     if (!userName) {
-      const autoName = isEs ? "Amigo" : "Guest";
+      const autoName = labels.autoName;
       setUserName(autoName);
       try {
         localStorage.setItem("userName", autoName);
@@ -188,30 +237,11 @@ export default function ChatInterface({
   const [showInfoTip, setShowInfoTip] = useState(false);
   const [lastLoginLine, setLastLoginLine] = useState("Last login: -- on ttys009");
 
-  const greetings = [
-    {
-      en: "Hey there! I'm Alexis. I code things that live on the internet, and this AI version of me is here to chat.",
-      es: "¡Hey! Soy Alexis. Programo cosas que viven en internet, y esta versión AI de mí está aquí para charlar.",
-    },
-    {
-      en: "Hi, I'm Alexis. Web developer by day, debugging wizard by night. This is my AI twin.",
-      es: "Hola, soy Alexis. Desarrollador web de día, mago del debugging de noche. Este es mi gemelo AI.",
-    },
-    {
-      en: "Hello! Alexis here. I turn coffee into code, and this AI knows most of my tricks.",
-      es: "¡Hola! Alexis aquí. Convierto café en código, y esta AI conoce la mayoría de mis trucos.",
-    },
-    {
-      en: "Hey, I'm Alexis. I make pixels dance on screens, powered by AI magic.",
-      es: "Hey, soy Alexis. Hago que los píxeles bailen en pantallas, con magia AI.",
-    },
-  ];
-
   const [greetingIndex, setGreetingIndex] = useState(0);
 
   useEffect(() => {
-    setGreetingIndex(Math.floor(Math.random() * greetings.length));
-  }, [greetings.length]);
+    setGreetingIndex(Math.floor(Math.random() * GREETINGS[currentLang].length));
+  }, [currentLang]);
 
   useEffect(() => {
     const now = new Date();
@@ -220,14 +250,10 @@ export default function ChatInterface({
     setLastLoginLine(`Last login: ${date} ${time} on ttys009`);
   }, []);
 
-  const baseGreeting = isEs ? greetings[greetingIndex].es : greetings[greetingIndex].en;
+  const baseGreeting = GREETINGS[currentLang][greetingIndex];
   const text = userName
-    ? isEs
-      ? `${baseGreeting} ¿Cómo estás, ${userName}?`
-      : `${baseGreeting} How are you, ${userName}?`
-    : isEs
-    ? `${baseGreeting} ¿Cómo estás?`
-    : `${baseGreeting} How are you?`;
+    ? `${baseGreeting} ${labels.howAreYouNamed(userName)}`
+    : `${baseGreeting} ${labels.howAreYou}`;
 
   useEffect(() => {
     if (!showChat) {
@@ -308,7 +334,7 @@ export default function ChatInterface({
             <div className="relative ml-auto">
               <button
                 type="button"
-                aria-label={isEs ? "Información del chat" : "Chat info"}
+                aria-label={labels.chatInfo}
                 className="flex items-center text-gray-400 hover:text-gray-200 transition-colors cursor-pointer"
                 onClick={() => setShowInfoTip((v) => !v)}
                 onMouseEnter={() => setShowInfoTip(true)}
@@ -321,7 +347,7 @@ export default function ChatInterface({
                   role="tooltip"
                   className="absolute right-0 top-full mt-2 w-56 rounded-md bg-black/90 border border-gray-500/40 px-3 py-2 text-[12px] leading-5 text-gray-200 font-mono shadow-lg z-50 animate-fadeIn"
                 >
-                  This project uses Kimi 2.6, and answers take about 6 seconds
+                  {labels.tooltip}
                   <span className="absolute -top-1 right-1.5 h-2 w-2 rotate-45 bg-black/90 border-l border-t border-gray-500/40" />
                 </div>
               )}
@@ -387,7 +413,7 @@ export default function ChatInterface({
                 <div className="font-mono text-[14px] lg:text-[16px] xl:text-[17px] animate-fadeIn">
                   <div className="text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 flex items-center gap-3">
                     <LoadingSpinner />
-                    <span>Procesando respuesta...</span>
+                    <span>{labels.processing}</span>
                   </div>
                 </div>
               )}
@@ -407,7 +433,7 @@ export default function ChatInterface({
                   <p className="text-red-200">bash: {error}</p>
                   {isRateLimit && (
                     <p className="text-xs mt-2 opacity-80 text-red-300">
-                      {isEs ? "Límite de velocidad alcanzado. Intenta en unos segundos..." : "Rate limit reached. Try in a few seconds..."}
+                      {labels.rateLimit}
                     </p>
                   )}
                 </div>
@@ -417,20 +443,23 @@ export default function ChatInterface({
             {/* Sugerencias antes de iniciar chat */}
             {!showNamePrompt && !showChat && sorted.length === 0 && (
               <div className="space-y-2 shrink-0">
-              <div className="text-xs text-gray-400 font-mono mb-3">Comandos disponibles:</div>
+              <div className="text-xs text-gray-400 font-mono mb-3">{labels.commands}</div>
               <div className="flex flex-wrap gap-2">
-                {suggestions.map((s, index) => (
-                  <button
-                    key={s.en}
-                    onClick={() => handleSuggestionClick(isEs ? s.es : s.en, s.intent)}
-                    className={`text-xs bg-black/20 hover:bg-orange-900/30 text-gray-300 hover:text-orange-200 px-3 py-2 rounded border border-orange-500/30 hover:border-orange-400/60 transition-all duration-300 font-mono transform hover:scale-105 ${
-                      index < visibleButtons ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-                    }`}
-                    style={{ transitionDelay: `${index * 100}ms` }}
-                  >
-                    ./{isEs ? s.es.replace(/\s+/g, "_").toLowerCase() : s.en.replace(/\s+/g, "_").toLowerCase()}
-                  </button>
-                ))}
+                {suggestions.map((s, index) => {
+                  const label = s[currentLang];
+                  return (
+                    <button
+                      key={s.en}
+                      onClick={() => handleSuggestionClick(label, s.intent)}
+                      className={`text-xs bg-black/20 hover:bg-orange-900/30 text-gray-300 hover:text-orange-200 px-3 py-2 rounded border border-orange-500/30 hover:border-orange-400/60 transition-all duration-300 font-mono transform hover:scale-105 ${
+                        index < visibleButtons ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+                      }`}
+                      style={{ transitionDelay: `${index * 100}ms` }}
+                    >
+                      ./{label.replace(/\s+/g, "_").toLowerCase()}
+                    </button>
+                  );
+                })}
                 </div>
               </div>
             )}
@@ -451,7 +480,7 @@ export default function ChatInterface({
                     handleSendMessage();
                   }
                 }}
-                placeholder={isEs ? "Pregúntame algo..." : "Ask me something..."}
+                placeholder={labels.placeholder}
                 className="flex-1 bg-transparent text-gray-100 placeholder-gray-400 font-mono text-[14px] lg:text-[16px] xl:text-[17px] focus:outline-none disabled:opacity-50 caret-gray-300 ml-2"
                 disabled={isLoading}
                 maxLength={500}

@@ -15,21 +15,28 @@ interface Stat {
 export default function RollingCounter() {
   const ref = useRef<HTMLDivElement>(null);
   const { language } = useLanguage();
-  const isEs = language === "es";
 
-  const stats: Stat[] = isEs
-    ? [
-        { target: 47, suffix: "+", label: "proyectos", desc: "formas distintas de resolver el mismo problema" },
-        { target: 6, suffix: "", label: "años codeando", desc: "iterando, rompiendo, reescribiendo, aprendiendo" },
-        { target: 12, suffix: "k", label: "commits", desc: "huellas pequeñas que componen un sistema" },
-        { target: 1, suffix: "", label: "gesto", desc: "uno basta para cambiar la relación entre forma y sentido" },
-      ]
-    : [
-        { target: 47, suffix: "+", label: "projects", desc: "different ways to solve the same problem" },
-        { target: 6, suffix: "", label: "years coding", desc: "iterating, breaking, rewriting, learning" },
-        { target: 12, suffix: "k", label: "commits", desc: "tiny traces that compose a system" },
-        { target: 1, suffix: "", label: "gesture", desc: "one is enough to change the relation of form and sense" },
-      ];
+  const stats: Stat[] =
+    language === "zh"
+      ? [
+          { target: 47, suffix: "+", label: "项目", desc: "不同的方式解决同一个问题" },
+          { target: 6, suffix: "", label: "年编码", desc: "迭代、打破、重写、学习" },
+          { target: 12, suffix: "k", label: "提交", desc: "构成系统的微小痕迹" },
+          { target: 1, suffix: "", label: "姿态", desc: "一个足以改变形式与意义关系的姿态" },
+        ]
+      : language === "es"
+      ? [
+          { target: 47, suffix: "+", label: "proyectos", desc: "formas distintas de resolver el mismo problema" },
+          { target: 6, suffix: "", label: "años codeando", desc: "iterando, rompiendo, reescribiendo, aprendiendo" },
+          { target: 12, suffix: "k", label: "commits", desc: "huellas pequeñas que componen un sistema" },
+          { target: 1, suffix: "", label: "gesto", desc: "uno basta para cambiar la relación entre forma y sentido" },
+        ]
+      : [
+          { target: 47, suffix: "+", label: "projects", desc: "different ways to solve the same problem" },
+          { target: 6, suffix: "", label: "years coding", desc: "iterating, breaking, rewriting, learning" },
+          { target: 12, suffix: "k", label: "commits", desc: "tiny traces that compose a system" },
+          { target: 1, suffix: "", label: "gesture", desc: "one is enough to change the relation of form and sense" },
+        ];
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -41,9 +48,9 @@ export default function RollingCounter() {
     <>
       <SectionHeader
         index="05"
-        tag={isEs ? "sección 05 / rolling counter" : "section 05 / rolling counter"}
-        title={isEs ? "CONTADOR" : "COUNTER"}
-        caption={isEs ? "los números se ganan" : "numbers are earned"}
+        tag={language === "zh" ? "第 05 节 / 滚动计数器" : language === "es" ? "sección 05 / rolling counter" : "section 05 / rolling counter"}
+        title={language === "zh" ? "计数器" : language === "es" ? "CONTADOR" : "COUNTER"}
+        caption={language === "zh" ? "数字来之不易" : language === "es" ? "los números se ganan" : "numbers are earned"}
       />
 
       <div ref={ref} style={{ position: "relative" }}>
@@ -60,7 +67,7 @@ export default function RollingCounter() {
             className="v3-count-label"
             style={{ display: "block", marginBottom: "3rem" }}
           >
-            {isEs ? "métricas / datos / cifras" : "metrics / data / figures"}
+            {language === "zh" ? "指标 / 数据 / 数字" : language === "es" ? "métricas / datos / cifras" : "metrics / data / figures"}
           </span>
 
           <div

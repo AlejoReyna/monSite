@@ -2,10 +2,15 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-export type Language = "en" | "es";
+export type Language = "en" | "es" | "zh";
+
+const LANGUAGE_ORDER: Language[] = ["en", "es", "zh"];
 
 type LanguageContextValue = {
   language: Language;
+  setLanguage: (lang: Language) => void;
+  cycleLanguage: () => void;
+  /** @deprecated Use setLanguage or cycleLanguage instead. */
   toggleLanguage: () => void;
   isFading: boolean;
   toggleWithFade: () => void;
@@ -13,15 +18,21 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
+function isValidLanguage(value: string | null): value is Language {
+  return value === "en" || value === "es" || value === "zh";
+}
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("en");
   const [isFading, setIsFading] = useState(false);
 
-  // Initialize: force English to avoid post-mount flips caused by stored values
+  // Initialize from localStorage once mounted; default to English.
   useEffect(() => {
-    setLanguage("en");
     try {
-      window.localStorage.setItem("app_lang", "en");
+      const stored = window.localStorage.getItem("app_lang");
+      if (isValidLanguage(stored)) {
+        setLanguage(stored);
+      }
     } catch {}
   }, []);
 
@@ -31,22 +42,36 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [language]);
 
-  const toggleLanguage = useCallback(() => {
-    setLanguage((prev) => (prev === "en" ? "es" : "en"));
+  // Keep <html lang="..."> in sync without making layout.tsx a client component.
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = language;
+    }
+  }, [language]);
+
+  const cycleLanguage = useCallback(() => {
+    setLanguage((prev) => {
+      const idx = LANGUAGE_ORDER.indexOf(prev);
+      return LANGUAGE_ORDER[(idx + 1) % LANGUAGE_ORDER.length];
+    });
   }, []);
+
+  const toggleLanguage = useCallback(() => {
+    cycleLanguage();
+  }, [cycleLanguage]);
 
   const toggleWithFade = useCallback(() => {
     // Fade out, switch language, fade in
     setIsFading(true);
     window.setTimeout(() => {
-      setLanguage((prev) => (prev === "en" ? "es" : "en"));
+      cycleLanguage();
       window.setTimeout(() => setIsFading(false), 180);
     }, 180);
-  }, []);
+  }, [cycleLanguage]);
 
   const value = useMemo(
-    () => ({ language, toggleLanguage, isFading, toggleWithFade }),
-    [language, toggleLanguage, isFading, toggleWithFade]
+    () => ({ language, setLanguage, cycleLanguage, toggleLanguage, isFading, toggleWithFade }),
+    [language, setLanguage, cycleLanguage, toggleLanguage, isFading, toggleWithFade]
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;

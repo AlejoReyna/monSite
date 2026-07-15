@@ -2,35 +2,35 @@
 
 import { useNavigation } from "@/contexts/navigation-context";
 import { useLanguage } from "@/components/lang-context";
+import { t } from "@/lib/translations";
 import Image from "next/image";
 
 export default function MobileDock() {
   const { navigateToSection, currentSection } = useNavigation();
   const { language } = useLanguage();
-  const isEs = language === 'es';
 
   const navigationItems = [
     { 
       section: "home" as const, 
-      label: isEs ? "Inicio" : "Home",
+      label: t('navHome', language),
       icon: "terminal",
       bgColor: "from-orange-500 to-red-500"
     },
     // { 
     //   section: "services" as const, 
-    //   label: isEs ? "Servicios" : "Services",
+    //   label: t('services', language),
     //   icon: "star",
     //   bgColor: "from-yellow-500 to-orange-500"
     // },
     { 
       section: "projects" as const, 
-      label: isEs ? "Proyectos" : "Projects",
+      label: t('projects', language),
       icon: "folder",
       bgColor: "from-purple-500 to-pink-500"
     },
     { 
       section: "contact" as const, 
-      label: isEs ? "Contacto" : "Contact",
+      label: t('contact', language),
       icon: "message",
       bgColor: "from-green-500 to-teal-500"
     },
@@ -148,7 +148,9 @@ export default function MobileDock() {
               {/* Tooltip */}
               {(item.section === "home" || item.section === "projects") && (
                 <div className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-black text-white text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                  {item.section === "home" ? "Home" : "Projects"}
+                  {item.section === "home"
+                    ? language === "zh" ? "首页" : "Home"
+                    : language === "zh" ? "项目" : "Projects"}
                 </div>
               )}
             </div>
@@ -203,5 +205,3 @@ export default function MobileDock() {
     </div>
   );
 }
-
-

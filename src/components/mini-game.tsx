@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/components/lang-context";
+import { t } from "@/lib/translations";
 
 type Enemy = {
   x: number;
@@ -21,7 +22,6 @@ const BASE_HEIGHT = 360;
 
 export default function MiniGame() {
   const { language } = useLanguage();
-  const isEs = language === 'es';
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
@@ -196,10 +196,10 @@ export default function MiniGame() {
     }
 
     function render(ctx2: CanvasRenderingContext2D) {
-      const LABEL_SCORE = isEs ? 'Puntaje' : 'Score';
-      const LABEL_BEST = isEs ? 'Mejor' : 'Best';
-      const LABEL_GAME_OVER = isEs ? 'Fin del juego' : 'Game Over';
-      const LABEL_RESTART = isEs ? 'Espacio / Tocar para reiniciar' : 'Press Space / Tap to Restart';
+      const LABEL_SCORE = t('score', language);
+      const LABEL_BEST = t('best', language);
+      const LABEL_GAME_OVER = t('gameOver', language);
+      const LABEL_RESTART = t('restartHint', language);
       // clear
       ctx2.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
 
@@ -286,7 +286,7 @@ export default function MiniGame() {
     return () => {
       el!.removeEventListener("click", onTapRestart);
     };
-  }, [best, isRunning, score, isEs]);
+  }, [best, isRunning, score, language]);
 
   return (
     <section
@@ -297,13 +297,11 @@ export default function MiniGame() {
       <div className="mx-auto max-w-3xl text-center">
         <h2 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
           <span className="bg-gradient-to-r from-white via-white to-gray-300 bg-clip-text text-transparent">
-            {isEs ? 'Mini‑Juego' : 'Mini‑Game'}
+            {t('miniGameTitle', language)}
           </span>
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-sm text-gray-400 sm:text-base">
-          {isEs
-            ? 'Mueve la barra para esquivar los bloques. Usa ← → / A D o toca para moverte.'
-            : 'Move the paddle to dodge blocks. Use ← → / A D or tap to move.'}
+          {t('miniGameInstructions', language)}
         </p>
       </div>
 
@@ -325,21 +323,21 @@ export default function MiniGame() {
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-gray-400 sm:text-sm">
             <kbd className="rounded-md border border-white/10 bg-white/5 px-2 py-1">←</kbd>
             <kbd className="rounded-md border border-white/10 bg-white/5 px-2 py-1">→</kbd>
-            <span className="hidden sm:inline">o</span>
+            <span className="hidden sm:inline">
+              {language === "zh" ? "或" : "o"}
+            </span>
             <kbd className="rounded-md border border-white/10 bg-white/5 px-2 py-1">A</kbd>
             <kbd className="rounded-md border border-white/10 bg-white/5 px-2 py-1">D</kbd>
-            <span>{isEs ? '• Toca/Clic para moverte' : '• Tap/Click to move'}</span>
+            <span>{t('tapOrClickToMove', language)}</span>
             <span className="hidden sm:inline">•</span>
-            <span>{isEs ? 'Espacio para reiniciar' : 'Space to restart'}</span>
+            <span>{t('spaceToRestart', language)}</span>
           </div>
 
           {!isReady && (
-            <div className="text-xs text-gray-500">Cargando…</div>
+            <div className="text-xs text-gray-500">{t('loading', language)}</div>
           )}
         </div>
       </div>
     </section>
   );
 }
-
-

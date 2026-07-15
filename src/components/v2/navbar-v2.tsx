@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useNavigation } from "@/contexts/navigation-context";
 import { useLanguage } from "@/components/lang-context";
+import LanguageSwitcher from "@/components/language-switcher";
+import { t } from "@/lib/translations";
 
 export default function NavbarV2() {
   const { navigateToSection } = useNavigation();
   const { language } = useLanguage();
-  const isEs = language === "es";
 
   const [scrolled, setScrolled] = useState(false);
   const [hidden,   setHidden]   = useState(false);
@@ -90,13 +91,16 @@ export default function NavbarV2() {
           </Link>
 
           {/* CTA */}
-          <button
-            onClick={() => handleNav("contact")}
-            className="nav-contact-pill"
-            style={contactPillStyle}
-          >
-            {isEs ? "Hablemos →" : "Get in touch →"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <LanguageSwitcher />
+            <button
+              onClick={() => handleNav("contact")}
+              className="nav-contact-pill"
+              style={contactPillStyle}
+            >
+              {t("getInTouch", language)}
+            </button>
+          </div>
         </nav>
 
         {/* ── Mobile bar ── */}
@@ -126,13 +130,16 @@ export default function NavbarV2() {
             <span style={{ color: navTag }}>&gt;</span>
           </Link>
 
-          <button
-            onClick={() => handleNav("contact")}
-            className="nav-contact-pill"
-            style={contactPillStyle}
-          >
-            {isEs ? "Hablemos →" : "Get in touch →"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <LanguageSwitcher size="sm" />
+            <button
+              onClick={() => handleNav("contact")}
+              className="nav-contact-pill"
+              style={contactPillStyle}
+            >
+              {t("getInTouch", language)}
+            </button>
+          </div>
         </div>
       </header>
 
