@@ -9,7 +9,6 @@ export default function MosaicWave() {
   const ref = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const { language } = useLanguage();
-  const isEs = language === "es";
   const [progress, setProgress] = useState(0);
 
   // 12 cols * 6 rows = 72 cells. Tech labels overlay on specific cells.
@@ -67,9 +66,9 @@ export default function MosaicWave() {
     <>
       <SectionHeader
         index="06"
-        tag={isEs ? "sección 06 / grid wave / stack" : "section 06 / grid wave / stack"}
-        title={isEs ? "MOSAICO" : "MOSAIC"}
-        caption={isEs ? "el stack como ola" : "the stack as a wave"}
+        tag={language === "zh" ? "第 06 节 / 网格波浪 / 技术栈" : language === "es" ? "sección 06 / grid wave / stack" : "section 06 / grid wave / stack"}
+        title={language === "zh" ? "马赛克" : language === "es" ? "MOSAICO" : "MOSAIC"}
+        caption={language === "zh" ? "技术栈如波浪" : language === "es" ? "el stack como ola" : "the stack as a wave"}
       />
 
       <div ref={ref} style={{ height: "180vh", position: "relative" }}>
@@ -99,7 +98,7 @@ export default function MosaicWave() {
               color: "var(--v3-muted)",
             }}
           >
-            <span>{isEs ? "desplaza para revelar el stack" : "scroll to reveal the stack"}</span>
+            <span>{language === "zh" ? "向下滚动揭示技术栈" : language === "es" ? "desplaza para revelar el stack" : "scroll to reveal the stack"}</span>
             <span style={{ color: "var(--v3-gold)" }}>
               {Math.round(progress * 100)}%
             </span>

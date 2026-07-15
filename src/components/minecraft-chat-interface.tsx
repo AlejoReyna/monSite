@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "@/components/lang-context";
+import type { Language } from "@/components/lang-context";
 import { useChat } from "@/hooks/useChat";
 import {
   detectEnhancedIntent,
@@ -11,7 +12,6 @@ import {
 /* ─────────────────────────────────────────────
    Types
 ───────────────────────────────────────────── */
-type Lang = "en" | "es";
 type Intent =
   | "casual"
   | "work"
@@ -21,6 +21,36 @@ type Intent =
   | "music"
   | "travel"
   | "tech";
+
+const UI_LABELS: Record<Language, {
+  intro: string;
+  autoName: string;
+  visitor: string;
+  joined: string;
+  spam: string;
+}> = {
+  es: {
+    intro: "Hola, soy Alexis_Bot. Pregúntame lo que quieras.",
+    autoName: "Visitante",
+    visitor: "Visitante",
+    joined: " se unió al servidor",
+    spam: "[SPAM] Espera un momento.",
+  },
+  en: {
+    intro: "Hey, I'm Alexis_Bot. Ask me anything.",
+    autoName: "Visitor",
+    visitor: "Visitor",
+    joined: " joined the server",
+    spam: "[SPAM] Wait a moment.",
+  },
+  zh: {
+    intro: "嘿，我是 Alexis_Bot。随便问我。",
+    autoName: "访客",
+    visitor: "访客",
+    joined: " 加入了服务器",
+    spam: "[SPAM] 请稍等。",
+  },
+};
 
 /* ─────────────────────────────────────────────
    Minecraft colour palette (§ codes)
@@ -101,23 +131,15 @@ function TypingDots() {
    Main Component
 ───────────────────────────────────────────── */
 export default function MinecraftChatInterface() {
-  const langCtx   = useLanguage();
-  const initLang: Lang = langCtx?.language === "es" ? "es" : "en";
-  const setCtxLang = useCallback(
-    (l: Lang) => { if (l !== langCtx.language) langCtx.toggleLanguage(); },
-    [langCtx]
-  );
+  const { language: lang } = useLanguage();
+  const labels = UI_LABELS[lang];
 
   /* ── state ── */
-  const [preferredLang, setPreferredLang] = useState<Lang | null>(null);
-  const lang: Lang = preferredLang ?? initLang;
-  const isEs = lang === "es";
-
   const [userName, setUserName]     = useState("");
   const [showChat, setShowChat]     = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [placeholder, setPlaceholder] = useState(
-    isEs ? "Escribe un mensaje..." : "Type a message..."
+    ENHANCED_PLACEHOLDERS[lang][0]
   );
   const [introDisplayed, setIntroDisplayed] = useState("");
   const [introDone, setIntroDone]           = useState(false);
@@ -132,21 +154,16 @@ export default function MinecraftChatInterface() {
   useEffect(() => {
     try {
       const name = (localStorage.getItem("userName") || "").trim();
-      const savedLang = localStorage.getItem("preferredLanguage") as Lang | null;
-      if (savedLang === "en" || savedLang === "es") {
-        setPreferredLang(savedLang);
-        setCtxLang(savedLang);
-      }
       if (name) setUserName(name);
-      if (name && (savedLang === "en" || savedLang === "es")) setShowChat(true);
+      if (name) setShowChat(true);
     } catch { /* noop */ }
-  }, [setCtxLang]);
+  }, []);
 
   /* ── cycling placeholder ── */
   const pickPlaceholder = useCallback(() => {
-    const pool = ENHANCED_PLACEHOLDERS[isEs ? "es" : "en"];
+    const pool = ENHANCED_PLACEHOLDERS[lang];
     setPlaceholder(pool[Math.floor(Math.random() * pool.length)]);
-  }, [isEs]);
+  }, [lang]);
 
   useEffect(() => {
     pickPlaceholder();
@@ -160,9 +177,7 @@ export default function MinecraftChatInterface() {
   }, [messages, isLoading]);
 
   /* ── intro typewriter ── */
-  const introText = isEs
-    ? "Hola, soy Alexis_Bot. Pregúntame lo que quieras."
-    : "Hey, I'm Alexis_Bot. Ask me anything.";
+  const introText = labels.intro;
 
   useEffect(() => {
     if (showChat) return;
@@ -180,7 +195,7 @@ export default function MinecraftChatInterface() {
   const handleSend = () => {
     const raw = inputValue.trim();
     if (!raw || isLoading) return;
-    const name = userName || (isEs ? "Visitante" : "Visitor");
+    const name = userName || labels.autoName;
     if (!userName) {
       setUserName(name);
       try { localStorage.setItem("userName", name); } catch {}
@@ -193,7 +208,7 @@ export default function MinecraftChatInterface() {
   };
 
   const sorted      = [...messages].sort((a, b) => +a.timestamp - +b.timestamp);
-  const visitorName = userName || (isEs ? "Visitante" : "Visitor");
+  const visitorName = userName || labels.visitor;
 
   /* ─────────────────────────────────────────
      Render
@@ -283,7 +298,7 @@ export default function MinecraftChatInterface() {
               [{joinTime}]&nbsp;
               <span style={{ color: MC.green }}>Alexis_Bot</span>
               <span style={{ color: MC.white }}>
-                {isEs ? " se unió al servidor" : " joined the server"}
+                {labels.joined}
               </span>
             </div>
 
@@ -341,7 +356,7 @@ export default function MinecraftChatInterface() {
               <div className="mc-message mc-text" style={{ color: MC.red }}>
                 [{fmt(new Date())}]&nbsp;
                 {isRateLimit
-                  ? (isEs ? "[SPAM] Espera un momento." : "[SPAM] Wait a moment.")
+                  ? labels.spam
                   : `[ERROR] ${error}`}
               </div>
             )}

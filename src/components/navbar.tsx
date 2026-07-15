@@ -3,12 +3,12 @@
 import { Fragment, useEffect, useState } from "react";
 import { useLanguage } from "@/components/lang-context";
 import { useNavigation } from "@/contexts/navigation-context";
+import { t } from "@/lib/translations";
 import Image from "next/image";
 
 export default function Navbar() {
   const { language } = useLanguage();
   const { navigateToSection, currentSection } = useNavigation();
-  const isEs = language === 'es';
   // Removed unused isScrolled state variable
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
@@ -36,10 +36,10 @@ export default function Navbar() {
           {/* Center - Current section indicator */}
           <div className="flex items-center">
             <span className="text-white/70 text-xs font-mono">
-              {currentSection === "home" && (isEs ? "Inicio" : "Home")}
-              {currentSection === "services" && (isEs ? "Servicios" : "Services")}
-              {currentSection === "projects" && (isEs ? "Proyectos" : "Projects")}
-              {currentSection === "contact" && (isEs ? "Contacto" : "Contact")}
+              {currentSection === "home" && t('navHome', language)}
+              {currentSection === "services" && t('services', language)}
+              {currentSection === "projects" && t('projects', language)}
+              {currentSection === "contact" && t('contact', language)}
             </span>
           </div>
 
@@ -98,10 +98,10 @@ export default function Navbar() {
           {/* Navigation */}
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-2">
-              {[
+              {[ 
                 { 
                   section: "home", 
-                  label: isEs ? "Inicio" : "Home",
+                  label: t('navHome', language),
                   icon: (
                     <>
                       <span className="absolute inset-0 rounded-xl bg-white" />
@@ -119,7 +119,7 @@ export default function Navbar() {
                 },
                 { 
                   section: "projects", 
-                  label: isEs ? "Proyectos" : "Projects",
+                  label: t('projects', language),
                   icon: (
                     <Image
                       src="/linux_folder.png"
@@ -134,7 +134,7 @@ export default function Navbar() {
                 },
                 // { 
                 //   section: "services", 
-                //   label: isEs ? "Servicios" : "Services",
+                //   label: t('services', language),
                 //   icon: (
                 //     <svg className="w-5 h-5 xl:w-6 xl:h-6" fill="currentColor" viewBox="0 0 24 24">
                 //       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -160,7 +160,7 @@ export default function Navbar() {
                     {/* Tooltip */}
                     {(item.section === 'home' || item.section === 'projects' || item.section === 'services') && (
                       <div className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-black text-white text-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
-                        {item.section === 'home' ? (isEs ? 'Inicio' : 'Home') : item.section === 'projects' ? (isEs ? 'Proyectos' : 'Projects') : (isEs ? 'Servicios' : 'Services')}
+                        {item.section === 'home' ? t('navHome', language) : item.section === 'projects' ? t('projects', language) : t('services', language)}
                       </div>
                     )}
                   </button>
@@ -243,7 +243,7 @@ export default function Navbar() {
                 )}
                 {/* Tooltip */}
                 <div className="absolute left-full ml-3 px-2 py-1 bg-black/80 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                  {isEs ? 'Contacto' : "Contact"}
+                  {t('contact', language)}
                 </div>
               </button>
             </div>

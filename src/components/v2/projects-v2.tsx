@@ -6,6 +6,15 @@ import { motion, MotionConfig, useScroll, useTransform, useSpring } from "framer
 import { useLanguage } from "@/components/lang-context";
 
 /* ─────────────────────────────────────────
+   Language helper
+───────────────────────────────────────── */
+function pick<T>(en: T, es: T, zh: T, language: string): T {
+  if (language === "zh") return zh;
+  if (language === "es") return es;
+  return en;
+}
+
+/* ─────────────────────────────────────────
    Types
 ───────────────────────────────────────── */
 interface Project {
@@ -280,7 +289,7 @@ function CofounderCard({ project }: { project: Project }) {
 /* ─────────────────────────────────────────
    Section: Open Source
 ───────────────────────────────────────── */
-function OpenSourceCard({ isEs }: { isEs: boolean }) {
+function OpenSourceCard({ language }: { language: string }) {
   return (
     <motion.div
       variants={cardVariant}
@@ -320,7 +329,7 @@ function OpenSourceCard({ isEs }: { isEs: boolean }) {
               padding: "2px 8px",
             }}
           >
-            {isEs ? "En desarrollo" : "In progress"}
+            {pick("In progress", "En desarrollo", "开发中", language)}
           </span>
         </div>
 
@@ -333,9 +342,12 @@ function OpenSourceCard({ isEs }: { isEs: boolean }) {
               marginBottom: "4px",
             }}
           >
-            {isEs
-              ? "Extensión Chrome/Firefox (MV3) · Vite + TypeScript"
-              : "Chrome/Firefox Extension (MV3) · Vite + TypeScript"}
+            {pick(
+              "Chrome/Firefox Extension (MV3) · Vite + TypeScript",
+              "Extensión Chrome/Firefox (MV3) · Vite + TypeScript",
+              "Chrome/Firefox 扩展（MV3）· Vite + TypeScript",
+              language
+            )}
           </p>
           <h3
             style={{
@@ -359,9 +371,12 @@ function OpenSourceCard({ isEs }: { isEs: boolean }) {
             color: "var(--gic-medium-gray)",
           }}
         >
-          {isEs
-            ? "Inyecta UI propia, reorganiza menús y mejora la UX en páginas universitarias con frames. Content scripts + Shadow DOM."
-            : "Injects a custom UI layer, reorganizes menus and improves UX on frame-based university pages. Content scripts + Shadow DOM."}
+          {pick(
+            "Injects a custom UI layer, reorganizes menus and improves UX on frame-based university pages. Content scripts + Shadow DOM.",
+            "Inyecta UI propia, reorganiza menús y mejora la UX en páginas universitarias con frames. Content scripts + Shadow DOM.",
+            "在基于 frame 的大学页面注入自定义 UI 层、重组菜单并改善用户体验。Content scripts + Shadow DOM。",
+            language
+          )}
         </p>
 
         <pre
@@ -384,7 +399,7 @@ npm install && npm run build`}
         <div className="flex flex-wrap gap-4">
           {[
             { href: "https://github.com/AlejoReyna/UANLInterface", label: "GitHub" },
-            { href: "https://uanl-interface.vercel.app", label: isEs ? "Demo en vivo" : "Live demo" },
+            { href: "https://uanl-interface.vercel.app", label: pick("Live demo", "Demo en vivo", "在线演示", language) },
           ].map((l) => (
             <a
               key={l.label}
@@ -464,7 +479,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
    ═══════════════════════════════════ */
 export default function ProjectsV2() {
   const { language } = useLanguage();
-  const isEs = language === "es";
   const sectionRef = useRef<HTMLDivElement>(null);
 
   /* subtle background parallax */
@@ -487,23 +501,29 @@ export default function ProjectsV2() {
     {
       kind: "video",
       media: "/plebes_video.mp4",
-      badge: isEs ? "Diseño UX/UI" : "UX/UI Design",
-      title: isEs ? "Plebes DAO" : "Plebes DAO",
-      desc: isEs
-        ? "DAO impulsada por la comunidad en ICP (Internet Computer). Diseño completo, branding y UX."
-        : "Community-driven DAO on ICP (Internet Computer). Full design, branding and UX.",
-      links: [{ href: "https://plebes.xyz", label: isEs ? "Demo en vivo" : "Live demo" }],
+      badge: pick("UX/UI Design", "Diseño UX/UI", "UX/UI 设计", language),
+      title: "Plebes DAO",
+      desc: pick(
+        "Community-driven DAO on ICP (Internet Computer). Full design, branding and UX.",
+        "DAO impulsada por la comunidad en ICP (Internet Computer). Diseño completo, branding y UX.",
+        "基于 ICP（Internet Computer）的社区驱动型 DAO。完整设计、品牌与用户体验。",
+        language
+      ),
+      links: [{ href: "https://plebes.xyz", label: pick("Live demo", "Demo en vivo", "在线演示", language) }],
     },
     {
       kind: "video",
       media: "/wedding_preview.mp4",
       badge: "Wedding · 2024",
       title: "Andrea & Aldo",
-      desc: isEs
-        ? "Invitación de boda interactiva con flujo RSVP, cronograma e integración de mapas."
-        : "Interactive wedding invitation with RSVP flow, schedule and maps integration.",
+      desc: pick(
+        "Interactive wedding invitation with RSVP flow, schedule and maps integration.",
+        "Invitación de boda interactiva con flujo RSVP, cronograma e integración de mapas.",
+        "带有 RSVP 流程、时间表和地图集成的互动婚礼邀请函。",
+        language
+      ),
       links: [
-        { href: "https://aldoyandrea.com", label: isEs ? "Demo en vivo" : "Live demo" },
+        { href: "https://aldoyandrea.com", label: pick("Live demo", "Demo en vivo", "在线演示", language) },
         { href: "https://github.com/AlejoReyna/wedding_invitation", label: "GitHub" },
       ],
     },
@@ -511,27 +531,33 @@ export default function ProjectsV2() {
       kind: "image",
       media: "/mk-banner.png",
       badge: "Landing",
-      kicker: isEs ? "Caso de estudio" : "Case study",
-      title: isEs ? "MK1 Presale — Landing inmersiva" : "MK1 Presale — Immersive landing",
-      desc: isEs
-        ? "Next.js + backend de correos y pre-registros en PostgreSQL. Confirmación vía Nodemailer."
-        : "Next.js + email backend and pre-registrations in PostgreSQL. Confirmation via Nodemailer.",
+      kicker: pick("Case study", "Caso de estudio", "案例研究", language),
+      title: pick("MK1 Presale — Immersive landing", "MK1 Presale — Landing inmersiva", "MK1 Presale — 沉浸式落地页", language),
+      desc: pick(
+        "Next.js + email backend and pre-registrations in PostgreSQL. Confirmation via Nodemailer.",
+        "Next.js + backend de correos y pre-registros en PostgreSQL. Confirmación vía Nodemailer.",
+        "Next.js + 邮件后端与 PostgreSQL 预注册。通过 Nodemailer 确认。",
+        language
+      ),
       links: [
         { href: "https://github.com/AlejoReyna/MortalKombat", label: "GitHub" },
-        { href: "https://next-mk.vercel.app", label: isEs ? "Demo en vivo" : "Live demo" },
+        { href: "https://next-mk.vercel.app", label: pick("Live demo", "Demo en vivo", "在线演示", language) },
       ],
     },
     {
       kind: "video",
       media: "/preview_pokefolio.mp4",
-      badge: isEs ? "Portfolio" : "Portfolio",
-      title: isEs ? "PokeFolio" : "PokeFolio",
-      desc: isEs
-        ? "Portfolio estilo Pokémon con typewriter, diálogos del juego y reproductor de música. Next.js + Tailwind."
-        : "Pokémon-style portfolio with typewriter, game dialogs and music player. Next.js + Tailwind.",
+      badge: "Portfolio",
+      title: "PokeFolio",
+      desc: pick(
+        "Pokémon-style portfolio with typewriter, game dialogs and music player. Next.js + Tailwind.",
+        "Portfolio estilo Pokémon con typewriter, diálogos del juego y reproductor de música. Next.js + Tailwind.",
+        "宝可梦风格的作品集，带有打字机、游戏对话和音乐播放器。Next.js + Tailwind。",
+        language
+      ),
       links: [
         { href: "https://github.com/AlejoReyna/PokeFolio", label: "GitHub" },
-        { href: "https://poke-folio.vercel.app", label: isEs ? "Demo en vivo" : "Live demo" },
+        { href: "https://poke-folio.vercel.app", label: pick("Live demo", "Demo en vivo", "在线演示", language) },
       ],
     },
   ];
@@ -541,36 +567,45 @@ export default function ProjectsV2() {
     {
       kind: "blue-card",
       badge: "🥉 ETH Mérida · Sep 2024",
-      title: isEs ? "mpBot — DeFi en un chatbot" : "mpBot — DeFi in a chatbot",
-      desc: isEs
-        ? "Bot de Telegram para staking con Meta Pool y Q&A sobre DeFi. Construido en 48 h con Next.js + Telegraf + OpenAI."
-        : "Telegram bot for Meta Pool staking & DeFi Q&A. Built in 48 h with Next.js + Telegraf + OpenAI.",
+      title: pick("mpBot — DeFi in a chatbot", "mpBot — DeFi en un chatbot", "mpBot — 聊天机器人里的 DeFi", language),
+      desc: pick(
+        "Telegram bot for Meta Pool staking & DeFi Q&A. Built in 48 h with Next.js + Telegraf + OpenAI.",
+        "Bot de Telegram para staking con Meta Pool y Q&A sobre DeFi. Construido en 48 h con Next.js + Telegraf + OpenAI.",
+        "用于 Meta Pool 质押与 DeFi 问答的 Telegram 机器人。48 小时内用 Next.js + Telegraf + OpenAI 构建。",
+        language
+      ),
       links: [
         { href: "https://github.com/AlejoReyna/mpBOT", label: "GitHub" },
-        { href: "https://t.me/PoolitoAssistantBot", label: isEs ? "Probar en Telegram" : "Try on Telegram" },
+        { href: "https://t.me/PoolitoAssistantBot", label: pick("Try on Telegram", "Probar en Telegram", "在 Telegram 上试用", language) },
       ],
     },
     {
       kind: "image",
       media: "https://raw.githubusercontent.com/AlejoReyna/Birdlypay/main/BIRDLY_PAY_BANNER.jpg",
       badge: "BASE · ONCHAIN SUMMER",
-      title: isEs ? "Birdlypay — Links de pago on-chain" : "Birdlypay — On-chain payment links",
-      desc: isEs
-        ? "dApp para crear enlaces de pago compartibles on-chain. Contratos en Solidity sobre Base blockchain."
-        : "dApp to create shareable on-chain payment links. Solidity contracts on Base blockchain.",
+      title: pick("Birdlypay — On-chain payment links", "Birdlypay — Links de pago on-chain", "Birdlypay — 链上支付链接", language),
+      desc: pick(
+        "dApp to create shareable on-chain payment links. Solidity contracts on Base blockchain.",
+        "dApp para crear enlaces de pago compartibles on-chain. Contratos en Solidity sobre Base blockchain.",
+        "用于创建可共享链上支付链接的 dApp。基于 Base 区块链的 Solidity 合约。",
+        language
+      ),
       links: [
         { href: "https://github.com/AlejoReyna/Birdlypay", label: "GitHub" },
-        { href: "https://birdlypay.vercel.app", label: isEs ? "Demo en vivo" : "Live demo" },
+        { href: "https://birdlypay.vercel.app", label: pick("Live demo", "Demo en vivo", "在线演示", language) },
       ],
     },
     {
       kind: "image",
       media: "/avocado.PNG",
-      badge: isEs ? "🥉 Jun 2023 · Side project" : "🥉 Jun 2023 · Side project",
-      title: isEs ? "NiftyRewards — Lealtad con NFTs" : "NiftyRewards — Loyalty with NFTs",
-      desc: isEs
-        ? "Sistema de recompensas con tokens fungibles y NFTs. Frontend TS con lógica y contratos en Rust."
-        : "Loyalty rewards system with fungible tokens & NFTs. TS frontend with Rust logic/contracts.",
+      badge: "🥉 Jun 2023 · Side project",
+      title: pick("NiftyRewards — Loyalty with NFTs", "NiftyRewards — Lealtad con NFTs", "NiftyRewards — 用 NFT 做忠诚计划", language),
+      desc: pick(
+        "Loyalty rewards system with fungible tokens & NFTs. TS frontend with Rust logic/contracts.",
+        "Sistema de recompensas con tokens fungibles y NFTs. Frontend TS con lógica y contratos en Rust.",
+        "带有同质化代币与 NFT 的奖励系统。TS 前端，Rust 逻辑/合约。",
+        language
+      ),
       links: [{ href: "https://github.com/eliasg24/NiftyRewards", label: "GitHub" }],
     },
   ];
@@ -611,7 +646,7 @@ export default function ProjectsV2() {
             transition={{ duration: 0.7 }}
             className="mb-12 pt-4"
           >
-            <SectionLabel>{isEs ? "Trabajo selecto" : "Selected work"}</SectionLabel>
+            <SectionLabel>{pick("Selected work", "Trabajo selecto", "精选作品", language)}</SectionLabel>
             <h2
               style={{
                 fontFamily: "var(--gic-font-serif)",
@@ -623,9 +658,12 @@ export default function ProjectsV2() {
                 maxWidth: "560px",
               }}
             >
-              {isEs
-                ? "Proyectos que combinan diseño y tecnología."
-                : "Projects that blend design and technology."}
+              {pick(
+                "Projects that blend design and technology.",
+                "Proyectos que combinan diseño y tecnología.",
+                "融合设计与技术的项目。",
+                language
+              )}
             </h2>
           </motion.div>
 
@@ -651,7 +689,7 @@ export default function ProjectsV2() {
             className="mt-16 mb-6"
           >
             <SectionLabel>Open Source</SectionLabel>
-            <OpenSourceCard isEs={isEs} />
+            <OpenSourceCard language={language} />
           </motion.div>
 
           {/* ── Hackathon section ── */}
@@ -662,7 +700,7 @@ export default function ProjectsV2() {
             transition={{ duration: 0.7 }}
             className="mt-16"
           >
-            <SectionLabel>{isEs ? "Hackathons" : "Hackathon projects"}</SectionLabel>
+            <SectionLabel>{pick("Hackathon projects", "Hackathons", "黑客马拉松项目", language)}</SectionLabel>
             <h2
               style={{
                 fontFamily: "var(--gic-font-serif)",
@@ -675,9 +713,12 @@ export default function ProjectsV2() {
                 maxWidth: "460px",
               }}
             >
-              {isEs
-                ? "Construido bajo presión, entregado con orgullo."
-                : "Built under pressure, shipped with pride."}
+              {pick(
+                "Built under pressure, shipped with pride.",
+                "Construido bajo presión, entregado con orgullo.",
+                "在压力下构建，带着自豪交付。",
+                language
+              )}
             </h2>
           </motion.div>
 

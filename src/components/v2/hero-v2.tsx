@@ -4,6 +4,8 @@ import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
 import ChatInterface from "@/components/chat-interface";
+import { useLanguage } from "@/components/lang-context";
+import type { Language } from "@/components/lang-context";
 
 /* ═══════════════════════════════════════════
    Hero V2 — Night Sky / GIC style
@@ -20,7 +22,11 @@ const COMIC_MESSAGES = [
   "console.log everything",
 ];
 
-const SCROLL_PROMPT = "SCROLL DOWN TO SEE MY PROJECTS!";
+const SCROLL_PROMPT: Record<Language, string> = {
+  en: "scroll down to see my projects!",
+  es: "Desliza hacia abajo para ver mis proyectos!",
+  zh: "向下滚动查看我的项目！",
+};
 type HeroV2Props = {
   /**
    * Inside `HeroCarouselSequence` the hero stays in a sticky frame; window-based
@@ -46,6 +52,7 @@ export default function HeroV2({
   noBgImage = false,
   disableBgVignette = false,
 }: HeroV2Props) {
+  const { language } = useLanguage();
   const heroRef = useRef<HTMLElement>(null);
   const [devBorder, setDevBorder] = useState(false);
 
@@ -294,7 +301,7 @@ export default function HeroV2({
               hidden: {},
             }}
           >
-            {SCROLL_PROMPT.toLowerCase().split(" ").map((word, i) => (
+            {SCROLL_PROMPT[language].split(" ").map((word, i) => (
               <motion.span
                 key={i}
                 className="inline-block mr-[0.3em]"
@@ -363,6 +370,14 @@ export default function HeroV2({
           fontFamily: "var(--font-space-mono, ui-monospace, monospace)",
         }}
       >
+        <a
+          href="https://www.instagram.com/jayivee._/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute -top-6 left-0 z-50 text-[0.55rem] lg:text-[0.6rem] text-white/40 hover:text-white/80 transition-colors font-mono tracking-wider pointer-events-auto md:hidden"
+        >
+          Artist: @jayivee._
+        </a>
         <div className="w-full h-[min(425.25px,40.5vh)] lg:h-[min(472.5px,52.5vh)]">
           <ChatInterface variant="panel" className="!w-full !h-full max-w-none" />
         </div>

@@ -2,14 +2,20 @@
 import Image from "next/image";
 import { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from "@/components/lang-context";
+import { t } from "@/lib/translations";
 
 type AboutProps = {
   className?: string;
 };
 
+const skillCategories: Record<string, string[]> = {
+  en: ['Frontend', 'Backend', 'DevOps & Cloud', 'Blockchain'],
+  es: ['Frontend', 'Backend', 'DevOps & Cloud', 'Blockchain'],
+  zh: ['前端', '后端', 'DevOps 与云', '区块链'],
+};
+
 export default function About({ className }: AboutProps) {
   const { language } = useLanguage();
-  const isEs = language === 'es';
 
   // Estados para animaciones
   const [isVisible, setIsVisible] = useState(false);
@@ -79,28 +85,31 @@ export default function About({ className }: AboutProps) {
   }, [isVisible, finalStats]);
 
   // Datos de habilidades técnicas
-  const skills = [
-    {
-      category: isEs ? 'Frontend' : 'Frontend',
-      items: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS'],
-      gradient: 'from-blue-500 to-cyan-400'
-    },
-    {
-      category: isEs ? 'Backend' : 'Backend', 
-      items: ['Node.js', 'Ruby on Rails', 'PostgreSQL', 'MongoDB'],
-      gradient: 'from-purple-500 to-indigo-400'
-    },
-    {
-      category: isEs ? 'DevOps & Cloud' : 'DevOps & Cloud',
-      items: ['AWS', 'Docker', 'CI/CD', 'Kubernetes'],
-      gradient: 'from-orange-500 to-red-400'
-    },
-    {
-      category: isEs ? 'Blockchain' : 'Blockchain',
-      items: ['Solidity', 'Web3.js', 'Smart Contracts', 'DeFi'],
-      gradient: 'from-yellow-500 to-orange-400'
-    }
-  ];
+  const skills = useMemo(() => {
+    const categories = skillCategories[language] ?? skillCategories.en;
+    return [
+      {
+        category: categories[0],
+        items: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS'],
+        gradient: 'from-blue-500 to-cyan-400'
+      },
+      {
+        category: categories[1], 
+        items: ['Node.js', 'Ruby on Rails', 'PostgreSQL', 'MongoDB'],
+        gradient: 'from-purple-500 to-indigo-400'
+      },
+      {
+        category: categories[2],
+        items: ['AWS', 'Docker', 'CI/CD', 'Kubernetes'],
+        gradient: 'from-orange-500 to-red-400'
+      },
+      {
+        category: categories[3],
+        items: ['Solidity', 'Web3.js', 'Smart Contracts', 'DeFi'],
+        gradient: 'from-yellow-500 to-orange-400'
+      }
+    ];
+  }, [language]);
 
   return (
     <section 
@@ -124,7 +133,7 @@ export default function About({ className }: AboutProps) {
         <div className="text-left mb-16 pt-20">
           <h2 className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight font-mono tracking-tight transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <span className="bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 bg-clip-text text-transparent">
-              {isEs ? 'Sobre Mí' : 'About Me'}
+              {t('aboutMe', language)}
             </span>
           </h2>
           
@@ -140,17 +149,11 @@ export default function About({ className }: AboutProps) {
             {/* Descripción principal */}
             <div className="space-y-6">
               <p className="text-lg lg:text-xl text-gray-300 leading-relaxed font-light">
-                {isEs 
-                  ? "Soy un desarrollador full-stack apasionado por crear soluciones tecnológicas innovadoras que resuelvan problemas reales. Mi enfoque se centra en construir experiencias de usuario excepcionales respaldadas por arquitecturas backend robustas y escalables."
-                  : "I'm a passionate full-stack developer focused on creating innovative technological solutions that solve real-world problems. My approach centers on building exceptional user experiences backed by robust and scalable backend architectures."
-                }
+                {t('aboutIntro', language)}
               </p>
               
               <p className="text-lg text-gray-400 leading-relaxed font-light">
-                {isEs
-                  ? "Con experiencia en tecnologías modernas como React, Next.js, Node.js y blockchain, me especializo en desarrollar aplicaciones web y móviles que combinan funcionalidad avanzada con diseño intuitivo."
-                  : "With experience in modern technologies like React, Next.js, Node.js and blockchain, I specialize in developing web and mobile applications that combine advanced functionality with intuitive design."
-                }
+                {t('aboutFocus', language)}
               </p>
             </div>
 
@@ -161,7 +164,7 @@ export default function About({ className }: AboutProps) {
                   {animatedStats.experience}+
                 </div>
                 <div className="text-sm text-gray-400 uppercase tracking-wider">
-                  {isEs ? 'Años Experiencia' : 'Years Experience'}
+                  {t('yearsExperience', language)}
                 </div>
               </div>
               
@@ -170,7 +173,7 @@ export default function About({ className }: AboutProps) {
                   {animatedStats.projects}+
                 </div>
                 <div className="text-sm text-gray-400 uppercase tracking-wider">
-                  {isEs ? 'Proyectos' : 'Projects'}
+                  {t('projects', language)}
                 </div>
               </div>
               
@@ -179,7 +182,7 @@ export default function About({ className }: AboutProps) {
                   {animatedStats.technologies}+
                 </div>
                 <div className="text-sm text-gray-400 uppercase tracking-wider">
-                  {isEs ? 'Tecnologías' : 'Technologies'}
+                  {t('technologies', language)}
                 </div>
               </div>
             </div>
@@ -190,7 +193,7 @@ export default function About({ className }: AboutProps) {
                 href="#contact"
                 className="cyberpunk-btn cyberpunk-btn-primary inline-flex items-center gap-2"
               >
-                <span>{isEs ? 'TRABAJEMOS JUNTOS' : "LET'S WORK TOGETHER"}</span>
+                <span>{t('letsWorkTogether', language)}</span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>

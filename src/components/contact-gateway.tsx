@@ -4,6 +4,8 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Github, Linkedin, Mail } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
+import { t } from "@/lib/translations";
+import type { Language } from "@/components/lang-context";
 import styles from "./contact-gateway.module.css";
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -102,28 +104,42 @@ const SOCIAL_LINKS = [
     id: "github",
     href: "https://github.com/AlejoReyna",
     Icon: Github,
-    labelEn: "GitHub profile",
-    labelEs: "Perfil de GitHub",
+    label: {
+      en: "GitHub profile",
+      es: "Perfil de GitHub",
+      zh: "GitHub 主页",
+    },
   },
   {
     id: "linkedin",
     href: "https://www.linkedin.com/in/alexis-alberto-reyna-sánchez-6953102b4",
     Icon: Linkedin,
-    labelEn: "LinkedIn profile",
-    labelEs: "Perfil de LinkedIn",
+    label: {
+      en: "LinkedIn profile",
+      es: "Perfil de LinkedIn",
+      zh: "LinkedIn 主页",
+    },
   },
   {
     id: "email",
     href: "mailto:alexis.rs@inverater.com",
     Icon: Mail,
-    labelEn: "Send email",
-    labelEs: "Enviar correo",
+    label: {
+      en: "Send email",
+      es: "Enviar correo",
+      zh: "发送邮件",
+    },
   },
 ] as const;
 
+const titleLines: Record<Language, string[]> = {
+  en: ["LETS GET", "IN TOUCH!"],
+  es: ["HABLEMOS!"],
+  zh: ["联系我们!"],
+};
+
 export default function ContactGateway({ isActive = false }: { isActive?: boolean }) {
   const { language } = useLanguage();
-  const isEs = language === "es";
 
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [status, setStatus] = useState<FormStatus>("idle");
@@ -170,7 +186,7 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
 
       if (!res.ok || !data.success) {
         throw new Error(
-          data.message ?? (isEs ? "Error al enviar." : "Failed to send.")
+          data.message ?? t('failedToSend', language)
         );
       }
 
@@ -181,9 +197,7 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
       setErrorMsg(
         err instanceof Error
           ? err.message
-          : isEs
-            ? "Algo salió mal."
-            : "Something went wrong."
+          : t('somethingWentWrong', language)
       );
     }
   };
@@ -227,9 +241,9 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
       >
         <motion.h2 id="contact-gateway-title" className={styles.title} variants={item}>
           <span className={styles.srOnly}>
-            {isEs ? "¡hablemos!" : "let's get in touch!"}
+            {t('letsTalk', language)}
           </span>
-          {(isEs ? ["HABLEMOS!"] : ["LETS GET", "IN TOUCH!"]).map((line, i, lines) => (
+          {titleLines[language].map((line, i, lines) => (
             <span key={line} className={styles.titleLine} aria-hidden="true">
               {line}
               {i === lines.length - 1 && (
@@ -240,9 +254,7 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
         </motion.h2>
 
         <motion.p className={styles.lead} variants={item}>
-          {isEs
-            ? "¿Tienes un proyecto en mente o solo quieres saludar? Escríbeme y te respondo pronto."
-            : "Got a project in mind, or just want to say hi? Drop me a line and I'll write back soon."}
+          {t('contactGatewayLead', language)}
         </motion.p>
 
         <motion.div className={styles.terminal} variants={item}>
@@ -271,12 +283,12 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
 
             <div className={styles.field}>
               <label className={styles.fieldLabel} htmlFor="contact-gw-name">
-                <span className={styles.prompt}>&gt;</span> {isEs ? "nombre" : "name"}
+                <span className={styles.prompt}>&gt;</span> {t('labelName', language)}
               </label>
               <input
                 id="contact-gw-name"
                 className={styles.input}
-                placeholder={isEs ? "Tu nombre" : "Your name"}
+                placeholder={t('yourName', language)}
                 value={form.name}
                 onChange={setField("name")}
                 autoComplete="name"
@@ -286,13 +298,19 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
 
             <div className={styles.field}>
               <label className={styles.fieldLabel} htmlFor="contact-gw-email">
-                <span className={styles.prompt}>&gt;</span> {isEs ? "correo" : "email"}
+                <span className={styles.prompt}>&gt;</span> {t('labelEmail', language)}
               </label>
               <input
                 id="contact-gw-email"
                 className={styles.input}
                 type="email"
-                placeholder={isEs ? "tu@correo.com" : "you@email.com"}
+                placeholder={
+                  language === "es"
+                    ? "tu@correo.com"
+                    : language === "zh"
+                      ? "your@email.com"
+                      : "you@email.com"
+                }
                 value={form.email}
                 onChange={setField("email")}
                 autoComplete="email"
@@ -302,12 +320,12 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
 
             <div className={styles.field}>
               <label className={styles.fieldLabel} htmlFor="contact-gw-message">
-                <span className={styles.prompt}>&gt;</span> {isEs ? "mensaje" : "message"}
+                <span className={styles.prompt}>&gt;</span> {t('labelMessage', language)}
               </label>
               <textarea
                 id="contact-gw-message"
                 className={`${styles.input} ${styles.textarea}`}
-                placeholder={isEs ? "Cuéntame tu idea..." : "Tell me about your idea..."}
+                placeholder={t('placeholderMessage', language)}
                 value={form.message}
                 onChange={setField("message")}
                 rows={4}
@@ -329,9 +347,7 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
                   role="status"
                 >
                   <span className={styles.prompt}>&gt;</span>{" "}
-                  {isEs
-                    ? "mensaje enviado — te escribo pronto ✓"
-                    : "message sent — I'll write back soon ✓"}
+                  {t('messageSent', language)}
                 </motion.p>
               ) : (
                 <motion.button
@@ -344,12 +360,16 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
                   exit={{ opacity: 0 }}
                 >
                   {status === "loading"
-                    ? isEs
+                    ? language === "es"
                       ? "Enviando..."
-                      : "Sending..."
-                    : isEs
+                      : language === "zh"
+                        ? "发送中..."
+                        : "Sending..."
+                    : language === "es"
                       ? "Enviar mensaje →"
-                      : "Send message →"}
+                      : language === "zh"
+                        ? "发送消息 →"
+                        : "Send message →"}
                 </motion.button>
               )}
             </AnimatePresence>
@@ -374,16 +394,16 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
         <motion.div
           className={styles.socialRow}
           variants={item}
-          aria-label={isEs ? "Redes y correo" : "Social and email"}
+          aria-label={t('socialAndEmail', language)}
         >
-          {SOCIAL_LINKS.map(({ id, href, Icon, labelEn, labelEs }) => (
+          {SOCIAL_LINKS.map(({ id, href, Icon, label }) => (
             <a
               key={id}
               href={href}
               target={href.startsWith("http") ? "_blank" : undefined}
               rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
               className={styles.socialLink}
-              aria-label={isEs ? labelEs : labelEn}
+              aria-label={label[language]}
             >
               <Icon size={20} strokeWidth={1.6} aria-hidden="true" />
             </a>

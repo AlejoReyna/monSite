@@ -8,7 +8,6 @@ import SectionHeader from "./section-header";
 export default function ParallaxDepth() {
   const ref = useRef<HTMLDivElement>(null);
   const { language } = useLanguage();
-  const isEs = language === "es";
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -21,25 +20,32 @@ export default function ParallaxDepth() {
   const fgY = useTransform(smooth, [0, 1], ["-45%", "45%"]);
   const numScale = useTransform(smooth, [0, 1], [0.85, 1.15]);
 
-  const services = isEs
-    ? [
-        { tag: "01", title: "Web", body: "Next.js · React · Vue · TypeScript" },
-        { tag: "02", title: "Diseño", body: "UX · UI · sistemas · prototipos" },
-        { tag: "03", title: "Cloud", body: "AWS · Docker · CI/CD · datos" },
-      ]
-    : [
-        { tag: "01", title: "Web", body: "Next.js · React · Vue · TypeScript" },
-        { tag: "02", title: "Design", body: "UX · UI · systems · prototypes" },
-        { tag: "03", title: "Cloud", body: "AWS · Docker · CI/CD · data" },
-      ];
+  const services =
+    language === "zh"
+      ? [
+          { tag: "01", title: "Web", body: "Next.js · React · Vue · TypeScript" },
+          { tag: "02", title: "设计", body: "UX · UI · 系统 · 原型" },
+          { tag: "03", title: "云", body: "AWS · Docker · CI/CD · 数据" },
+        ]
+      : language === "es"
+      ? [
+          { tag: "01", title: "Web", body: "Next.js · React · Vue · TypeScript" },
+          { tag: "02", title: "Diseño", body: "UX · UI · sistemas · prototipos" },
+          { tag: "03", title: "Cloud", body: "AWS · Docker · CI/CD · datos" },
+        ]
+      : [
+          { tag: "01", title: "Web", body: "Next.js · React · Vue · TypeScript" },
+          { tag: "02", title: "Design", body: "UX · UI · systems · prototypes" },
+          { tag: "03", title: "Cloud", body: "AWS · Docker · CI/CD · data" },
+        ];
 
   return (
     <>
       <SectionHeader
         index="03"
-        tag={isEs ? "sección 03 / parallax layers" : "section 03 / parallax layers"}
-        title={isEs ? "PROFUNDIDAD" : "DEPTH"}
-        caption={isEs ? "cada capa a su propia velocidad" : "each layer at its own pace"}
+        tag={language === "zh" ? "第 03 节 / 视差层" : language === "es" ? "sección 03 / parallax layers" : "section 03 / parallax layers"}
+        title={language === "zh" ? "深度" : language === "es" ? "PROFUNDIDAD" : "DEPTH"}
+        caption={language === "zh" ? "每一层都有自己的速度" : language === "es" ? "cada capa a su propia velocidad" : "each layer at its own pace"}
       />
 
       <div ref={ref} style={{ height: "200vh", position: "relative" }}>
@@ -66,10 +72,16 @@ export default function ParallaxDepth() {
             }}
           >
             <span className="v3-depth-eyebrow" style={{ marginBottom: "1.5rem" }}>
-              {isEs ? "servicios / capas" : "services / layers"}
+              {language === "zh" ? "服务 / 层" : language === "es" ? "servicios / capas" : "services / layers"}
             </span>
             <h2 className="v3-depth-heading" style={{ marginBottom: "1.5rem", maxWidth: "16ch" }}>
-              {isEs ? (
+              {language === "zh" ? (
+                <>
+                  层与层<br />
+                  并不占据<br />
+                  <em>同一时间</em>
+                </>
+              ) : language === "es" ? (
                 <>
                   Las capas<br />
                   no ocupan el<br />
@@ -84,7 +96,9 @@ export default function ParallaxDepth() {
               )}
             </h2>
             <p className="v3-depth-body">
-              {isEs
+              {language === "zh"
+                ? "设计、工程与基础设施以不同速度运转。平面之间的差异赋予产品深度。"
+                : language === "es"
                 ? "Diseño, ingeniería e infraestructura se mueven a velocidades distintas. La diferencia entre planos es lo que da profundidad al producto."
                 : "Design, engineering and infrastructure move at different speeds. The difference between layers is what gives the product its depth."}
             </p>
@@ -167,7 +181,7 @@ export default function ParallaxDepth() {
                 marginBottom: "0.5rem",
               }}
             >
-              {isEs ? "primer plano" : "foreground"}
+              {language === "zh" ? "前景" : language === "es" ? "primer plano" : "foreground"}
             </span>
             <div className="v3-depth-big-num">03</div>
           </motion.div>

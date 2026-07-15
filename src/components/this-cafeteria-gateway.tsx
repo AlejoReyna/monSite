@@ -3,12 +3,64 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import styles from "./this-cafeteria-gateway.module.css";
+import { useLanguage } from "@/components/lang-context";
+import type { Language } from "@/components/lang-context";
 
 const DEPLOYMENT_URL = "https://cafe.alexisreyna.dev";
 const DOCS_URL = "https://github.com/AlejoReyna/tcde";
 
 const simpleIcon = (slug: string, color = "f8f5ea") =>
   `https://cdn.simpleicons.org/${slug}/${color}`;
+
+const COPY: Record<Language, {
+  deployedOn: string;
+  deployChain: string;
+  deployNetwork: string;
+  deployAria: string;
+  wordmarkTop: string;
+  wordmarkBottom: string;
+  lead: string;
+  ctaPrimary: string;
+  ctaSecondary: string;
+  techAriaLabel: string;
+}> = {
+  en: {
+    deployedOn: "Deployed on",
+    deployChain: "Ethereum",
+    deployNetwork: "Sepolia",
+    deployAria: "Ethereum Sepolia",
+    wordmarkTop: "Artisanal",
+    wordmarkBottom: "Brew",
+    lead: "A cloud-ready ASP.NET commerce platform for specialty coffee — Blazor storefronts, Identity-protected orders, and Ethereum Sepolia payments, staking, and rewards.",
+    ctaPrimary: "View deployment",
+    ctaSecondary: "Docs",
+    techAriaLabel: "Artisanal Brew tech stack",
+  },
+  es: {
+    deployedOn: "Desplegado en",
+    deployChain: "Ethereum",
+    deployNetwork: "Sepolia",
+    deployAria: "Ethereum Sepolia",
+    wordmarkTop: "Artisanal",
+    wordmarkBottom: "Brew",
+    lead: "Una plataforma e-commerce en ASP.NET preparada para la nube y orientada al café de especialidad: interfaces de tienda con Blazor, pedidos asegurados mediante Identity, además de pagos, staking y recompensas en la red Ethereum Sepolia.",
+    ctaPrimary: "Ver despliegue",
+    ctaSecondary: "GitHub repo",
+    techAriaLabel: "Stack tecnológico de Artisanal Brew",
+  },
+  zh: {
+    deployedOn: "部署于",
+    deployChain: "以太坊",
+    deployNetwork: "Sepolia",
+    deployAria: "以太坊 Sepolia",
+    wordmarkTop: "Artisanal",
+    wordmarkBottom: "Brew",
+    lead: "一个面向精品咖啡、可云端部署的 ASP.NET 电商平台——Blazor 店面、受 Identity 保护的订单，以及以太坊 Sepolia 上的支付、质押和奖励。",
+    ctaPrimary: "查看部署",
+    ctaSecondary: "文档",
+    techAriaLabel: "Artisanal Brew 技术栈",
+  },
+};
 
 const techStack = [
   { label: ".NET", logo: simpleIcon("dotnet") },
@@ -26,6 +78,8 @@ const techStack = [
 ] as const;
 
 export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: boolean }) {
+  const { language } = useLanguage();
+  const copy = COPY[language];
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -118,9 +172,9 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
         animate={isActive ? "show" : "hidden"}
       >
         <motion.span className={styles.deployLabel} variants={item}>
-          Deployed on
+          {copy.deployedOn}
         </motion.span>
-        <motion.div className={styles.deployNetwork} variants={item} aria-label="Ethereum Sepolia">
+        <motion.div className={styles.deployNetwork} variants={item} aria-label={copy.deployAria}>
           <img
             className={styles.deployLogo}
             src="/eth_logo.png"
@@ -129,15 +183,15 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
             loading="lazy"
           />
           <span className={styles.deployNetworkText}>
-            <span className={styles.deployChain}>Ethereum</span>
-            <span className={styles.deployName}>Sepolia</span>
+            <span className={styles.deployChain}>{copy.deployChain}</span>
+            <span className={styles.deployName}>{copy.deployNetwork}</span>
           </span>
         </motion.div>
 
         <motion.ul
           className={`${styles.techRow} ${styles.techRowTop}`}
           variants={logoGroup}
-          aria-label="Artisanal Brew tech stack"
+          aria-label={copy.techAriaLabel}
         >
           {renderTechItems()}
         </motion.ul>
@@ -151,14 +205,13 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
       >
         <div className={styles.content}>
           <motion.h1 id="this-cafeteria-title" className={styles.wordmark} variants={item}>
-            <span className={styles.wordmarkTop}>Artisanal</span>
+            <span className={styles.wordmarkTop}>{copy.wordmarkTop}</span>
             {" "}
-            <span className={styles.wordmarkBottom}>Brew</span>
+            <span className={styles.wordmarkBottom}>{copy.wordmarkBottom}</span>
           </motion.h1>
 
           <motion.p className={styles.lead} variants={item}>
-            A cloud-ready ASP.NET commerce platform for specialty coffee — Blazor storefronts,
-            Identity-protected orders, and Ethereum Sepolia payments, staking, and rewards.
+            {copy.lead}
           </motion.p>
 
           <motion.div className={styles.actions} variants={item}>
@@ -168,7 +221,7 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
               target="_blank"
               rel="noreferrer"
             >
-              View deployment <span aria-hidden="true">→</span>
+              {copy.ctaPrimary} <span aria-hidden="true">→</span>
             </a>
             <a
               className={styles.ctaSecondary}
@@ -176,14 +229,14 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
               target="_blank"
               rel="noreferrer"
             >
-              Docs <span aria-hidden="true">↗</span>
+              {copy.ctaSecondary} <span aria-hidden="true">↗</span>
             </a>
           </motion.div>
 
           <motion.ul
             className={`${styles.techRow} ${styles.techRowBottom}`}
             variants={logoGroup}
-            aria-label="Artisanal Brew tech stack"
+            aria-label={copy.techAriaLabel}
           >
             {renderTechItems()}
           </motion.ul>

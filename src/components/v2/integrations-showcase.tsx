@@ -8,6 +8,8 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
+import { useLanguage } from "@/components/lang-context";
+import type { Language } from "@/components/lang-context";
 
 /* ══════════════════════════════════════════════════════
    SVG Tool Icons — minimal geometric marks, all grayscale
@@ -532,6 +534,8 @@ interface ToolCardProps {
 
 function ToolCard({ tool, isEdgeLeft, isEdgeRight }: ToolCardProps) {
   const [hovered, setHovered] = useState(false);
+  const { language } = useLanguage();
+  const copy = COPY[language];
   const { Icon } = tool;
 
   const borderRadius = [
@@ -615,7 +619,7 @@ function ToolCard({ tool, isEdgeLeft, isEdgeRight }: ToolCardProps) {
             whiteSpace: "nowrap",
           }}
         >
-          shipped with
+          {copy.hoverLabel}
         </span>
       </div>
 
@@ -654,10 +658,66 @@ function ToolCard({ tool, isEdgeLeft, isEdgeRight }: ToolCardProps) {
 }
 
 /* ══════════════════════════════════════════════
+   Copy
+══════════════════════════════════════════════ */
+
+const COPY: Record<Language, {
+  eyebrow: string;
+  titleLine1: string;
+  titleLine2Real: string;
+  titleLine2Rest: string;
+  description: string;
+  hoverLabel: string;
+  stats: Record<string, string>;
+}> = {
+  en: {
+    eyebrow: "section 02 / stack",
+    titleLine1: "Built from",
+    titleLine2Real: "real",
+    titleLine2Rest: "shipped work",
+    description: "A stack pulled from 35 public repos — TypeScript frontends, Web3 dApps, Python automation and mobile experiments.",
+    hoverLabel: "shipped with",
+    stats: {
+      technologies: "technologies",
+      publicRepos: "public repos",
+      yearsShipping: "years shipping",
+    },
+  },
+  es: {
+    eyebrow: "sección 02 / stack",
+    titleLine1: "Construido con",
+    titleLine2Real: "trabajo",
+    titleLine2Rest: "real enviado",
+    description: "Un stack extraído de 35 repositorios públicos — frontends TypeScript, dApps Web3, automatización Python y experimentos móviles.",
+    hoverLabel: "enviado con",
+    stats: {
+      technologies: "tecnologías",
+      publicRepos: "repos públicos",
+      yearsShipping: "años enviando",
+    },
+  },
+  zh: {
+    eyebrow: "第 02 部分 / 技术栈",
+    titleLine1: "构建自",
+    titleLine2Real: "真实",
+    titleLine2Rest: "上线作品",
+    description: "从 35 个公共仓库中提取的技术栈——TypeScript 前端、Web3 去中心化应用、Python 自动化和移动端实验。",
+    hoverLabel: "使用",
+    stats: {
+      technologies: "技术",
+      publicRepos: "公共仓库",
+      yearsShipping: "年交付经验",
+    },
+  },
+};
+
+/* ══════════════════════════════════════════════
    Main: IntegrationsShowcase
 ══════════════════════════════════════════════ */
 
 export default function IntegrationsShowcase() {
+  const { language } = useLanguage();
+  const copy = COPY[language];
   const sectionRef = useRef<HTMLElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
@@ -733,7 +793,7 @@ export default function IntegrationsShowcase() {
             color: "rgba(200,168,74,0.82)",
             margin: "0 0 16px",
           }}>
-            section 02 / stack
+            {copy.eyebrow}
           </p>
           <h2 style={{
             fontFamily: "var(--font-bebas, sans-serif)",
@@ -743,14 +803,14 @@ export default function IntegrationsShowcase() {
             color: "#f8f5ea",
             margin: 0,
           }}>
-            Built from<br />
+            {copy.titleLine1}<br />
             <em style={{
               fontFamily: "var(--font-cormorant, serif)",
               fontStyle: "italic",
               color: "rgba(200,168,74,0.9)",
               fontSize: "0.65em",
               fontWeight: 300,
-            }}>real</em>{" "}shipped work
+            }}>{copy.titleLine2Real}</em>{" "}{copy.titleLine2Rest}
           </h2>
         </div>
         <p style={{
@@ -762,8 +822,7 @@ export default function IntegrationsShowcase() {
           maxWidth: "360px",
           margin: 0,
         }}>
-          A stack pulled from 35 public repos — TypeScript frontends, Web3 dApps,
-          Python automation and mobile experiments.
+          {copy.description}
         </p>
       </div>
 
@@ -832,11 +891,11 @@ export default function IntegrationsShowcase() {
           gap: "16px",
         }}>
           {[
-            { num: "18", label: "technologies" },
-            { num: "35", label: "public repos" },
-            { num: "6", label: "years shipping" },
-          ].map(({ num, label }) => (
-            <div key={label} style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+            { num: "18", label: copy.stats.technologies, key: "technologies" },
+            { num: "35", label: copy.stats.publicRepos, key: "publicRepos" },
+            { num: "6", label: copy.stats.yearsShipping, key: "yearsShipping" },
+          ].map(({ num, label, key }) => (
+            <div key={key} style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
               <span style={{
                 fontFamily: "var(--font-bebas, sans-serif)",
                 fontSize: "clamp(2rem, 3.5vw, 3rem)",

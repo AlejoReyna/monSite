@@ -5,7 +5,8 @@ import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useLanguage } from "@/components/lang-context";
+import { useLanguage, type Language } from "@/components/lang-context";
+import { t } from "@/lib/translations";
 import { PROJECTS, type V3Project } from "./data/projects";
 import "@/components/v3/v3.css";
 
@@ -73,7 +74,7 @@ function SplitMediaSlide({ project, isActive, videoRef }: SplitMediaSlideProps) 
   );
 }
 
-function SplitCopyColumn({ project, isEs }: { project: V3Project; isEs: boolean }) {
+function SplitCopyColumn({ project, language }: { project: V3Project; language: Language }) {
   return (
     <div className="projects-split-parent-copy">
       <span className="projects-split-ghost" aria-hidden="true">
@@ -81,8 +82,8 @@ function SplitCopyColumn({ project, isEs }: { project: V3Project; isEs: boolean 
       </span>
 
       <span className="projects-split-badge">{project.badge}</span>
-      <p className="projects-split-tagline">{isEs ? project.tagline.es : project.tagline.en}</p>
-      <p className="projects-split-desc">{isEs ? project.description.es : project.description.en}</p>
+      <p className="projects-split-tagline">{project.tagline[language]}</p>
+      <p className="projects-split-desc">{project.description[language]}</p>
 
       <div className="projects-split-tags">
         {project.tags.map((tag) => (
@@ -95,7 +96,7 @@ function SplitCopyColumn({ project, isEs }: { project: V3Project; isEs: boolean 
       <div className="projects-split-links">
         {project.links.map((link) => (
           <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="projects-split-link">
-            {isEs ? link.label.es : link.label.en}
+            {link.label[language]}
             {" ↗"}
           </a>
         ))}
@@ -110,7 +111,6 @@ type ProjectsCarouselSplitProps = {
 
 export default function ProjectsCarouselSplit({ transparentBackdrop }: ProjectsCarouselSplitProps) {
   const { language } = useLanguage();
-  const isEs = language === "es";
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
@@ -182,7 +182,7 @@ export default function ProjectsCarouselSplit({ transparentBackdrop }: ProjectsC
         background: transparentBackdrop ? "transparent" : "var(--v3-bg)",
         position: "relative",
       }}
-      aria-label={isEs ? "Proyectos — vista en columnas" : "Projects — split view"}
+      aria-label={language === "zh" ? "项目 — 分栏视图" : language === "es" ? "Proyectos — vista en columnas" : "Projects — split view"}
     >
       {/* Title row replaces the old [ VIEW 04B / SPLIT ] band — headline follows the active slide */}
       <div
@@ -207,11 +207,11 @@ export default function ProjectsCarouselSplit({ transparentBackdrop }: ProjectsC
       <div
         className="projects-split-parent-body"
         aria-roledescription="carousel"
-        aria-label={isEs ? "Carrusel de medios del proyecto" : "Project media carousel"}
+        aria-label={language === "zh" ? "项目媒体轮播" : language === "es" ? "Carrusel de medios del proyecto" : "Project media carousel"}
         aria-labelledby={headlineId}
       >
         <div className="projects-split-parent-left">
-          <SplitCopyColumn key={activeProject.id} project={activeProject} isEs={isEs} />
+          <SplitCopyColumn key={activeProject.id} project={activeProject} language={language} />
         </div>
 
         <div className="projects-split-parent-right">
@@ -220,7 +220,7 @@ export default function ProjectsCarouselSplit({ transparentBackdrop }: ProjectsC
               type="button"
               onClick={scrollPrev}
               disabled={!canScrollPrev}
-              aria-label={isEs ? "Proyecto anterior" : "Previous project"}
+              aria-label={t("previousProject", language)}
               className="v3-carousel-arrow v3-carousel-edge-btn v3-carousel-edge-btn-prev"
               style={{
                 opacity: canScrollPrev ? 1 : 0.28,
@@ -233,7 +233,7 @@ export default function ProjectsCarouselSplit({ transparentBackdrop }: ProjectsC
               type="button"
               onClick={scrollNext}
               disabled={!canScrollNext}
-              aria-label={isEs ? "Proyecto siguiente" : "Next project"}
+              aria-label={t("nextProject", language)}
               className="v3-carousel-arrow v3-carousel-edge-btn v3-carousel-edge-btn-next"
               style={{
                 opacity: canScrollNext ? 1 : 0.28,
