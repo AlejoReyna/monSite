@@ -11,21 +11,16 @@ import type { Language } from "@/components/lang-context";
    Hero V2 — Night Sky / GIC style
    ═══════════════════════════════════════════ */
 
-const COMIC_MESSAGES = [
-  "i build ai slop 24/7",
-  "slurp",
-  "ships at 2am",
-  "powered by caffeine",
-  "git push --force",
-  "it works on my machine",
-  "todo: fix later",
-  "console.log everything",
-];
-
 const SCROLL_PROMPT: Record<Language, string> = {
   en: "scroll down to see my projects!",
   es: "Desliza hacia abajo para ver mis proyectos!",
   zh: "向下滚动查看我的项目！",
+};
+
+const HERO_TITLE: Record<Language, string> = {
+  en: "Alexis Reyna — Full-stack Developer & UI Engineer",
+  es: "Alexis Reyna — Desarrollador Full-stack & UI Engineer",
+  zh: "Alexis Reyna — 全栈开发者与 UI 工程师",
 };
 type HeroV2Props = {
   /**
@@ -54,8 +49,6 @@ export default function HeroV2({
 }: HeroV2Props) {
   const { language } = useLanguage();
   const heroRef = useRef<HTMLElement>(null);
-  const [devBorder, setDevBorder] = useState(false);
-
   // Remonta la terminal al cruzar el breakpoint lg: el offset de drag de
   // framer-motion vive como transform inline y sobrevive al cambio de CSS
   // (bottom/center móvil ↔ top/right desktop), dejando el panel descuadrado.
@@ -67,20 +60,6 @@ export default function HeroV2({
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
   }, []);
-  // Comic speech-bubble rotation — disabled for now, kept in case it comes back.
-  // const [msgIndex, setMsgIndex] = useState(0);
-  // const [msgVisible, setMsgVisible] = useState(true);
-  // useEffect(() => {
-  //   const t = setInterval(() => {
-  //     setMsgVisible(v => {
-  //       if (v) return false; // visible → start standby
-  //       setMsgIndex(i => (i + 1) % COMIC_MESSAGES.length); // advance on hidden → visible
-  //       return true;
-  //     });
-  //   }, 2000);
-  //   return () => clearInterval(t);
-  // }, []);
-
   /* parallax / fade */
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -117,6 +96,9 @@ export default function HeroV2({
       className="relative min-h-screen overflow-hidden flex"
       style={{ backgroundColor: noBgImage ? "#08080a" : "var(--gic-night-sky)" }}
     >
+      {/* Page heading for screen readers */}
+      <h1 className="sr-only">{HERO_TITLE[language]}</h1>
+
       {/* ── Background image + parallax ── */}
       {!noBgImage && (
         <motion.div
@@ -125,7 +107,7 @@ export default function HeroV2({
         >
           <Image
             src="/racoons_linux.webp"
-            alt="Architectural night backdrop"
+            alt=""
             fill
             priority
             className="object-cover object-[center_18%] md:object-center"
@@ -161,7 +143,7 @@ export default function HeroV2({
             initial={{ opacity: embed ? 1 : 0, y: embed ? 0 : 16 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.75, delay: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
-            className={`relative lg:mr-[15%] w-full h-full min-h-[50vh] lg:min-h-[min(83.6vh,665px)] pt-0 lg:pt-16 mt-[-14vh] lg:mt-[60px] overflow-hidden pointer-events-none origin-top rounded-lg ${devBorder ? "border-2 border-rose-400" : ""}`}
+            className="relative lg:mr-[15%] w-full h-full min-h-[50vh] lg:min-h-[min(83.6vh,665px)] pt-0 lg:pt-16 mt-[-14vh] lg:mt-[60px] overflow-hidden pointer-events-none origin-top rounded-lg"
             style={{ opacity: gifOpacity, scale: gifScale }}
             aria-hidden
           >
@@ -174,85 +156,10 @@ export default function HeroV2({
               sizes="(min-width: 1400px) min(540px, 46vw), 0px"
               className="object-contain object-center"
             />
-            {/* ── Dev: head divider line ── */}
-            {devBorder && (
-              <div
-                className="absolute inset-x-0 pointer-events-none"
-                style={{ top: "23%", height: "1px", background: "rgba(255,0,0,0.6)" }}
-              />
-            )}
-            {/* ── Dev: vertical line ── */}
-            {devBorder && (
-              <div
-                className="absolute pointer-events-none"
-                style={{ left: "61.5%", top: 0, width: "1px", height: "23%", background: "rgba(255,0,0,0.6)" }}
-              />
-            )}
-
-            {/* ── Comic speech bubbles — disabled for now, kept in case it comes back ──
-            <AnimatePresence mode="wait">
-              {msgVisible && (
-                <motion.svg
-                  key={`pointer-${msgIndex}`}
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  style={{ zIndex: 10 }}
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <path
-                    d="M 63 13 C 62.2 13.8, 60.8 15.1, 59 16.4"
-                    stroke="#ffffff"
-                    strokeWidth="0.5"
-                    strokeLinecap="round"
-                    fill="none"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                </motion.svg>
-              )}
-            </AnimatePresence>
-
-            <div className="absolute pointer-events-none" style={{ top: "8.5%", left: "62.5%", zIndex: 10 }}>
-              <AnimatePresence mode="wait">
-                {msgVisible && (
-                  <motion.span
-                    key={`b-${msgIndex}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.4 }}
-                    style={{
-                      display: "block",
-                      fontFamily: "var(--gic-font-comic)",
-                      fontSize: "0.78rem",
-                      color: "white",
-                      transform: "rotate(-3deg)",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {COMIC_MESSAGES[msgIndex]}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </div>
-            ── */}
-
           </motion.div>
 
           {/* ── Right column: layout placeholder (terminal floats here) ── */}
-          <div className={`hidden lg:block relative w-full h-full min-h-[min(70vh,520px)] lg:min-h-[min(88vh,780px)] ${devBorder ? "border-2 border-rose-400" : ""}`}>
-            {/* ── Dev: horizontal line at 45% ── */}
-            {devBorder && (
-              <div
-                className="absolute inset-x-0 pointer-events-none"
-                style={{ top: "38%", height: "1px", background: "rgba(255,0,0,0.6)" }}
-              />
-            )}
-          </div>
+          <div className="hidden lg:block relative w-full h-full min-h-[min(70vh,520px)] lg:min-h-[min(88vh,780px)]" />
         </div>
 
         {/* ── Credly badge ── */}
@@ -382,27 +289,6 @@ export default function HeroV2({
           <ChatInterface variant="panel" className="!w-full !h-full max-w-none" />
         </div>
       </motion.div>
-
-      {/* ── DEV: border toggle (commented out) ──
-      <button
-        onClick={() => setDevBorder(v => !v)}
-        className="absolute bottom-3 right-3 z-50 pointer-events-auto"
-        style={{
-          fontFamily: "ui-monospace, monospace",
-          fontSize: "0.6rem",
-          letterSpacing: "0.08em",
-          color: devBorder ? "rgba(251,113,133,0.9)" : "rgba(255,255,255,0.2)",
-          background: "transparent",
-          border: "none",
-          cursor: "pointer",
-          padding: "2px 4px",
-          userSelect: "none",
-        }}
-        title="Toggle dev border"
-      >
-        {devBorder ? "[border: on]" : "[border: off]"}
-      </button>
-      ── */}
 
       {/* ── Instagram credit ── */}
       <a

@@ -21,7 +21,7 @@ export default function V3Page() {
   }, []);
 
   return (
-    <main className="relative" style={{ background: "#08080a" }}>
+    <div className="relative" style={{ background: "#08080a" }}>
       {/* Hero — flat dark bg, no image/texture */}
       <HeroV2 noBgImage />
 
@@ -35,6 +35,6 @@ export default function V3Page() {
         <MosaicWave />
         <ContactEditorial />
       </div>
-    </main>
+    </div>
   );
 }

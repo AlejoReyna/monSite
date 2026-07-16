@@ -108,13 +108,6 @@ class StatusBarManager {
       }
     }
 
-    // DEBUG: Log what's happening
-    console.log('🎨 Status Bar Update:', {
-      appliedColor: finalColor,
-      statusBarStyle,
-      isNightMode: this.isNightMode,
-      visibleSections: Array.from(this.sections.values()).filter(s => s.isVisible).map(s => s.id)
-    });
   }
 
   private isColorLight(color: string): boolean {

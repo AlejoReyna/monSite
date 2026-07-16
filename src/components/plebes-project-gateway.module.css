@@ -4,14 +4,6 @@
   src: url("/munro_narrow.ttf") format("truetype");
 }
 
-@font-face {
-  font-display: swap;
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 300;
-  src: url("/fonts/inter-v20-latin-300.woff2") format("woff2");
-}
-
 .screen {
   --plebes-ink: #fff7ff;
   --plebes-soft: rgba(255, 247, 255, 0.76);

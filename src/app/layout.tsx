@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Bebas_Neue, Cormorant_Garamond, Space_Mono, Press_St
 import "./globals.css";
 import AppChrome from "@/components/app-chrome";
 
-import { LanguageProvider, LanguageFade } from "@/components/lang-context";
+import { LanguageProvider } from "@/components/lang-context";
 import { NavigationProvider } from "@/contexts/navigation-context";
 
 // Function to generate iOS meta tags for status bar styling
@@ -109,8 +109,6 @@ export default function RootLayout({
             la secuencia de paneles lo actualiza dinámicamente por panel */}
         <meta name="format-detection" content="telephone=no" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        {/* iOS splash screen color */}
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         {/* Favicon */}
         <link rel="icon" href="/tags.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -127,11 +125,8 @@ export default function RootLayout({
       >
         <LanguageProvider>
           <NavigationProvider>
-            <LanguageFade>
-              <a id="top" />
-              <AppChrome>{children}</AppChrome>
-              {/* <Footer /> */}
-            </LanguageFade>
+            <a id="top" />
+            <AppChrome>{children}</AppChrome>
           </NavigationProvider>
         </LanguageProvider>
       </body>

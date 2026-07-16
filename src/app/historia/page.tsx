@@ -227,7 +227,7 @@ export default function HistoriaPage() {
   };
 
   return (
-    <main
+    <div
       className="w-full selection:bg-[var(--gic-action-azure)] selection:text-[var(--gic-canvas-white)]"
       style={{
         backgroundColor: "var(--gic-canvas-white)",
@@ -409,7 +409,7 @@ export default function HistoriaPage() {
           </section>
         </motion.div>
       </AnimatePresence>
-    </main>
+    </div>
   );
 }
 

@@ -1,10 +1,8 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 export type Language = "en" | "es" | "zh";
-
-const LANGUAGE_ORDER: Language[] = ["en", "es", "zh"];
 
 const PAGE_TITLES: Record<Language, string> = {
   en: "Alexis Reyna — Full-stack Developer",
@@ -15,11 +13,6 @@ const PAGE_TITLES: Record<Language, string> = {
 type LanguageContextValue = {
   language: Language;
   setLanguage: (lang: Language) => void;
-  cycleLanguage: () => void;
-  /** @deprecated Use setLanguage or cycleLanguage instead. */
-  toggleLanguage: () => void;
-  isFading: boolean;
-  toggleWithFade: () => void;
 };
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
@@ -30,7 +23,6 @@ function isValidLanguage(value: string | null): value is Language {
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("en");
-  const [isFading, setIsFading] = useState(false);
 
   // Initialize from localStorage once mounted; default to English.
   useEffect(() => {
@@ -56,29 +48,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, [language]);
 
-  const cycleLanguage = useCallback(() => {
-    setLanguage((prev) => {
-      const idx = LANGUAGE_ORDER.indexOf(prev);
-      return LANGUAGE_ORDER[(idx + 1) % LANGUAGE_ORDER.length];
-    });
-  }, []);
-
-  const toggleLanguage = useCallback(() => {
-    cycleLanguage();
-  }, [cycleLanguage]);
-
-  const toggleWithFade = useCallback(() => {
-    // Fade out, switch language, fade in
-    setIsFading(true);
-    window.setTimeout(() => {
-      cycleLanguage();
-      window.setTimeout(() => setIsFading(false), 180);
-    }, 180);
-  }, [cycleLanguage]);
-
   const value = useMemo(
-    () => ({ language, setLanguage, cycleLanguage, toggleLanguage, isFading, toggleWithFade }),
-    [language, setLanguage, cycleLanguage, toggleLanguage, isFading, toggleWithFade]
+    () => ({ language, setLanguage }),
+    [language]
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
@@ -89,18 +61,4 @@ export function useLanguage() {
   if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
   return ctx;
 }
-
-// Helper wrapper that applies an opacity transition across content during language switch
-export function LanguageFade({ children }: { children: React.ReactNode }) {
-  const { isFading } = useLanguage();
-  return (
-    <div
-      className={`transition-opacity duration-300 ${isFading ? "opacity-0" : "opacity-100"}`}
-      aria-busy={isFading}
-    >
-      {children}
-    </div>
-  );
-}
-
 

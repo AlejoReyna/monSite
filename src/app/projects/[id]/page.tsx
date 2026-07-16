@@ -43,6 +43,7 @@ function ProjectMedia({ project }: { project: V3Project }) {
         loop
         playsInline
         preload="metadata"
+        aria-label={project.title}
         style={{
           width: "100%",
           height: "100%",
@@ -77,7 +78,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const { previous, next } = getProjectNeighbors(project.id);
 
   return (
-    <main
+    <div
       className="project-detail-page"
       style={{
         minHeight: "100svh",
@@ -282,6 +283,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           }
         }
       `}</style>
-    </main>
+    </div>
   );
 }

@@ -124,6 +124,7 @@ function ProjectCard({ project, isActive, isVisible, videoRef }: CardProps) {
               loop
               playsInline
               preload="auto"
+              aria-label={project.title}
               className="v3-carousel-media-inner"
               style={{
                 filter: isActive ? "none" : "grayscale(0.6)",

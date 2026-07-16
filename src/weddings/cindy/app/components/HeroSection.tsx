@@ -32,7 +32,6 @@ interface HeroSectionProps {
 const HeroSection = ({ entered = false, immediate = false, revealed = false }: HeroSectionProps) => {
   // If immediate, start fully loaded — no animations needed.
   const [loaded, setLoaded] = useState(immediate);
-  const [borderDrawn, setBorderDrawn] = useState(immediate);
 
   // Only start animations after the envelope has been opened (skip if immediate)
   useEffect(() => {

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "@fortawesome/fontawesome-svg-core/styles.css";
 import "./pokefolio-globals.css";
 import { MusicProvider } from "@/components/legacy/pokefolio/MusicContext";
 

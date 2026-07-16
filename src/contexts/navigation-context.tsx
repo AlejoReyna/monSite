@@ -1,20 +1,16 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
 
 type Section = "home" | "about" | "services" | "projects" | "contact";
 
 interface NavigationContextType {
-  currentSection: Section;
-  setCurrentSection: (section: Section) => void;
   navigateToSection: (section: Section) => void;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
 export function NavigationProvider({ children }: { children: ReactNode }) {
-  const [currentSection, setCurrentSection] = useState<Section>("home");
-
   const navigateToSection = (section: Section) => {
     const el = document.getElementById(section);
     if (el) {
@@ -27,7 +23,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <NavigationContext.Provider value={{ currentSection, setCurrentSection, navigateToSection }}>
+    <NavigationContext.Provider value={{ navigateToSection }}>
       {children}
     </NavigationContext.Provider>
   );

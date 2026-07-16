@@ -20,7 +20,7 @@ export default function SectionHeader({ index, tag, title, caption }: SectionHea
       data-index={index}
     >
       <span className="v3-sh-tag">{tag}</span>
-      <span className="v3-sh-title v3-display">{title}</span>
+      <h2 className="v3-sh-title v3-display" style={{ margin: 0 }}>{title}</h2>
       <span className="v3-sh-num">{caption}</span>
     </motion.div>
   );

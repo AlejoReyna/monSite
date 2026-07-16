@@ -73,13 +73,6 @@ export function useChat(userName?: string): UseChatReturn {
 
       const data = await response.json();
 
-      // Log de debugging para el desarrollador
-      console.log('🔍 Chat API Response:', {
-        status: response.status,
-        data: data,
-        usage: data.usage
-      });
-
       if (!response.ok) {
         if (response.status === 429 || data.isRateLimit) {
           setIsRateLimit(true);
@@ -115,8 +108,7 @@ export function useChat(userName?: string): UseChatReturn {
       if (error instanceof Error && error.name === 'AbortError') {
         return; // Request cancelado, no hacer nada
       }
-      
-      console.error('Error sending message:', error);
+
       setError('❌ Error de conexión. Verifica tu internet e intenta de nuevo.');
     } finally {
       setIsLoading(false);

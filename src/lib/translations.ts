@@ -17,6 +17,11 @@ export const translations = {
     es: "Inicio",
     zh: "首页",
   },
+  skipToMainContent: {
+    en: "Skip to main content",
+    es: "Saltar al contenido principal",
+    zh: "跳转到主要内容",
+  },
 
   // Section titles
   aboutMe: {
@@ -169,6 +174,16 @@ export const translations = {
     en: "Something went wrong.",
     es: "Algo salió mal.",
     zh: "出了点问题。",
+  },
+  errorRequired: {
+    en: "Please fill in this field.",
+    es: "Completa este campo.",
+    zh: "请填写此字段。",
+  },
+  errorInvalidEmail: {
+    en: "Please enter a valid email address.",
+    es: "Ingresa una dirección de correo válida.",
+    zh: "请输入有效的邮箱地址。",
   },
   socialAndEmail: {
     en: "Social and email",
