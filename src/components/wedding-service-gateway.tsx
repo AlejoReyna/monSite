@@ -1,13 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ComponentType, type PointerEvent as ReactPointerEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import styles from "./wedding-service-gateway.module.css";
 import DisabledRsvpButton from "@/weddings/shared/disabled-rsvp-button";
-import AndreaInlineInvitation from "@/components/weddings/inline-andrea";
-import CindyInlineInvitation from "@/components/weddings/inline-cindy";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
+
+const AndreaInlineInvitation = dynamic(
+  () => import("@/components/weddings/inline-andrea"),
+  { ssr: false }
+);
+
+const CindyInlineInvitation = dynamic(
+  () => import("@/components/weddings/inline-cindy"),
+  { ssr: false }
+);
 
 const TITLE_COPY: Record<Language, { line1: string; script: string; line3: string }> = {
   en: {
@@ -280,8 +289,8 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
     id: "andrea" | "cindy",
     colClass: string,
     project: (typeof previewProjects)[number],
-    Preview: () => ReactElement,
-    Invitation: () => ReactElement,
+    Preview: ComponentType,
+    Invitation: ComponentType,
     wideHint = false
   ) => {
     const open = expanded === id;

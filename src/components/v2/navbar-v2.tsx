@@ -11,7 +11,6 @@ export default function NavbarV2() {
   const { navigateToSection } = useNavigation();
   const { language } = useLanguage();
 
-  const [scrolled, setScrolled] = useState(false);
   const [hidden,   setHidden]   = useState(false);
   const navInk = "#ffffff";
   const navTag = "rgba(255,255,255,0.42)";
@@ -20,7 +19,6 @@ export default function NavbarV2() {
     let lastY = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
-      setScrolled(y > 40);
       setHidden(y > 80 ? y > lastY : false);
       lastY = y;
     };

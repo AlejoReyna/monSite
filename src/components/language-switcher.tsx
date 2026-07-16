@@ -33,7 +33,7 @@ export default function LanguageSwitcher({ className = "", size = "md" }: Langua
       role="group"
       aria-label="Language switcher"
     >
-      {OPTIONS.map((option, index) => {
+      {OPTIONS.map((option) => {
         const isActive = language === option.code;
         return (
           <button

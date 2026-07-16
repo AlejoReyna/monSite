@@ -3,23 +3,15 @@
 import { useCallback, useEffect, useRef, useState, type TouchEvent } from "react";
 import { animate, motion, useMotionValue, useMotionValueEvent, useTransform } from "framer-motion";
 import HeroV2 from "@/components/v2/hero-v2";
-// import ProjectsCarousel from "@/components/v3/projects-carousel";
 import ThisCafeteriaGateway from "@/components/this-cafeteria-gateway";
 import NoNamedBotGateway from "@/components/nonamedbot-gateway";
 import WeddingServiceGateway from "@/components/wedding-service-gateway";
 import PlebesProjectGateway from "@/components/plebes-project-gateway";
 import ContactGateway from "@/components/contact-gateway";
-import "@/components/v3/v3.css";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    HeroCarouselSequence — Hero-to-projects curtain reveal
    ═══════════════════════════════════════════════════════════════════════════ */
-
-const PHASE = {
-  heroOnlyUntil: 0.08,
-  revealCompleteBy: 0.82,
-  cardsEnterAt: 0.58,
-} as const;
 
 // Delta a acumular antes de disparar UN salto de panel.
 const WHEEL_THRESHOLD = 30;
@@ -106,9 +98,7 @@ export default function HeroCarouselSequence() {
   const minecraftProgress = useMotionValue(0);
   const plebesProgress = useMotionValue(0);
   const contactProgress = useMotionValue(0);
-  const revealProgress = useMotionValue(0);
   const isAnimatingRef = useRef(false);
-  const isRevealedRef = useRef(false);
   const activePanelRef = useRef<SequencePanel>(0);
   const [activePanel, setActivePanelState] = useState<SequencePanel>(0);
   const touchStartYRef = useRef<number | null>(null);
@@ -117,8 +107,6 @@ export default function HeroCarouselSequence() {
   const navLockedRef = useRef(false); // true mientras dura un gesto + enfriamiento
   const wheelAccumRef = useRef(0); // acumulador de deltaY hacia el umbral
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [carouselPointerEvents, setCarouselPointerEvents] = useState<"none" | "auto">("none");
-  const [carouselIntroActive, setCarouselIntroActive] = useState(false);
   const [cafeteriaPointerEvents, setCafeteriaPointerEvents] = useState<"none" | "auto">("none");
   const [nonamedbotPointerEvents, setNonamedbotPointerEvents] = useState<"none" | "auto">("none");
   const [minecraftPointerEvents, setMinecraftPointerEvents] = useState<"none" | "auto">("none");
@@ -205,15 +193,6 @@ export default function HeroCarouselSequence() {
     setContactPointerEvents((prev) => (prev === next ? prev : next));
   });
 
-  useMotionValueEvent(revealProgress, "change", (latest) => {
-    const next = latest >= 0.98 ? "auto" : "none";
-    setCarouselPointerEvents((prev) => (prev === next ? prev : next));
-    setCarouselIntroActive((prev) => {
-      const shouldShow = latest >= PHASE.cardsEnterAt;
-      return prev === shouldShow ? prev : shouldShow;
-    });
-  });
-
   const animateToPanel = useCallback(
     (nextPanel: SequencePanel) => {
       if (isAnimatingRef.current || activePanelRef.current === nextPanel) return;
@@ -230,8 +209,6 @@ export default function HeroCarouselSequence() {
               : "default"
       );
       setActivePanel(nextPanel);
-      isRevealedRef.current = false;
-      revealProgress.set(0);
 
       // Pila de paneles deslizantes (índice = panelId - 1).
       // 1: NoNamedBot · 2: plebes · 3: cafetería · 4: boda · 5: contacto
@@ -252,8 +229,6 @@ export default function HeroCarouselSequence() {
 
       // Durante la transición ningún panel deslizante recibe eventos.
       pointerSetters.forEach((setter) => setter("none"));
-      setCarouselPointerEvents("none");
-      setCarouselIntroActive(false);
 
       const finishPanelTransition = () => {
         isAnimatingRef.current = false;
@@ -298,7 +273,6 @@ export default function HeroCarouselSequence() {
       minecraftProgress,
       plebesProgress,
       contactProgress,
-      revealProgress,
       setActivePanel,
       setNavFontMode,
     ]
@@ -482,14 +456,6 @@ export default function HeroCarouselSequence() {
   const minecraftY = useTransform(minecraftProgress, [0, 1], ["100%", "0%"]);
   const plebesY = useTransform(plebesProgress, [0, 1], ["100%", "0%"]);
   const contactY = useTransform(contactProgress, [0, 1], ["100%", "0%"]);
-  const carouselY = useTransform(revealProgress, [0, 1], ["7%", "0%"]);
-
-  const carouselClip = useTransform(
-    revealProgress,
-    [PHASE.heroOnlyUntil, PHASE.revealCompleteBy],
-    ["inset(100% 0% 0% 0%)", "inset(0% 0% 0% 0%)"]
-  );
-
   return (
     <div
       ref={containerRef}
@@ -587,25 +553,6 @@ export default function HeroCarouselSequence() {
           <ContactGateway isActive={activePanel === 5} />
         </motion.div>
 
-        {/* Projects carousel hidden — uncomment import + block to restore
-        <motion.div
-          className="v3-root"
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 9,
-            clipPath: carouselClip,
-            pointerEvents: carouselPointerEvents,
-            y: carouselY,
-            willChange: "clip-path",
-            background: "transparent",
-          }}
-        >
-          <div className="relative z-[1] flex flex-col justify-center h-full w-full overflow-hidden">
-            <ProjectsCarousel introActive={carouselIntroActive} />
-          </div>
-        </motion.div>
-        */}
       </div>
     </div>
   );

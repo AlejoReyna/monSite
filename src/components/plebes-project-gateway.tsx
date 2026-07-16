@@ -6,9 +6,6 @@ import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
 import styles from "./plebes-project-gateway.module.css";
 
-const simpleIcon = (slug: string, color = "fff7ff") =>
-  `https://cdn.simpleicons.org/${slug}/${color}`;
-
 const BADGE_COPY: Record<Language, { label: string; aria: string }> = {
   en: { label: "as seen on", aria: "As seen on ICP" },
   es: { label: "visto en", aria: "Visto en ICP" },

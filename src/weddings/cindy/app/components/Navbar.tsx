@@ -23,7 +23,6 @@ const leftNavItems = navigationItems.slice(0, 3);
 const rightNavItems = navigationItems.slice(3);
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const STATUS_BAR_DEBUG = process.env.NODE_ENV !== 'production';
 const MONOGRAM_MASK = `url('${withBasePath("/weddings/cindy/Diseño sin título.png")}')`;
 
 // Converts "r,g,b" string → "#rrggbb" for use in meta tags.
@@ -123,10 +122,6 @@ const Navbar = ({ visible = true }: NavbarProps) => {
 
   const navRef = useRef<HTMLElement | null>(null);
   const ticking = useRef(false);
-  const lastHeroStateRef = useRef<boolean | null>(null);
-  const lastRsvpStateRef = useRef<boolean | null>(null);
-  const lastFooterStateRef = useRef<boolean | null>(null);
-  const lastNotchColorRef = useRef<string | null>(null);
 
   // ── Scroll handler (uses refs to avoid re-creating listener) ──
   const onScroll = useCallback(() => {
@@ -175,54 +170,6 @@ const Navbar = ({ visible = true }: NavbarProps) => {
         setIsInRSVPSection(false);
       }
 
-      if (STATUS_BAR_DEBUG && lastHeroStateRef.current !== nextHeroState) {
-        console.log('[status-bar-debug] hero visibility changed', {
-          nextHeroState,
-          scrollY: currentY,
-          viewportHeight: wh,
-          probeLine: wh * 0.35,
-          heroRect: heroRect
-            ? {
-                top: Math.round(heroRect.top),
-                bottom: Math.round(heroRect.bottom),
-                height: Math.round(heroRect.height),
-              }
-            : null,
-        });
-        lastHeroStateRef.current = nextHeroState;
-      }
-
-      if (STATUS_BAR_DEBUG && lastRsvpStateRef.current !== nextRsvpState) {
-        console.log('[status-bar-debug] rsvp visibility changed', {
-          nextRsvpState,
-          scrollY: currentY,
-          viewportHeight: wh,
-          rsvpRect: rsvpRect
-            ? {
-                top: Math.round(rsvpRect.top),
-                bottom: Math.round(rsvpRect.bottom),
-                height: Math.round(rsvpRect.height),
-              }
-            : null,
-        });
-        lastRsvpStateRef.current = nextRsvpState;
-      }
-
-      if (STATUS_BAR_DEBUG && lastFooterStateRef.current !== nextFooterState) {
-        console.log('[status-bar-debug] footer visibility changed', {
-          nextFooterState,
-          scrollY: currentY,
-          viewportHeight: wh,
-          footerRect: footerRect
-            ? {
-                top: Math.round(footerRect.top),
-                bottom: Math.round(footerRect.bottom),
-                height: Math.round(footerRect.height),
-              }
-            : null,
-        });
-        lastFooterStateRef.current = nextFooterState;
-      }
 
       // Active section highlight — check nav links first, then theme-only sections.
       // Use the viewport midpoint as the trigger line so the navbar only changes
@@ -361,20 +308,6 @@ const Navbar = ({ visible = true }: NavbarProps) => {
     }
     metaApple.content = isDarkNotch ? 'black-translucent' : 'default';
 
-    if (STATUS_BAR_DEBUG && lastNotchColorRef.current !== notchColor) {
-      console.log('[status-bar-debug] applying notch color', {
-        notchColor,
-        isInHeroSection,
-        isInRSVPSection,
-        isInFooterSection,
-        navBgRgb,
-        isIOSWebKit,
-        attemptedThemeColorWrite: !isIOSWebKit,
-        metaThemeContentAfterEffect: metaTheme.content,
-        metaAppleContentAfterEffect: metaApple.content,
-      });
-      lastNotchColorRef.current = notchColor;
-    }
   }, [isMobileViewport, navBgRgb, isInHeroSection, isInRSVPSection, isInFooterSection]);
 
   const handleNavClick = (id: string) => {

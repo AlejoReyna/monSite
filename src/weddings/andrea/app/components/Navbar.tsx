@@ -100,16 +100,6 @@ const Navbar = () => {
       style = 'bg-white/95 shadow-lg hover:bg-white';
     }
     
-    // DEBUGGING LOGS PARA EL NAVBAR
-    console.log('=== NAVBAR STYLE DEBUG ===');
-    console.log('isNightMode:', isNightMode);
-    console.log('isInRSVPSection:', isInRSVPSection);
-    console.log('isInFooterSection:', isInFooterSection);
-    console.log('isScrolled:', isScrolled);
-    console.log('isMobileMenuOpen:', isMobileMenuOpen);
-    console.log('getNavbarStyle result:', style);
-    console.log('=========================');
-    
     return style;
   };
 
@@ -325,35 +315,10 @@ const Navbar = () => {
           height: '100vh',
           minHeight: '100vh'
         }}
-        ref={(el) => {
-          if (el && isMobileMenuOpen) {
-            console.log('=== MOBILE MENU DEBUG ===');
-            console.log('Menu element:', el);
-            console.log('Computed styles:', window.getComputedStyle(el));
-            console.log('Background color:', window.getComputedStyle(el).backgroundColor);
-            console.log('Height:', window.getComputedStyle(el).height);
-            console.log('Width:', window.getComputedStyle(el).width);
-            console.log('Display:', window.getComputedStyle(el).display);
-            console.log('Position:', window.getComputedStyle(el).position);
-            console.log('isMobileMenuOpen:', isMobileMenuOpen);
-            console.log('isScrolled:', isScrolled);
-            console.log('isNightMode:', isNightMode);
-            console.log('isInFooterSection:', isInFooterSection);
-            console.log('isInRSVPSection:', isInRSVPSection);
-            console.log('========================');
-          }
-        }}>
+        >
           
           {/* Header del menú */}
-          <div className="flex items-center justify-between mb-8 border-b border-[#543c24]/10 pb-6"
-            ref={(el) => {
-              if (el && isMobileMenuOpen) {
-                console.log('=== HEADER DEBUG ===');
-                console.log('Header computed styles:', window.getComputedStyle(el));
-                console.log('Header background:', window.getComputedStyle(el).backgroundColor);
-                console.log('====================');
-              }
-            }}>
+          <div className="flex items-center justify-between mb-8 border-b border-[#543c24]/10 pb-6">
             <h2 className="text-sm garamond-300 tracking-[0.2em] text-[#543c24]/70">
               MENÚ
             </h2>
@@ -370,16 +335,7 @@ const Navbar = () => {
           </div>
           
           {/* Lista de navegación */}
-          <ul className="space-y-6 flex-1"
-            ref={(el) => {
-              if (el && isMobileMenuOpen) {
-                console.log('=== NAV LIST DEBUG ===');
-                console.log('Nav list computed styles:', window.getComputedStyle(el));
-                console.log('Nav list background:', window.getComputedStyle(el).backgroundColor);
-                console.log('Nav list parent background:', el.parentElement ? window.getComputedStyle(el.parentElement).backgroundColor : 'no parent');
-                console.log('=====================');
-              }
-            }}>
+          <ul className="space-y-6 flex-1">
             {navigationItems.map((item) => (
               <li key={item.id}>
                 <a
@@ -400,15 +356,7 @@ const Navbar = () => {
           </ul>
           
           {/* Elemento decorativo en el footer - posicionado al final */}
-          <div className="absolute bottom-6 left-6 right-6 pt-6 border-t border-[#543c24]/10"
-            ref={(el) => {
-              if (el && isMobileMenuOpen) {
-                console.log('=== FOOTER DEBUG ===');
-                console.log('Footer computed styles:', window.getComputedStyle(el));
-                console.log('Footer background:', window.getComputedStyle(el).backgroundColor);
-                console.log('====================');
-              }
-            }}>
+          <div className="absolute bottom-6 left-6 right-6 pt-6 border-t border-[#543c24]/10">
             <div className="flex items-center justify-center space-x-2">
               <div className="w-1 h-1 rounded-full bg-[#543c24]/30"></div>
               <div className="w-8 h-0.5 bg-[#543c24]/30"></div>

@@ -235,20 +235,11 @@ export default function ChatInterface({
   const [visibleButtons, setVisibleButtons] = useState(0);
   const [showInput, setShowInput] = useState(false);
   const [showInfoTip, setShowInfoTip] = useState(false);
-  const [lastLoginLine, setLastLoginLine] = useState("Last login: -- on ttys009");
-
   const [greetingIndex, setGreetingIndex] = useState(0);
 
   useEffect(() => {
     setGreetingIndex(Math.floor(Math.random() * GREETINGS[currentLang].length));
   }, [currentLang]);
-
-  useEffect(() => {
-    const now = new Date();
-    const date = now.toDateString();
-    const time = now.toTimeString().split(" ")[0];
-    setLastLoginLine(`Last login: ${date} ${time} on ttys009`);
-  }, []);
 
   const baseGreeting = GREETINGS[currentLang][greetingIndex];
   const text = userName
@@ -290,6 +281,22 @@ export default function ChatInterface({
   /* ========= UI normal del chat ========= */
   const sorted = [...messages].sort((a, b) => +a.timestamp - +b.timestamp);
 
+  /* ========= Screen-reader announcements for assistant messages & loading ========= */
+  const [liveAnnouncement, setLiveAnnouncement] = useState("");
+  const lastAnnouncedIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (isLoading) {
+      setLiveAnnouncement(labels.processing);
+      return;
+    }
+    const lastAssistant = sorted.filter((m) => m.role === "assistant").pop();
+    if (lastAssistant && lastAssistant.id !== lastAnnouncedIdRef.current) {
+      setLiveAnnouncement(lastAssistant.content);
+      lastAnnouncedIdRef.current = lastAssistant.id;
+    }
+  }, [isLoading, sorted, labels.processing]);
+
   const isPanel = variant === "panel";
 
   const rootClassName = isPanel
@@ -319,6 +326,10 @@ export default function ChatInterface({
 
   return (
     <div ref={rootRef} className={rootClassName}>
+      {/* Live region for assistant messages and loading state */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {liveAnnouncement}
+      </div>
       {terminalFrame(
         <>
           {/* Terminal header */}
@@ -491,10 +502,14 @@ export default function ChatInterface({
 
           {/* Input - siempre al final */}
           <div className="border-t border-gray-500/30 pt-3 shrink-0">
+            <label htmlFor="chat-input" className="sr-only">
+              {labels.placeholder}
+            </label>
             <div className="flex items-center font-mono text-[14px] lg:text-[16px] xl:text-[17px]">
               <span className="text-gray-200 ml-2">&gt;</span>
 
               <input
+                id="chat-input"
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}

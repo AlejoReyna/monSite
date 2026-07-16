@@ -23,22 +23,12 @@ import "@/components/v3/v3.css";
    Types
 ───────────────────────────────────────── */
 type FormStatus = "idle" | "loading" | "success" | "error";
-type IntentOption = "" | "PROYECTO NUEVO" | "CONSULTORÍA" | "COLABORACIÓN" | "SOLO SALUDAR";
-
 interface FormState {
   name: string;
   email: string;
   subject: string;
   message: string;
-  intent: IntentOption;
 }
-
-const INTENT_OPTIONS: IntentOption[] = [
-  "PROYECTO NUEVO",
-  "CONSULTORÍA",
-  "COLABORACIÓN",
-  "SOLO SALUDAR",
-];
 
 const SUBJECT_MAX = 80;
 
@@ -157,7 +147,6 @@ export default function ContactEditorial() {
     email: "",
     subject: "",
     message: "",
-    intent: "",
   });
   const [status, setStatus] = useState<FormStatus>("idle");
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -169,13 +158,6 @@ export default function ContactEditorial() {
         : e.target.value;
       setForm((prev) => ({ ...prev, [field]: val }));
     };
-
-  const toggleIntent = (option: IntentOption) => {
-    setForm((prev) => ({
-      ...prev,
-      intent: prev.intent === option ? "" : option,
-    }));
-  };
 
   const isValid =
     form.name.trim().length > 0 &&
@@ -199,7 +181,6 @@ export default function ContactEditorial() {
         message: form.subject.trim()
           ? `[${form.subject.trim()}]\n\n${form.message.trim()}`
           : form.message.trim(),
-        ...(form.intent ? { interest: form.intent } : {}),
       };
 
       const res = await fetch("/api/contact", {

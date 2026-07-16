@@ -1,19 +1,12 @@
 "use client"
 
-import React, { useState, useEffect, MutableRefObject } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TypingText } from './Script/TypingText';
 import { MusicComponent } from './Script/Music';
 import { PokemonDialogBox } from './PokemonDialogBox';
 import './Homepage.css';
 
-
-interface HomepageProps {
-    music: string;
-    audioRef: MutableRefObject<HTMLAudioElement | null>;
-    clickSound: string;
-    setUserInteracted: (value: boolean) => void;
-}
 
 export default function HomepageComponent() {
     const [isTypingFinished, setIsTypingFinished] = useState(false);
@@ -25,9 +18,6 @@ export default function HomepageComponent() {
         router.push('/legacy/projects');
       };
 
-      const goToAboutMe: () => void = (): void => {
-        router.push('/legacy/about');
-      };
     return (
         <div className="background min-h-screen flex flex-col justify-between">
             <div className="typing-text justify-center text-black w-full max-w-4xl mx-auto px-4">

@@ -8,24 +8,14 @@ const WEB3FORMS_ACCESS_KEY = '9e04209b-b0b4-4883-82ab-a4f939af7198';
 // Componente MessageSection con funcionalidad Web3Forms y estética RSVP
 export default function MessageSection({ className }: { className?: string }) {
   const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  
-  console.log('🎯 MessageSection rendered. Current formStatus:', formStatus);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('🔥 FORM SUBMITTED - Starting submission process');
-    
     setFormStatus('loading');
     
     try {
       const form = e.currentTarget;
       const formData = new FormData(form);
-      
-      // Log form data for debugging
-      console.log('📝 Form data being sent:');
-      for (const [key, value] of formData.entries()) {
-        console.log(`  ${key}: ${value}`);
-      }
       
       const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
@@ -33,10 +23,8 @@ export default function MessageSection({ className }: { className?: string }) {
       });
       
       const result = await response.json();
-      console.log('📬 Web3Forms response:', result);
       
       if (result.success) {
-        console.log('✅ Message sent successfully!');
         setFormStatus('success');
         
         // Reset form
@@ -44,11 +32,9 @@ export default function MessageSection({ className }: { className?: string }) {
         
         // Reset status after 5 seconds
         setTimeout(() => {
-          console.log('🔄 Resetting status to idle');
           setFormStatus('idle');
         }, 5000);
       } else {
-        console.error('❌ Web3Forms error:', result.message);
         setFormStatus('error');
         
         // Reset to idle after 5 seconds
@@ -56,8 +42,7 @@ export default function MessageSection({ className }: { className?: string }) {
           setFormStatus('idle');
         }, 5000);
       }
-    } catch (error) {
-      console.error('❌ Network error:', error);
+    } catch {
       setFormStatus('error');
       
       // Reset to idle after 5 seconds
