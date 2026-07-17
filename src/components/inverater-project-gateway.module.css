@@ -1,0 +1,1000 @@
+@font-face {
+  font-display: swap;
+  font-family: "Inverater Klarheit";
+  font-style: normal;
+  font-weight: 300;
+  src: url("/inverater/fonts/KlarheitKurrent-Light.otf") format("opentype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Inverater Klarheit";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/inverater/fonts/KlarheitKurrent-Regular.otf") format("opentype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Inverater Unione";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/inverater/fonts/Unione-Regular.otf") format("opentype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Inverater Unione";
+  font-style: normal;
+  font-weight: 500;
+  src: url("/inverater/fonts/Unione-Medium.otf") format("opentype");
+}
+
+.screen {
+  --inverater-bg: #ff8448;
+  --inverater-copy: #090909;
+  --inverater-soft: rgba(9, 9, 9, 0.72);
+  --inverater-line: rgba(9, 9, 9, 0.18);
+  background: var(--inverater-bg);
+  color: var(--inverater-copy);
+  font-family: "Inverater Klarheit", Arial, sans-serif;
+  height: 100svh;
+  min-height: 100svh;
+  overflow: hidden;
+  position: relative;
+}
+
+.scrollBody {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.hero,
+.role {
+  background: var(--inverater-bg);
+  box-sizing: border-box;
+  height: 100%;
+  inset: 0;
+  min-height: 100svh;
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+}
+
+/* Copied from the live classic `/` hero, including its exact gradient stops. */
+.classicHeroBackground {
+  background: linear-gradient(
+    315deg,
+    #ff6b00 3%,
+    #ff8000 38%,
+    #ff9500 68%,
+    #ff7f50 98%
+  );
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+}
+
+/*
+ * On Inverater the gradient lives on the full Home document (seven sections),
+ * not on the 100vh Hero node. Preserve that render geometry while clipping it
+ * to this portfolio panel; otherwise the same stops turn yellow too early.
+ */
+.hero .classicHeroBackground {
+  background-position: left top;
+  background-size: 100% 500%;
+}
+
+.classicWave {
+  animation: classicWave 10s linear infinite;
+  background: rgb(255 255 255 / 15%);
+  border-radius: 1000% 1000% 0 0;
+  bottom: -1px;
+  height: 30em;
+  left: 0;
+  opacity: 0.8;
+  position: absolute;
+  transform: translate3d(0, 0, 0);
+  width: 400%;
+  will-change: transform;
+}
+
+.classicWave:nth-of-type(2) {
+  animation: classicWave 11s linear reverse infinite;
+  background: rgb(255 255 255 / 10%);
+  bottom: -1.25em;
+  opacity: 0.6;
+}
+
+.classicWave:nth-of-type(3) {
+  animation: classicWave 12s reverse infinite;
+  background: rgb(255 255 255 / 5%);
+  bottom: -2.5em;
+  opacity: 0.4;
+}
+
+.classicHeroContent {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100svh;
+  padding: 7rem 1.5rem 3rem;
+  position: relative;
+  text-align: center;
+  z-index: 1;
+}
+
+.classicHeroContent h1 {
+  color: #000000;
+  font-family: "Inverater Klarheit", Arial, sans-serif;
+  font-size: clamp(2.75rem, 4.15vw, 5.2rem);
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  margin: 0;
+}
+
+.classicHeroContent h1 > span {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em;
+  justify-content: center;
+  min-height: 1.08em;
+}
+
+.classicHeroContent em {
+  color: #ffffff;
+  display: block;
+  font-style: normal;
+  min-height: 1em;
+  min-width: 8.2ch;
+  text-align: left;
+}
+
+.classicHeroButton {
+  align-items: center;
+  animation: classicFloat 2s ease-in-out infinite;
+  background: #ffffff;
+  border-radius: 9999px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  color: #000000;
+  display: inline-flex;
+  font-size: clamp(1rem, 1.25vw, 1.125rem);
+  font-weight: 300;
+  gap: 0.35rem;
+  height: 80px;
+  justify-content: center;
+  margin-top: 2rem;
+  padding: 10px 20px;
+  text-decoration: none;
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+  width: 300px;
+  will-change: transform;
+}
+
+.classicHeroButton:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.classicArrow {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.classicMoney {
+  display: none;
+  font-size: 24px;
+  margin-left: 0.5rem;
+}
+
+.classicHeroButton:hover .classicArrow {
+  display: none;
+}
+
+.classicHeroButton:hover .classicMoney {
+  display: inline-block;
+}
+
+.heroInformation {
+  align-items: start;
+  bottom: clamp(1rem, 2.5vh, 2.5rem);
+  display: grid;
+  gap: 1rem clamp(2rem, 5vw, 5rem);
+  grid-template-columns: minmax(24rem, 1.5fr) minmax(14rem, 0.72fr);
+  left: clamp(2rem, 5vw, 5rem);
+  max-height: 13rem;
+  padding: 0;
+  position: absolute;
+  right: clamp(2rem, 5vw, 5rem);
+  width: auto;
+  z-index: 2;
+}
+
+.heroEmploymentBadge {
+  left: clamp(2rem, 5vw, 5rem);
+  position: absolute;
+  top: clamp(5.75rem, 9vh, 7.5rem);
+  z-index: 3;
+}
+
+.heroEmploymentBadge .employmentBadge {
+  margin: 0;
+}
+
+.heroPlatform,
+.heroPress {
+  border-top: 1px solid rgba(255, 255, 255, 0.58);
+  min-width: 0;
+  overflow: hidden;
+  padding-top: 0.9rem;
+}
+
+.heroPlatform .eyebrow {
+  margin-bottom: 0.6rem;
+}
+
+.heroPlatform > p:not(.eyebrow) {
+  color: rgba(9, 9, 9, 0.74);
+  font-size: clamp(0.78rem, 0.9vw, 0.9rem);
+  line-height: 1.48;
+  margin: 0;
+}
+
+.heroPlatform > p:not(.eyebrow) + p {
+  display: -webkit-box;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.heroPlatform {
+  padding-left: 0;
+}
+
+.heroPlatform h2 {
+  font-family: "Inverater Klarheit", sans-serif;
+  font-size: clamp(1.15rem, 1.5vw, 1.55rem);
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  margin: 0 0 0.55rem;
+}
+
+.heroPlatform h2 strong {
+  color: #ffffff;
+  font-weight: 400;
+}
+
+.heroPlatformActions {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 0.7rem;
+}
+
+.heroPlatformActions .techRow {
+  border-top: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.heroPlatformActions .secondaryCta {
+  flex: 0 0 auto;
+  margin-top: 0;
+  min-height: 2.8rem;
+  padding-block: 0.45rem;
+}
+
+.heroPress {
+  border-left: 1px solid rgba(255, 255, 255, 0.58);
+  padding-left: clamp(1rem, 2vw, 2rem);
+}
+
+.heroPress .pressBlock {
+  display: block;
+}
+
+.heroPress .pressBlock > p {
+  font-size: 0.78rem;
+  margin: 0 0 0.5rem;
+  text-align: left;
+}
+
+.heroPress .pressViewport,
+.heroPress .pressLogoFrame {
+  height: 2.6rem;
+}
+
+.heroPress .pressLogoFrame {
+  margin-inline: 1rem;
+  width: 6rem;
+}
+
+.heroPress .pressLogoInc {
+  height: 34px;
+}
+
+.heroPress .pressLogoInmobiliare,
+.heroPress .pressLogoRadio {
+  height: 28px;
+}
+
+.heroPress .pressLogoFinanciero {
+  height: 23px;
+}
+
+.role {
+  border-top: 1px solid var(--inverater-line);
+  min-height: 100svh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(255, 255, 255, 0.54) transparent;
+  scrollbar-width: thin;
+}
+
+.roleInner {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 1380px;
+  min-height: 155svh;
+  padding: clamp(7rem, 13vh, 9rem) clamp(2rem, 6vw, 6rem) max(24rem, 42vh);
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+.roleOverview {
+  align-items: start;
+  display: grid;
+  gap: clamp(3rem, 8vw, 8rem);
+  grid-template-columns: minmax(0, 1.08fr) minmax(20rem, 0.92fr);
+}
+
+.employmentBadge {
+  align-items: center;
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  font-family: "Inverater Unione", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  margin-bottom: 2.5rem;
+  padding: 0.58rem 0.9rem;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  color: #ffffff;
+  font-family: var(--font-space-mono), monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  margin: 0 0 1.35rem;
+  text-transform: uppercase;
+}
+
+.roleHeader h2 {
+  font-family: "Inverater Klarheit", sans-serif;
+  font-size: clamp(3rem, 5.2vw, 5.8rem);
+  font-weight: 300;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+  margin: 0;
+  max-width: 11ch;
+}
+
+.roleHeader h2 strong,
+.platformStory h3 strong {
+  color: #ffffff;
+  font-weight: 400;
+}
+
+.roleHeader > p:last-child {
+  color: var(--inverater-soft);
+  font-size: clamp(1.02rem, 1.4vw, 1.2rem);
+  line-height: 1.7;
+  margin: 2rem 0 0;
+  max-width: 42rem;
+}
+
+/* Product context remains paragraphs in the work section, rather than a third panel. */
+.platformStory {
+  border-left: 2px solid rgba(255, 255, 255, 0.82);
+  padding-left: clamp(1.4rem, 3vw, 2.25rem);
+}
+
+.platformStory h3 {
+  font-family: "Inverater Klarheit", sans-serif;
+  font-size: clamp(2rem, 3.2vw, 3.4rem);
+  font-weight: 300;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  margin: 0 0 1.5rem;
+}
+
+.platformStory > p:not(.eyebrow) {
+  color: var(--inverater-soft);
+  font-size: clamp(0.96rem, 1.15vw, 1.08rem);
+  line-height: 1.68;
+  margin: 0 0 1rem;
+}
+
+.techRow {
+  align-items: center;
+  border-top: 1px solid var(--inverater-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.2rem;
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 1.2rem 0 0;
+  width: 100%;
+}
+
+.techChip {
+  display: inline-flex;
+}
+
+.techChip img {
+  display: block;
+  height: clamp(1.05rem, 2.6vw, 1.3rem);
+  object-fit: contain;
+  opacity: 0.78;
+  transition: opacity 160ms ease, transform 160ms ease;
+  width: auto;
+}
+
+.techChip:hover img {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.secondaryCta {
+  align-items: center;
+  background: #ffffff;
+  border-radius: 999px;
+  color: #000000;
+  display: inline-flex;
+  font-size: 0.94rem;
+  font-weight: 400;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  min-height: 3.4rem;
+  padding: 0.65rem 0.8rem 0.65rem 1.5rem;
+  text-decoration: none;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.secondaryCta:hover {
+  background: #f3f4f6;
+  transform: scale(1.04);
+}
+
+.arrowCircle {
+  align-items: center;
+  background: #000000;
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  height: 1.75rem;
+  justify-content: center;
+  transition: transform 220ms ease;
+  width: 1.75rem;
+}
+
+.secondaryCta:hover .arrowCircle {
+  transform: rotate(45deg);
+}
+
+.arrowCircle svg {
+  height: 0.85rem;
+  width: 0.85rem;
+}
+
+.rolePress {
+  margin: clamp(3rem, 7vh, 5.25rem) auto clamp(2.5rem, 5vh, 4rem);
+  max-width: 48rem;
+}
+
+.pressBlock > p {
+  color: #090909;
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.75rem;
+  min-height: 1.3em;
+  text-align: center;
+}
+
+.pressBlock > p::after {
+  animation: cursorBlink 0.85s steps(1) infinite;
+  content: "|";
+  margin-left: 0.1em;
+}
+
+.pressBlock > p > span {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.typewriterActive {
+  animation: inveraterTypewriter 1.25s 1.65s steps(20, end) both;
+  clip-path: inset(0 100% 0 0);
+}
+
+.pressViewport {
+  height: 7.5rem;
+  mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
+  overflow: hidden;
+  width: 100%;
+}
+
+.pressTrack {
+  align-items: center;
+  animation: pressScroll 15s linear infinite;
+  display: flex;
+  height: 100%;
+  width: max-content;
+}
+
+.pressSet {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.pressLogoFrame {
+  align-items: center;
+  display: flex;
+  height: 7.5rem;
+  justify-content: center;
+  margin: 0 2rem;
+  width: 9.5rem;
+}
+
+.pressLogo {
+  display: block;
+  flex-shrink: 0;
+  max-width: 100%;
+  object-fit: contain;
+  opacity: 0.88;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  width: auto;
+}
+
+.pressLogoFrame:hover .pressLogo {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.pressLogoInc {
+  height: 75px;
+}
+
+.pressLogoInmobiliare,
+.pressLogoRadio {
+  height: 60px;
+}
+
+.pressLogoFinanciero {
+  height: 45px;
+}
+
+.contributionGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.contributionCard {
+  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 1.5rem;
+  box-shadow: 0 1.25rem 3rem rgba(117, 43, 0, 0.1);
+  display: grid;
+  gap: 0.8rem;
+  min-height: clamp(17rem, 31vh, 22rem);
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.contributionCard:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-3px);
+}
+
+.contributionMeta {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.contributionMeta > span:last-child {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  color: #ffffff;
+  font-family: "Inverater Unione", sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  padding: 0.35rem 0.55rem;
+  text-transform: uppercase;
+}
+
+.contributionIndex {
+  color: #ffffff;
+  font-family: "Inverater Unione", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+}
+
+.contributionCard h3 {
+  font-family: "Inverater Unione", sans-serif;
+  font-size: clamp(1.2rem, 1.8vw, 1.65rem);
+  font-weight: 500;
+  margin: 0;
+}
+
+.contributionCard > p {
+  color: rgba(9, 9, 9, 0.74);
+  font-size: 0.94rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.commitRow {
+  align-items: end;
+  align-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-top: 0.3rem;
+}
+
+.commitRow code {
+  background: rgba(9, 9, 9, 0.08);
+  border: 1px solid rgba(9, 9, 9, 0.12);
+  border-radius: 999px;
+  color: rgba(9, 9, 9, 0.62);
+  font-family: var(--font-space-mono), monospace;
+  font-size: 0.58rem;
+  padding: 0.3rem 0.5rem;
+}
+
+@keyframes classicWave {
+  2%, 100% { transform: translateX(0%); }
+  25%, 75% { transform: translateX(-25%); }
+  50% { transform: translateX(-50%); }
+}
+
+@keyframes classicFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pressScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-33.333%); }
+}
+
+@keyframes cursorBlink {
+  0%, 48% { opacity: 1; }
+  49%, 100% { opacity: 0; }
+}
+
+@keyframes inveraterTypewriter {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@media (max-width: 1023px) {
+  .heroInformation {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    border-radius: 1.25rem;
+    bottom: 1rem;
+    gap: 0.7rem 1.5rem;
+    grid-template-columns: minmax(20rem, 1.35fr) minmax(12rem, 0.65fr);
+    left: 1.5rem;
+    max-height: 29svh;
+    overflow: hidden;
+    padding: 1rem 1.15rem;
+    right: 1.5rem;
+  }
+
+  .heroEmploymentBadge {
+    left: 1.5rem;
+    top: 5rem;
+  }
+
+  .heroPlatform h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .heroPlatform,
+  .heroPress {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .heroPlatform > p:not(.eyebrow) {
+    display: -webkit-box;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .heroPlatform > p:not(.eyebrow) + p {
+    -webkit-line-clamp: 1;
+  }
+
+  .heroPlatformActions {
+    margin-top: 0.5rem;
+  }
+
+  .heroPlatformActions .secondaryCta {
+    font-size: 0.78rem;
+    min-height: 2.5rem;
+  }
+
+  .heroPress {
+    align-self: stretch;
+  }
+
+  .roleOverview {
+    gap: 3.5rem;
+    grid-template-columns: 1fr;
+  }
+
+  .roleHeader h2 {
+    max-width: 13ch;
+  }
+
+  .platformStory {
+    max-width: 48rem;
+  }
+
+  .pressViewport {
+    height: 4.5rem;
+  }
+
+  .pressLogoFrame {
+    height: 4.5rem;
+    margin-inline: 1rem;
+    width: 6.75rem;
+  }
+
+  .pressLogoInc {
+    height: 50px;
+  }
+
+  .pressLogoInmobiliare {
+    height: 40px;
+  }
+
+  .pressLogoRadio {
+    height: 36px;
+  }
+
+  .pressLogoFinanciero {
+    height: 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .classicWave:nth-of-type(3) {
+    bottom: -3em;
+    height: 35em;
+  }
+
+  .classicHeroContent {
+    justify-content: flex-start;
+    padding: 28vh 1rem 0;
+  }
+
+  .classicHeroContent h1 {
+    font-size: clamp(2.25rem, 9vw, 3rem);
+    line-height: 1.03;
+  }
+
+  .classicHeroContent h1 > span {
+    gap: 0.12em;
+  }
+
+  .classicHeroContent em {
+    min-width: 0;
+    text-align: center;
+    width: 100%;
+  }
+
+  .heroEmploymentBadge {
+    left: 1rem;
+    top: 6.25rem;
+  }
+
+  .heroInformation {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 1rem;
+    bottom: 0.75rem;
+    display: block;
+    left: 0.75rem;
+    max-height: none;
+    overflow: hidden;
+    padding: 0.7rem 0.85rem;
+    right: 0.75rem;
+    width: auto;
+  }
+
+  .heroPlatform,
+  .heroPress {
+    border: 0;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .heroPlatform .eyebrow {
+    margin: 0.45rem 0 0.3rem;
+  }
+
+  .heroPlatform h2 {
+    font-size: 1.05rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .heroPlatform > p:not(.eyebrow) {
+    display: -webkit-box;
+    font-size: 0.64rem;
+    line-height: 1.25;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .heroPlatform > p:not(.eyebrow) + p {
+    display: -webkit-box;
+    margin-top: 0.2rem;
+  }
+
+  .heroPlatformActions {
+    gap: 0.55rem;
+    margin-top: 0.4rem;
+  }
+
+  .heroPlatformActions .techRow {
+    gap: 0.55rem;
+  }
+
+  .heroPlatformActions .secondaryCta {
+    display: inline-flex;
+    font-size: 0.66rem;
+    gap: 0.35rem;
+    min-height: 2rem;
+    padding: 0.3rem 0.4rem 0.3rem 0.7rem;
+  }
+
+  .heroPlatformActions .arrowCircle {
+    height: 1.35rem;
+    width: 1.35rem;
+  }
+
+  .heroPress {
+    border-top: 1px solid rgba(255, 255, 255, 0.42);
+    margin-top: 0.55rem;
+    padding-top: 0.35rem;
+  }
+
+  .heroPress .pressBlock {
+    align-items: center;
+    display: grid;
+    gap: 0.4rem;
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  .heroPress .pressBlock > p {
+    font-size: 0.62rem;
+    margin: 0;
+  }
+
+  .heroPress .pressViewport,
+  .heroPress .pressLogoFrame {
+    height: 2rem;
+  }
+
+  .heroPress .pressLogoFrame {
+    margin-inline: 0.45rem;
+    width: 4.25rem;
+  }
+
+  .heroPress .pressLogoInc {
+    height: 26px;
+  }
+
+  .heroPress .pressLogoInmobiliare,
+  .heroPress .pressLogoRadio {
+    height: 21px;
+  }
+
+  .heroPress .pressLogoFinanciero {
+    height: 18px;
+  }
+
+  .roleInner {
+    min-height: 170svh;
+    padding: 6.75rem 1.35rem max(18rem, 45vh);
+  }
+
+  .employmentBadge {
+    font-size: 0.62rem;
+    margin-bottom: 2rem;
+    white-space: nowrap;
+  }
+
+  .roleHeader h2 {
+    font-size: clamp(2.65rem, 12.5vw, 4rem);
+  }
+
+  .platformStory {
+    padding-left: 1.15rem;
+  }
+
+  .platformStory h3 {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
+  .secondaryCta {
+    font-size: 0.9rem;
+    min-height: 3.25rem;
+  }
+
+  .rolePress {
+    margin-block: 3rem 2.5rem;
+  }
+
+  .pressTrack {
+    animation-duration: 12s;
+  }
+
+  .contributionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .contributionCard {
+    border-radius: 1.15rem;
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classicWave,
+  .classicHeroButton,
+  .pressTrack,
+  .pressBlock > p::after,
+  .typewriterActive {
+    animation: none;
+  }
+
+  .typewriterActive {
+    clip-path: none;
+  }
+}

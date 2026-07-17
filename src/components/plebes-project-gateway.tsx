@@ -8,7 +8,7 @@ import styles from "./plebes-project-gateway.module.css";
 
 const BADGE_COPY: Record<Language, { label: string; aria: string }> = {
   en: { label: "as seen on", aria: "As seen on ICP" },
-  es: { label: "visto en", aria: "Visto en ICP" },
+  es: { label: "lanzado en", aria: "Lanzado en ICP" },
   zh: { label: "见于", aria: "见于 ICP" },
 };
 

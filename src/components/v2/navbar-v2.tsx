@@ -152,6 +152,22 @@ export default function NavbarV2() {
           font-display: swap;
         }
 
+        @font-face {
+          font-family: "InveraterNav";
+          src: url("/inverater/fonts/Unione-Regular.otf") format("opentype");
+          font-display: swap;
+          font-style: normal;
+          font-weight: 400;
+        }
+
+        @font-face {
+          font-family: "InveraterKlarheitNav";
+          src: url("/inverater/fonts/KlarheitKurrent-Regular.otf") format("opentype");
+          font-display: swap;
+          font-style: normal;
+          font-weight: 400;
+        }
+
         .nav-v2-shell,
         .nav-v2-shell * {
           font-family: var(--gic-font-comic) !important;
@@ -189,6 +205,59 @@ export default function NavbarV2() {
           font-size: 0.66rem !important;
           letter-spacing: 0.18em !important;
           padding: 7px 13px !important;
+        }
+
+        body.is-inverater-panel-active .nav-v2-shell,
+        body.is-inverater-panel-active .nav-v2-shell * {
+          font-family: "InveraterNav", "Helvetica Neue", Arial, sans-serif !important;
+          letter-spacing: 0 !important;
+        }
+
+        body.is-inverater-panel-active .nav-v2-shell {
+          background: #f68a53 !important;
+          border-bottom: 1px solid rgba(112, 53, 18, 0.28) !important;
+          box-shadow: 0 4px 10px rgba(89, 35, 5, 0.28);
+          color: #ffffff;
+          text-shadow: none;
+          top: 0 !important;
+        }
+
+        body.is-inverater-panel-active .nav-desktop {
+          height: 72px !important;
+        }
+
+        body.is-inverater-panel-active .nav-mobile {
+          height: 62px !important;
+        }
+
+        body.is-inverater-panel-active .nav-v2-shell .nav-desktop > a,
+        body.is-inverater-panel-active .nav-v2-shell .nav-mobile > a {
+          font-family: "InveraterKlarheitNav", "Helvetica Neue", Arial, sans-serif !important;
+          font-weight: 400 !important;
+        }
+
+        body.is-inverater-panel-active .nav-v2-shell a,
+        body.is-inverater-panel-active .nav-v2-shell button,
+        body.is-inverater-panel-active .nav-v2-shell a span {
+          color: #ffffff !important;
+        }
+
+        body.is-inverater-panel-active .nav-v2-shell .nav-contact-pill {
+          background: rgba(255, 255, 255, 0.94) !important;
+          border-color: rgba(255, 255, 255, 0.94) !important;
+          color: #b9470f !important;
+          box-shadow: 0 4px 8px rgba(80, 31, 4, 0.2);
+          font-weight: 500 !important;
+          opacity: 1 !important;
+          text-shadow: none !important;
+          -webkit-text-fill-color: #b9470f !important;
+        }
+
+        body.is-inverater-panel-active .nav-v2-shell .nav-contact-pill:hover {
+          background: #ffffff !important;
+          border-color: #ffffff !important;
+          color: #9f3809 !important;
+          -webkit-text-fill-color: #9f3809 !important;
         }
 
         body.is-cafeteria-panel-active .nav-v2-shell,
