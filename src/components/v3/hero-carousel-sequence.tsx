@@ -513,7 +513,6 @@ export default function HeroCarouselSequence() {
         zIndex: 1,
         touchAction: activePanel === 1 || activePanel === 3 || activePanel === 5 || activePanel === 6 ? "pan-y" : "pan-x",
         backgroundColor: PANEL_THEME_COLORS[activePanel],
-        transition: "background-color 0.62s cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
       <div
