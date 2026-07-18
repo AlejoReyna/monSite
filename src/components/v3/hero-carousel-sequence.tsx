@@ -53,17 +53,18 @@ const PANEL_THEME_COLORS: Record<SequencePanel, string> = {
   6: "#1c1033", // Get in touch — banda superior del atardecer pixelado
 };
 
-// Valores del layout raíz a restaurar cuando la secuencia se desmonta.
-const DEFAULT_THEME_COLOR = "#f9faf7";
-const DEFAULT_BODY_BG = "var(--gic-off-white)";
-
 const applyThemeColor = (color: string) => {
+  if (typeof document === "undefined") return null;
+
   const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
   if (metas.length === 0) {
     const meta = document.createElement("meta");
     meta.name = "theme-color";
     meta.content = color;
     document.head.appendChild(meta);
+    document.documentElement.style.backgroundColor = color;
+    document.body.style.backgroundColor = color;
+    return meta;
   } else {
     metas.forEach((meta) => {
       // Sin media queries: el color del panel manda en claro y oscuro.
@@ -71,7 +72,9 @@ const applyThemeColor = (color: string) => {
       meta.content = color;
     });
   }
+  document.documentElement.style.backgroundColor = color;
   document.body.style.backgroundColor = color;
+  return null;
 };
 
 const clampPanel = (value: number): SequencePanel =>
@@ -104,6 +107,7 @@ export default function HeroCarouselSequence() {
   const contactProgress = useMotionValue(0);
   const isAnimatingRef = useRef(false);
   const activePanelRef = useRef<SequencePanel>(0);
+  const createdThemeColorMetaRef = useRef<HTMLMetaElement | null>(null);
   const [activePanel, setActivePanelState] = useState<SequencePanel>(0);
   const touchStartYRef = useRef<number | null>(null);
 
@@ -139,19 +143,41 @@ export default function HeroCarouselSequence() {
     };
   }, []);
 
+  // Guardamos los estilos globales que la secuencia controla para no dejar
+  // colores residuales al navegar fuera de ella.
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const rootBackgroundColor = root.style.backgroundColor;
+    const bodyBackgroundColor = body.style.backgroundColor;
+    const themeColors = Array.from(document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')).map(
+      (meta) => ({
+        meta,
+        content: meta.getAttribute("content"),
+        media: meta.getAttribute("media"),
+      })
+    );
+
+    return () => {
+      root.style.backgroundColor = rootBackgroundColor;
+      body.style.backgroundColor = bodyBackgroundColor;
+      themeColors.forEach(({ meta, content, media }) => {
+        if (content === null) meta.removeAttribute("content");
+        else meta.setAttribute("content", content);
+        if (media === null) meta.removeAttribute("media");
+        else meta.setAttribute("media", media);
+      });
+      createdThemeColorMetaRef.current?.remove();
+    };
+  }, []);
+
   // La barra del navegador acompaña al panel visible (en ambos sentidos de
   // navegación). Se dispara al INICIO de la transición para que el tinte
   // cambie junto con el deslizamiento del panel.
   useEffect(() => {
-    applyThemeColor(PANEL_THEME_COLORS[activePanel]);
+    const createdMeta = applyThemeColor(PANEL_THEME_COLORS[activePanel]);
+    if (createdMeta) createdThemeColorMetaRef.current = createdMeta;
   }, [activePanel]);
-
-  useEffect(() => {
-    return () => {
-      applyThemeColor(DEFAULT_THEME_COLOR);
-      document.body.style.backgroundColor = DEFAULT_BODY_BG;
-    };
-  }, []);
 
   useEffect(() => {
     document.body.classList.remove("is-inverater-panel-active");
@@ -481,8 +507,14 @@ export default function HeroCarouselSequence() {
       id="work"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      style={{ height: "100svh", position: "relative", zIndex: 1, touchAction: activePanel === 1 || activePanel === 3 || activePanel === 5 || activePanel === 6 ? "pan-y" : "pan-x" }}
-      className="bg-[var(--gic-night-sky)]"
+      style={{
+        height: "100svh",
+        position: "relative",
+        zIndex: 1,
+        touchAction: activePanel === 1 || activePanel === 3 || activePanel === 5 || activePanel === 6 ? "pan-y" : "pan-x",
+        backgroundColor: PANEL_THEME_COLORS[activePanel],
+        transition: "background-color 0.62s cubic-bezier(0.16, 1, 0.3, 1)",
+      }}
     >
       <div
         style={{
