@@ -24,15 +24,23 @@ export default function LanguageSwitcher({ className = "", size = "md" }: Langua
 
   const sizeClasses =
     size === "sm"
-      ? "text-[0.62rem] tracking-[0.1em] px-2 py-1.5 gap-1"
-      : "text-[0.75rem] tracking-[0.12em] px-2.5 py-2 gap-1.5";
+      ? "text-[0.65rem] tracking-[0.1em] gap-3"
+      : "text-[0.85rem] tracking-[0.12em] gap-4";
 
   return (
     <div
-      className={`inline-flex items-center rounded-full border border-white/18 bg-white/5 ${sizeClasses} ${className}`}
+      className={`inline-flex items-center ${sizeClasses} ${className}`}
       role="group"
       aria-label="Language switcher"
     >
+      <span style={{ 
+        color: "rgba(255,255,255,0.4)", 
+        letterSpacing: "0.2em", 
+        textTransform: "uppercase", 
+        fontFamily: "var(--font-space-mono, ui-monospace, monospace)" 
+      }}>
+        Language
+      </span>
       {OPTIONS.map((option) => {
         const isActive = language === option.code;
         return (
@@ -42,10 +50,10 @@ export default function LanguageSwitcher({ className = "", size = "md" }: Langua
             onClick={() => setLanguage(option.code)}
             title={option.title}
             aria-pressed={isActive}
-            className={`rounded-full px-2 py-0.5 transition-all duration-200 ${
+            className={`transition-colors duration-200 uppercase font-mono ${
               isActive
-                ? "bg-white/15 text-white"
-                : "text-white/60 hover:text-white hover:bg-white/10"
+                ? "text-white font-bold"
+                : "text-white/50 hover:text-white"
             }`}
           >
             {option.label}

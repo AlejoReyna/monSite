@@ -3,9 +3,9 @@ import type { Language } from "@/components/lang-context";
 export const translations = {
   // Navigation / common CTAs
   getInTouch: {
-    en: "Get in touch →",
-    es: "Hablemos →",
-    zh: "联系我 →",
+    en: "Get in touch",
+    es: "Hablemos",
+    zh: "联系我",
   },
   letsTalk: {
     en: "let's get in touch!",

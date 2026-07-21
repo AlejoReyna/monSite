@@ -2,7 +2,7 @@
 
 import { createContext, useContext, ReactNode } from "react";
 
-type Section = "home" | "about" | "services" | "projects" | "contact";
+type Section = "home" | "inverater" | "cafeteria" | "plebes" | "nonamedbot" | "wedding" | "contact";
 
 interface NavigationContextType {
   navigateToSection: (section: Section) => void;

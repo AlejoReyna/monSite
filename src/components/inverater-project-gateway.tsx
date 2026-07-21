@@ -24,7 +24,7 @@ const TECH_STACK = [
   { label: "Vite", logo: simpleIcon("vite") },
   { label: "Tailwind CSS", logo: simpleIcon("tailwindcss") },
   { label: "Pinia", logo: simpleIcon("pinia") },
-  { label: "TanStack Query", logo: simpleIcon("reactquery") },
+  { label: "TanStack Query", logo: simpleIcon("reactquery"), spin: true },
   { label: "Axios", logo: simpleIcon("axios") },
   { label: "Vitest", logo: simpleIcon("vitest") },
 ] as const;
@@ -273,6 +273,7 @@ function ArrowIcon() {
   );
 }
 
+
 function ClassicHeroBackground() {
   return (
     <div className={styles.classicHeroBackground} aria-hidden="true">
@@ -391,6 +392,12 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
   const transitionUntilRef = useRef(0);
   const exitReadyAtRef = useRef(0);
 
+  useEffect(() => {
+    if (isActive && activeView === "hero") {
+      transitionUntilRef.current = performance.now() + 1000;
+    }
+  }, [isActive, activeView]);
+
   const transitionTo = (view: "hero" | "work") => {
     transitionUntilRef.current = performance.now() + 720;
     exitReadyAtRef.current = 0;
@@ -402,6 +409,7 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
   };
 
   const handleWheelCapture = (event: WheelEvent<HTMLDivElement>) => {
+    if (!isActive) return;
     const now = performance.now();
 
     if (now < transitionUntilRef.current) {
@@ -410,14 +418,14 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
       return;
     }
 
-    if (activeView === "hero" && event.deltaY > 12) {
+    if (activeView === "hero" && event.deltaY > 30) {
       event.preventDefault();
       event.stopPropagation();
       transitionTo("work");
       return;
     }
 
-    if (activeView === "work" && event.deltaY > 12) {
+    if (activeView === "work" && event.deltaY > 30) {
       const workView = workViewRef.current;
       const isAtBottom = workView
         ? workView.scrollTop + workView.clientHeight >= workView.scrollHeight - 2
@@ -435,7 +443,7 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
 
     if (
       activeView === "work" &&
-      event.deltaY < -12 &&
+      event.deltaY < -30 &&
       (workViewRef.current?.scrollTop ?? 0) <= 1
     ) {
       event.preventDefault();
@@ -449,6 +457,7 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
   };
 
   const handleTouchEndCapture = (event: TouchEvent<HTMLDivElement>) => {
+    if (!isActive) return;
     const startY = touchStartYRef.current;
     const endY = event.changedTouches[0]?.clientY;
     touchStartYRef.current = null;
@@ -545,7 +554,13 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
                   {TECH_STACK.map((tech) => (
                     <li className={styles.techChip} key={tech.label}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={tech.logo} alt={tech.label} title={tech.label} loading="lazy" />
+                      <img 
+                        src={tech.logo} 
+                        alt={tech.label} 
+                        title={tech.label} 
+                        loading="lazy" 
+                        className={"spin" in tech && tech.spin ? styles.spinIcon : undefined}
+                      />
                     </li>
                   ))}
                 </ul>

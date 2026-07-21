@@ -180,7 +180,7 @@ export default function HeroV2({
               alt="AWS Certified AI Practitioner"
               width={100}
               height={100}
-              className="rounded-lg shadow-lg badge-float"
+              className="drop-shadow-md badge-float"
               style={{ width: "100%", height: "auto" }}
             />
           </a>
