@@ -27,6 +27,24 @@ html.is-sequence-locked body {
   overscroll-behavior: none;
 }
 
+/* In standalone mode, Apple's black-translucent status bar overlays page
+   content. This layer supplies the matching backdrop for that safe area. */
+@media (max-width: 767px) {
+  html.is-sequence-locked {
+    background-color: var(--sequence-theme-color, var(--gic-off-white));
+  }
+
+  html.is-sequence-locked::before {
+    position: fixed;
+    z-index: 0;
+    inset: 0 0 auto;
+    height: max(env(safe-area-inset-top, 0px), 1px);
+    background-color: var(--sequence-theme-color, var(--gic-off-white));
+    content: "";
+    pointer-events: none;
+  }
+}
+
 /* ============================================
    GIC — General Intelligence Company Tokens
    From: src/contexts/DESIGN.md

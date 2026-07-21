@@ -13,8 +13,6 @@ function generateiOSMetaTags() {
     'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
     'apple-mobile-web-app-title': 'Alexis\' desktop',
-    // Theme color for mobile browsers (GIC light surfaces)
-    'theme-color': '#f9faf7',
     // Additional iOS meta tags
     'format-detection': 'telephone=no',
     'viewport': 'width=device-width, initial-scale=1, viewport-fit=cover',
@@ -105,8 +103,8 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Alexis' desktop" />
-        {/* theme-color se declara una sola vez (metadata.other); en el home
-            la secuencia de paneles lo actualiza dinámicamente por panel */}
+        {/* One stable tag prevents competing theme-color declarations. */}
+        <meta id="site-theme-color" name="theme-color" content="#f9faf7" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         {/* Favicon */}
