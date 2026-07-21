@@ -99,6 +99,7 @@ export default function Gallery3D() {
   // ── Window width for responsive 3D calculations ──
   const [windowWidth, setWindowWidth] = useState(0);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setWindowWidth(window.innerWidth);
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);

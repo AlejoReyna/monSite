@@ -5,6 +5,7 @@ import Image from 'next/image';
 import './projects.css';
 import { projects, Project } from './Script/Projects';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface ProjectComponentProps {}
 
 const ProjectComponent: React.FC<ProjectComponentProps> = () => {

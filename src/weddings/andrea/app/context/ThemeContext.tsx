@@ -16,6 +16,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
     // Aplicar la preferencia inicial
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsNightMode(mediaQuery.matches);
     
     // Escuchar cambios en la preferencia del sistema

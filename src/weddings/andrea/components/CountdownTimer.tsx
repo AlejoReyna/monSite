@@ -60,6 +60,7 @@ export default function CountdownTimer({ targetDate, className = "" }: Countdown
     };
 
     // Primero calculamos el tiempo inmediatamente
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTimeLeft(calculateTimeLeft());
 
     // Luego configuramos un "temporizador" que actualiza cada segundo

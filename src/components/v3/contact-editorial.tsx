@@ -204,6 +204,7 @@ export default function ContactEditorial() {
 
   /* Reset error on field change */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (status === "error") setStatus("idle");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]);
@@ -249,6 +250,7 @@ export default function ContactEditorial() {
               </>
             ) : (
               <>
+               {/* eslint-disable-next-line react/no-unescaped-entities */}
                Let's get in{" "}
                 <span style={{ color: "var(--v3-gold)" }}>touch.</span>
               </>

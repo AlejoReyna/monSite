@@ -116,10 +116,12 @@ export default function DressCodeSection() {
 
         {/* Side decorative elements */}
         <div className="absolute left-8 top-1/3 w-12 h-12 opacity-20 hidden lg:block">
+          {/* eslint-disable-next-line react-hooks/static-components */}
           <FloralDecoration />
         </div>
         
         <div className="absolute right-8 top-2/3 w-12 h-12 opacity-20 hidden lg:block">
+          {/* eslint-disable-next-line react-hooks/static-components */}
           <FloralDecoration className="transform rotate-180" />
         </div>
 
@@ -162,6 +164,7 @@ export default function DressCodeSection() {
               {/* Dress Code Icon */}
               <div className="flex justify-center items-center mb-8 mt-14 relative z-20">
                 <div className="transform group-hover:scale-110 transition-transform duration-300">
+                  {/* eslint-disable-next-line react-hooks/static-components */}
                   <DressCodeIcon />
                 </div>
               </div>

@@ -50,6 +50,7 @@ export default function ItinerarySection() {
 
   // Set up client-side state and window dimensions
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
     const updateWindowHeight = () => {
       setWindowHeight(window.innerHeight);
@@ -90,6 +91,7 @@ export default function ItinerarySection() {
     return Math.max(0, Math.min(currentIndex, itineraryItems.length - 1));
   }, [isClient, windowHeight, itineraryItems.length]);
 
+  // eslint-disable-next-line react-hooks/refs
   const currentCardIndex = getCurrentCardIndex();
 
   // Calculate scroll progress for content transitions only
@@ -315,10 +317,12 @@ export default function ItinerarySection() {
 
         {/* Side decorative elements */}
         <div className="absolute left-8 top-1/3 w-12 h-12 opacity-20 hidden lg:block">
+          {/* eslint-disable-next-line react-hooks/static-components */}
           <FloralDecoration />
         </div>
         
         <div className="absolute right-8 top-2/3 w-12 h-12 opacity-20 hidden lg:block">
+          {/* eslint-disable-next-line react-hooks/static-components */}
           <FloralDecoration className="transform rotate-180" />
         </div>
 

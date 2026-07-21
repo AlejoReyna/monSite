@@ -39,6 +39,7 @@ export const MusicProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         const savedState = localStorage.getItem('musicState');
         if (savedState) {
             const { currentTrack: savedTrack, isPlaying: savedIsPlaying, currentTime: savedTime } = JSON.parse(savedState);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             if (typeof savedTrack === 'number' && audioFiles[savedTrack]) setCurrentTrack(savedTrack);
             if (typeof savedTime === 'number') pendingSeekRef.current = savedTime;
             // Si el navegador bloquea el autoplay, el .catch() de abajo

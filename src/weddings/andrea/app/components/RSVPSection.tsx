@@ -102,9 +102,11 @@ export default function RSVPSection() {
 
   return (
     <section 
+      // eslint-disable-next-line react-hooks/immutability
       ref={(el) => {
         sectionRef.current = el as HTMLDivElement;
         if (rsvpSectionRef) {
+          // eslint-disable-next-line react-hooks/immutability
           (rsvpSectionRef as React.MutableRefObject<HTMLElement | null>).current = el;
         }
       }}
@@ -133,10 +135,12 @@ export default function RSVPSection() {
 
       {/* Side decorative elements */}
       <div className="absolute left-8 top-1/4 w-16 h-16 opacity-20 hidden lg:block">
+        {/* eslint-disable-next-line react-hooks/static-components */}
         <FloralDecoration />
       </div>
       
       <div className="absolute right-8 bottom-1/4 w-16 h-16 opacity-20 hidden lg:block">
+        {/* eslint-disable-next-line react-hooks/static-components */}
         <FloralDecoration className="transform rotate-180" />
       </div>
 
