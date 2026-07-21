@@ -53,7 +53,8 @@ function createClient(config: ProviderConfig): OpenAI | null {
   return new OpenAI({
     apiKey: config.apiKey,
     baseURL: config.baseURL,
-    fetch: fetch,
+    // Safely wrap fetch to avoid Next.js illegal invocation in prod
+    fetch: (url: RequestInfo, init?: RequestInit) => fetch(url, init),
   });
 }
 
@@ -387,6 +388,7 @@ export async function POST(req: NextRequest) {
 
     return res;
   } catch (error: unknown) {
+    console.error('CHAT API ERROR:', error);
     // Manejo estandarizado de errores
     const err = error as { status?: number };
     if (err?.status === 429) {
