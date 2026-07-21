@@ -269,9 +269,9 @@ ALEXIS 的个性：
   }
 
   const RESPOND_IN: Record<Language, string> = {
-    es: 'Responde ÚNICAMENTE en ESPAÑOL.',
-    en: 'Respond ONLY in ENGLISH.',
-    zh: '请仅用中文回复。',
+    es: 'Responde en el idioma que el usuario acaba de usar. IMPORTANTE: Si el usuario usa un idioma distinto al español o inglés, responde por defecto en inglés diciendo: "Sorry, I\'d like to pretend I know more languages, but the idea of this instance is to be realistic, so my vocabulary doesn\'t go beyond Spanish and English."',
+    en: 'Respond in the language the user just used. IMPORTANT: If the user uses a language other than Spanish or English, respond by default in English saying: "Sorry, I\'d like to pretend I know more languages, but the idea of this instance is to be realistic, so my vocabulary doesn\'t go beyond Spanish and English."',
+    zh: '请用用户刚刚使用的语言回复。重要提示：如果用户使用西班牙语或英语以外的语言，请默认用英语回复："Sorry, I\'d like to pretend I know more languages, but the idea of this instance is to be realistic, so my vocabulary doesn\'t go beyond Spanish and English."',
   };
 
   return `${HINT_START}\n${systemPrompt}\n${RESPOND_IN[lang]}\n${HINT_END}`;

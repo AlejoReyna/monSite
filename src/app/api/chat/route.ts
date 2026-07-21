@@ -105,11 +105,9 @@ function detectLanguageFromHint(messages: ChatMessage[]): Language {
   const lastUser = [...messages].reverse().find(m => m.role === 'user');
   if (!lastUser) return 'es';
   const raw = lastUser.content;
-  if (raw.includes('Responde ÚNICAMENTE en')) {
-    if (raw.includes('中文')) return 'zh';
-    if (raw.includes('ESPAÑOL')) return 'es';
-    if (raw.includes('ENGLISH')) return 'en';
-  }
+  if (raw.includes('请仅用中文回复') || raw.includes('用用户刚刚使用的语言回复')) return 'zh';
+  if (raw.includes('Respond ONLY in ENGLISH') || raw.includes('Respond in the language the user just used')) return 'en';
+  if (raw.includes('Responde ÚNICAMENTE en ESPAÑOL') || raw.includes('Responde en el idioma que el usuario acaba de usar')) return 'es';
   return 'es';
 }
 
