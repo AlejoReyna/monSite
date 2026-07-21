@@ -10,7 +10,7 @@ import { NavigationProvider } from "@/contexts/navigation-context";
 function generateiOSMetaTags() {
   return {
     // iOS status bar appearance
-    'apple-mobile-web-app-capable': 'yes',
+    'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
     'apple-mobile-web-app-title': 'Alexis\' desktop',
     // Theme color for mobile browsers (GIC light surfaces)
@@ -102,7 +102,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Additional iOS specific meta tags */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Alexis' desktop" />
         {/* theme-color se declara una sola vez (metadata.other); en el home
