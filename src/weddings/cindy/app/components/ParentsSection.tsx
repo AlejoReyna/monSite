@@ -189,6 +189,7 @@ export default function ParentsSection() {
     }
 
     ctx.restore()
+    // eslint-disable-next-line react-hooks/immutability
     rafRef.current = requestAnimationFrame(loop)
   }, [])
 

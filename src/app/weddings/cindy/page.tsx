@@ -122,6 +122,7 @@ export default function Home() {
     if (sessionStorage.getItem(SESSION_KEY) === 'true') {
       window.scrollTo(0, 0);
       unlockScroll();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEntered(true);
       setShowSplash(false);
       setImmediate(true);

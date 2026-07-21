@@ -31,15 +31,65 @@
 }
 
 .scrollBody {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+.heroView,
+.workView {
   box-sizing: border-box;
   height: 100%;
+  inset: 0;
+  min-height: 100%;
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+}
+
+.workView {
+  border-top: 1px solid var(--plebes-line);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-color: rgba(255, 255, 255, 0.54) transparent;
+  scrollbar-width: thin;
+}
+
+.workInner {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 1380px;
+  min-height: 100%;
+  padding: clamp(2rem, 5vh, 4rem) clamp(1rem, 3vw, 2rem) max(10rem, 20vh);
   position: relative;
-  scrollbar-gutter: stable;
   width: 100%;
   z-index: 1;
+  display: grid;
+  gap: clamp(2rem, 6vw, 5rem);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+.videoColumn {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.workVideo {
+  width: 100%;
+  max-width: 48rem;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 22px 46px rgba(16, 6, 28, 0.4);
+  background: var(--plebes-panel-strong);
+  border: 1px solid var(--plebes-line);
+  overflow: hidden;
+  display: block;
+  box-sizing: border-box;
 }
 
 .screen::after {
@@ -60,8 +110,9 @@
   grid-template-areas:
     "copy media"
     "details media"
-    "grid grid";
-  grid-template-columns: minmax(0, 1.08fr) minmax(16rem, 0.86fr);
+    "details scrollDown";
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 1fr);
+  grid-template-rows: auto auto auto;
   margin-inline: auto;
   max-height: none;
   max-width: 1240px;
@@ -131,7 +182,7 @@
 .copy {
   align-content: center;
   display: grid;
-  gap: clamp(0.6rem, 1.4vh, 1rem);
+  gap: clamp(1.5rem, 4vh, 3rem);
   grid-area: copy;
   justify-items: start;
   padding-right: clamp(0rem, 3vw, 2.5rem);
@@ -172,10 +223,10 @@
 .lead {
   color: var(--plebes-soft);
   font-family: var(--font-geist-sans), "Helvetica Neue", Arial, sans-serif;
-  font-size: clamp(0.92rem, 1.35vw, 1.08rem);
-  line-height: 1.55;
+  font-size: clamp(1.1rem, 1.6vw, 1.35rem);
+  line-height: 1.65;
   margin: 0;
-  max-width: 42rem;
+  max-width: 32rem;
   text-shadow: 0 8px 24px rgba(34, 7, 60, 0.42);
   text-wrap: pretty;
 }
@@ -205,6 +256,37 @@
   transform: translateY(-2px);
 }
 
+.ctaGroup {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ctaSecondary {
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  display: inline-flex;
+  font-family: var(--font-space-mono), ui-monospace, monospace;
+  font-size: clamp(0.78rem, 1.3vw, 0.92rem);
+  font-weight: 700;
+  gap: 0.55rem;
+  justify-content: center;
+  letter-spacing: 0;
+  min-height: 3.15rem;
+  padding: 0.9rem 1.15rem;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background 180ms ease, transform 180ms ease, border-color 180ms ease;
+}
+
+.ctaSecondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #ffffff;
+  transform: translateY(-2px);
+}
+
 .media {
   align-items: center;
   display: grid;
@@ -223,11 +305,20 @@
   width: 100%;
 }
 
+.scrollDown {
+  grid-area: scrollDown;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding-left: clamp(0rem, 3vw, 2.5rem);
+}
+
 .contributionGrid {
   display: grid;
   gap: clamp(0.55rem, 1.2vw, 0.85rem);
-  grid-area: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   width: 100%;
 }
 
@@ -281,17 +372,30 @@
     padding-top: clamp(7.75rem, 15svh, 9.5rem);
   }
 
+  .heroView {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .heroView::-webkit-scrollbar {
+    display: none;
+  }
+
   .inner {
     align-items: center;
-    gap: clamp(1rem, 4vw, 1.8rem) clamp(0.9rem, 4vw, 1.5rem);
+    gap: clamp(1.2rem, 3.5vh, 2rem);
     grid-template-areas:
-      "copy copy"
-      "media details"
-      "grid grid";
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    grid-template-rows: auto auto auto;
+      "copy"
+      "media"
+      "details"
+      "scrollDown";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
     max-height: none;
-    padding-top: clamp(0.75rem, 2svh, 1.25rem);
+    padding-top: clamp(0.5rem, 1svh, 1.25rem);
   }
 
   .deployBadge {
@@ -311,41 +415,7 @@
   }
 
   .mobileTitle {
-    align-items: flex-end;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    font-family: "Munro Narrow", var(--font-space-mono), ui-monospace, monospace;
-    font-size: clamp(2.4rem, 7.5vw, 3.6rem);
-    font-weight: 400;
-    gap: 0.04em;
-    justify-content: flex-start;
-    left: auto;
-    letter-spacing: 0;
-    line-height: 0.92;
-    margin: 0;
-    max-width: none;
-    pointer-events: none;
-    position: absolute;
-    right: clamp(1rem, 4.5vw, 2.5rem);
-    text-align: right;
-    text-shadow: 0 8px 28px rgba(34, 7, 60, 0.5);
-    text-transform: lowercase;
-    top: clamp(4.5rem, 8svh, 5.8rem);
-    white-space: nowrap;
-    z-index: 3;
-  }
-
-  .mobileTitle span {
-    align-items: baseline;
-    display: inline-flex;
-    white-space: nowrap;
-  }
-
-  .mobileTitle .logoWord {
-    height: 0.72em;
-    margin-inline: 0.06em 0.12em;
-    max-width: none;
+    display: none;
   }
 
   .copy {
@@ -353,19 +423,30 @@
     min-height: auto;
     padding-right: 0;
     text-align: center;
+    grid-area: copy;
+    width: 100%;
   }
 
   .details {
     align-content: center;
-    justify-items: start;
+    justify-items: center;
     padding-right: 0;
-    text-align: left;
+    text-align: center;
+    grid-area: details;
+    width: 100%;
+  }
+
+  .ctaGroup {
+    justify-content: center;
+    width: 100%;
   }
 
   .title {
-    font-size: clamp(3.1rem, 16vw, 5.7rem);
-    display: none;
-    max-width: 9.2ch;
+    font-size: clamp(2rem, 8vw, 3.2rem);
+    display: block;
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.1;
   }
 
   .lead {
@@ -384,8 +465,14 @@
     width: 100%;
   }
 
-  .contributionGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .scrollDown {
+    justify-content: center;
+    padding-left: 0;
+  }
+
+  .workInner {
+    grid-template-columns: 1fr;
+    gap: 3rem;
   }
 }
 
@@ -394,12 +481,8 @@
     padding-bottom: 1.15rem;
   }
 
-  .inner {
-    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
-  }
-
   .title {
-    font-size: clamp(2.65rem, 17vw, 4.35rem);
+    font-size: clamp(1.8rem, 9vw, 2.5rem);
   }
 
   .deployName {
@@ -409,11 +492,6 @@
 
   .deployLogo {
     height: 1.45rem;
-  }
-
-  .mobileTitle {
-    font-size: clamp(1.3rem, 6vw, 1.85rem);
-    top: clamp(4.3rem, 7.6svh, 5.4rem);
   }
 
   .lead {

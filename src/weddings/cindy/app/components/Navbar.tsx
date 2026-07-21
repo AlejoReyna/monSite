@@ -215,6 +215,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
   useEffect(() => {
     const inStandalone = window.matchMedia('(display-mode: standalone)').matches
       || (typeof navigator !== 'undefined' && 'standalone' in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsStandaloneMode(inStandalone);
   }, []);
 

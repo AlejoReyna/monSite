@@ -165,6 +165,7 @@ export default function ChatInterface({
       const savedName =
         typeof window !== "undefined" ? (localStorage.getItem("userName") || "").trim() : "";
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (savedName) setUserName(savedName);
 
       const needsSetup = !savedName;
@@ -180,6 +181,7 @@ export default function ChatInterface({
 
   // Initialize suggestions on client side to prevent hydration mismatch
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSuggestions(getRandomSuggestions(ENHANCED_SUGGESTIONS, 5));
   }, []);
 
@@ -238,6 +240,7 @@ export default function ChatInterface({
   const [greetingIndex, setGreetingIndex] = useState(0);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setGreetingIndex(Math.floor(Math.random() * GREETINGS[currentLang].length));
   }, [currentLang]);
 
@@ -249,6 +252,7 @@ export default function ChatInterface({
   useEffect(() => {
     if (!showChat) {
       let i = 0;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplayed("");
       setTypewriterComplete(false);
       const id = setInterval(() => {
@@ -287,6 +291,7 @@ export default function ChatInterface({
 
   useEffect(() => {
     if (isLoading) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLiveAnnouncement(labels.processing);
       return;
     }

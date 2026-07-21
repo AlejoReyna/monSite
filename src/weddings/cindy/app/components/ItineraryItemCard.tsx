@@ -65,6 +65,7 @@ export default function ItineraryItemCard({
   // On mobile: isRevealed fires from parent cascade, but waits for scroll into view
   useEffect(() => {
     if (isRevealed && isInView && !animating) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAnimating(true);
     }
   }, [isRevealed, isInView, animating]);

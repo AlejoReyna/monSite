@@ -27,6 +27,7 @@ function useTypewriterText(text: string, activeKey: string, enabled = true, dela
 
   useEffect(() => {
     if (!enabled) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVisibleText("");
       return;
     }

@@ -221,7 +221,7 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
               target="_blank"
               rel="noreferrer"
             >
-              {copy.ctaPrimary} <span aria-hidden="true">→</span>
+              {copy.ctaPrimary}
             </a>
             <a
               className={styles.ctaSecondary}
@@ -229,7 +229,7 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
               target="_blank"
               rel="noreferrer"
             >
-              {copy.ctaSecondary} <span aria-hidden="true">↗</span>
+              {copy.ctaSecondary}
             </a>
           </motion.div>
 

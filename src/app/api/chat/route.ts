@@ -34,7 +34,7 @@ function resolveProviderConfig(): ProviderConfig {
       apiKey: process.env.MOONSHOT_API_KEY ?? process.env.KIMI_API_KEY,
       baseURL: process.env.KIMI_BASE_URL ?? 'https://api.moonshot.ai/v1',
       model: process.env.KIMI_MODEL ?? 'kimi-k2.6',
-      maxTokens: 900,
+      maxTokens: 2500,
     };
   }
   return {
@@ -76,6 +76,20 @@ function stripHintBlock(raw: unknown): string {
     }
   }
   return text;
+}
+
+/**
+ * Extract the content *inside* a [[SYS]]...[[/SYS]] block.
+ * Returns null if no hint block is present.
+ */
+function extractHintContent(raw: unknown): string | null {
+  const text = (raw ?? '').toString();
+  const startIdx = text.indexOf(HINT_START);
+  const endIdx = text.indexOf(HINT_END);
+  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+    return text.slice(startIdx + HINT_START.length, endIdx).trim();
+  }
+  return null;
 }
 
 /**
@@ -122,10 +136,23 @@ function serializeQuota(q: Quota) {
  * Developer persona para Responses API
  * — breve, directo, tuteo, y con tus rutas de portfolio/contacto
  */
+const PORTFOLIO_CONTEXT = `
+PORTFOLIO PANELS (alexisreyna.dev):
+1. Hero — AI chat terminal (this conversation)
+2. This Cafetería — Blockchain agentic commerce platform (Solidity, .NET, React)
+3. Plebes — Social platform for community
+4. NoNamedBot — Discord/Telegram bot project
+5. Wedding Service — Wedding planning & coordination platform
+6. Contact — "Let's talk" form
+
+PROJECTS: Link users to scroll down or visit specific panels.
+If they ask "what have you built?" → mention these projects with brief descriptions.
+`;
+
 const DEVELOPER_PERSONA: Record<Language, string> = {
-  es: `Eres Alexis, desarrollador full-stack mexicano, nacido en Montemorelos, Nuevo León. Tono breve, directo y amable; tuteo; respuesta primero, luego 1–3 bullets si aportan valor; tecnologías React/Next.js/TS/Node/PostgreSQL/Rails; si piden proyectos -> /portfolio; contacto -> /contacto o alexis.reynasz@hotmail.com; no inventes; idioma del usuario o español por defecto.`,
-  en: `You are Alexis, a Mexican full-stack developer from Montemorelos, Nuevo León. Tone: brief, direct, and friendly; use "you"; answer first, then 1–3 bullets if they add value; technologies React/Next.js/TS/Node/PostgreSQL/Rails; projects -> /portfolio; contact -> /contacto or alexis.reynasz@hotmail.com; don't make things up; user's language or English by default.`,
-  zh: `你是 Alexis，一名来自墨西哥 Nuevo León 州 Montemorelos 的全栈开发者。语气简短、直接、友好；使用"你"称呼；先给出回答，然后视情况补充 1–3 个要点；技术栈 React/Next.js/TS/Node/PostgreSQL/Rails；若询问项目 -> /portfolio；若联系 -> /contacto 或 alexis.reynasz@hotmail.com；不要编造；使用用户的语言，默认西班牙语。`,
+  es: `Eres Alexis, desarrollador full-stack mexicano, nacido en Montemorelos, Nuevo León. Tono breve, directo y amable; tuteo; respuesta primero, tecnologías React/Next.js/TS/Node/PostgreSQL/Rails/AWS/Docker/Linux; si piden proyectos -> /portfolio; contacto -> /contacto o alexis.reynasz@hotmail.com; no inventes; idioma del usuario o español por defecto.\nFormato: texto plano, sin markdown (sin **, sin #, sin listas con -). Escribe como en un chat informal.\n${PORTFOLIO_CONTEXT}`,
+  en: `You are Alexis, a Mexican full-stack developer from Montemorelos, Nuevo León. Tone: brief, direct, and friendly; use "you"; answer first, then 1–3 bullets if they add value; technologies React/Next.js/TS/Node/PostgreSQL/Rails/AWS/Docker/Linux; projects -> /portfolio; contact -> /contacto or alexis.reynasz@hotmail.com; don't make things up; user's language or English by default.\nFormat: plain text only, no markdown (no **, no #, no lists with -). Write as in a casual chat.\n${PORTFOLIO_CONTEXT}`,
+  zh: `你是 Alexis，一名来自墨西哥 Nuevo León 州 Montemorelos 的全栈开发者。语气简短、直接、友好；使用"你"称呼；先给出回答，然后视情况补充 1–3 个要点；技术栈 React/Next.js/TS/Node/PostgreSQL/Rails/AWS/Docker/Linux; 若询问项目 -> /portfolio；若联系 -> /contacto 或 alexis.reynasz@hotmail.com；不要编造；使用用户的语言，默认西班牙语。\n格式：纯文本，不使用 markdown（不用 **、#、- 列表）。像在聊天中一样书写。\n${PORTFOLIO_CONTEXT}`,
 };
 
 const NAME_NOTE: Record<Language, string> = {
@@ -277,7 +304,7 @@ export async function POST(req: NextRequest) {
   // Convertir mensajes del historial a formato de texto, filtrando system messages
   const conversationHistory = SHORT_HISTORY
     .filter(msg => msg.role !== 'system')
-    .map(msg => 
+    .map(msg =>
       `${msg.role === 'user' ? 'Usuario' : 'Alexis'}: ${msg.content}`
     ).join('\n\n');
 
@@ -297,16 +324,27 @@ export async function POST(req: NextRequest) {
 
     if (config.provider === 'kimi') {
       // 5a) Kimi uses chat.completions (OpenAI-compatible)
+      // Extract the hint from the last user message and promote it to the system role
+      const lastUserMsg = SHORT_HISTORY.filter(m => m.role === 'user').pop();
+      const hintContent = extractHintContent(lastUserMsg?.content);
+      const systemContent = hintContent
+        ? `${developerContent}\n\n${hintContent}`
+        : developerContent;
+
       const messages: OpenAI.ChatCompletionMessageParam[] = [
-        { role: 'system', content: developerContent },
+        { role: 'system', content: systemContent },
         ...SHORT_HISTORY
           .filter(msg => msg.role !== 'system')
-          .map(msg => ({ role: msg.role as 'user' | 'assistant', content: msg.content })),
+          .map(msg => ({
+            role: msg.role as 'user' | 'assistant',
+            content: stripHintBlock(msg.content),
+          })),
       ];
       const completion = await client.chat.completions.create({
         model: config.model,
         messages,
         max_tokens: config.maxTokens,
+        temperature: 0.7,
       });
       text = completion.choices[0]?.message?.content ?? NO_CONTENT[lang];
       usage = completion.usage ?? null;

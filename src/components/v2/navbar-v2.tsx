@@ -12,6 +12,36 @@ export default function NavbarV2() {
   const { language } = useLanguage();
 
   const [hidden,   setHidden]   = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [typedText, setTypedText] = useState("");
+
+  useEffect(() => {
+    // Wait for the bracket expansive animation to finish (0.6s)
+    const timeout = setTimeout(() => {
+      const fullText = "Alexis Reyna";
+      let current = "";
+      let i = 0;
+      const interval = setInterval(() => {
+        current += fullText[i];
+        setTypedText(current);
+        i++;
+        if (i === fullText.length) {
+          clearInterval(interval);
+        }
+      }, 50);
+      return () => clearInterval(interval);
+    }, 600);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isMenuOpen]);
   const navInk = "#ffffff";
   const navTag = "rgba(255,255,255,0.42)";
 
@@ -26,7 +56,7 @@ export default function NavbarV2() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const handleNav = (id: "home" | "about" | "services" | "projects" | "contact") => {
+  const handleNav = (id: Parameters<typeof navigateToSection>[0]) => {
     navigateToSection(id);
   };
 
@@ -83,22 +113,50 @@ export default function NavbarV2() {
                 color: navInk,
                 textDecoration: "none",
                 lineHeight: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: "4px"
               }}
             >
-              <span style={{ color: navTag }}>&lt;</span>
-              {" "}Alexis Reyna{" "}
-              <span style={{ color: navTag }}>&gt;</span>
+              <span className="arrow-left-anim" style={{ color: navTag }}>&lt;</span>
+              <span className="brand-text-anim">
+                <span style={{ opacity: 0, pointerEvents: "none" }}>Alexis Reyna</span>
+                <span style={{ position: "absolute", left: 0, top: 0, whiteSpace: "nowrap" }} suppressHydrationWarning>{typedText}</span>
+              </span>
+              <span className="arrow-right-anim" style={{ color: navTag }}>&gt;</span>
             </Link>
 
             {/* CTA */}
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <LanguageSwitcher />
               <button
                 onClick={() => handleNav("contact")}
                 className="nav-contact-pill"
                 style={contactPillStyle}
               >
                 {t("getInTouch", language)}
+              </button>
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="nav-burger-btn"
+                aria-label="Toggle Menu"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  width: "24px",
+                  height: "16px",
+                  padding: 0,
+                  marginLeft: "8px",
+                  zIndex: 100,
+                  color: "inherit",
+                }}
+              >
+                <span style={{ display: "block", width: "100%", height: "2px", background: "currentColor", transition: "all 0.3s", transform: isMenuOpen ? "rotate(45deg) translate(5px, 5px)" : "none" }} />
+                <span style={{ display: "block", width: "100%", height: "2px", background: "currentColor", transition: "all 0.3s", opacity: isMenuOpen ? 0 : 1 }} />
+                <span style={{ display: "block", width: "100%", height: "2px", background: "currentColor", transition: "all 0.3s", transform: isMenuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none" }} />
               </button>
             </div>
           </div>
@@ -124,15 +182,20 @@ export default function NavbarV2() {
                 color: navInk,
                 textDecoration: "none",
                 lineHeight: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: "4px"
               }}
             >
-              <span style={{ color: navTag }}>&lt;</span>
-              {" "}Alexis Reyna{" "}
-              <span style={{ color: navTag }}>&gt;</span>
+              <span className="arrow-left-anim" style={{ color: navTag }}>&lt;</span>
+              <span className="brand-text-anim">
+                <span style={{ opacity: 0, pointerEvents: "none" }}>Alexis Reyna</span>
+                <span style={{ position: "absolute", left: 0, top: 0, whiteSpace: "nowrap" }} suppressHydrationWarning>{typedText}</span>
+              </span>
+              <span className="arrow-right-anim" style={{ color: navTag }}>&gt;</span>
             </Link>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <LanguageSwitcher size="sm" />
               <button
                 onClick={() => handleNav("contact")}
                 className="nav-contact-pill"
@@ -140,12 +203,275 @@ export default function NavbarV2() {
               >
                 {t("getInTouch", language)}
               </button>
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="nav-burger-btn"
+                aria-label="Toggle Menu"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  width: "24px",
+                  height: "16px",
+                  padding: 0,
+                  marginLeft: "4px",
+                  zIndex: 100,
+                  color: "inherit",
+                }}
+              >
+                <span style={{ display: "block", width: "100%", height: "2px", background: "currentColor", transition: "all 0.3s", transform: isMenuOpen ? "rotate(45deg) translate(5px, 5px)" : "none" }} />
+                <span style={{ display: "block", width: "100%", height: "2px", background: "currentColor", transition: "all 0.3s", opacity: isMenuOpen ? 0 : 1 }} />
+                <span style={{ display: "block", width: "100%", height: "2px", background: "currentColor", transition: "all 0.3s", transform: isMenuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none" }} />
+              </button>
             </div>
           </div>
         </nav>
       </header>
+        
+      {/* Lateral Menu Backdrop */}
+      <div
+          onClick={() => setIsMenuOpen(false)}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100vh",
+            background: "rgba(0, 0, 0, 0.3)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            zIndex: 40,
+            opacity: isMenuOpen ? 1 : 0,
+            pointerEvents: isMenuOpen ? "auto" : "none",
+            transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        />
+
+      {/* Lateral Drawer */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          width: "clamp(260px, 75vw, 380px)",
+          height: "100vh",
+          background: "rgba(12, 12, 12, 0.98)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
+          boxShadow: "-8px 0 32px rgba(0,0,0,0.8)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          padding: "60px 32px",
+          zIndex: 51,
+          transform: isMenuOpen ? "translateX(0)" : "translateX(100%)",
+          pointerEvents: isMenuOpen ? "auto" : "none",
+          transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
+        <button
+          onClick={() => setIsMenuOpen(false)}
+          aria-label="Close menu"
+          style={{
+            position: "absolute",
+            top: "24px",
+            right: "24px",
+            background: "none",
+            border: "none",
+            color: "#ffffff",
+            cursor: "pointer",
+            padding: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: 0.7,
+            transition: "opacity 0.2s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+
+        <nav
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "2rem",
+              alignItems: "flex-start",
+              fontSize: "1.75rem",
+              fontFamily: "var(--font-bebas, sans-serif)",
+              width: "100%",
+            }}
+          >
+            <button
+              onClick={() => {
+                handleNav("home");
+                setIsMenuOpen(false);
+              }}
+              className="nav-overlay-link"
+              style={{
+                background: "none",
+                border: "none",
+                color: "#ffffff",
+                cursor: "pointer",
+                fontSize: "inherit",
+                fontFamily: "inherit",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                transition: "color 0.2s",
+                padding: 0,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#ffffff")}
+            >
+              {t("navHome", language) || "Home"}
+            </button>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", width: "100%" }}>
+              <span style={{ 
+                color: "#ffffff", 
+                fontSize: "inherit",
+                fontFamily: "inherit",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}>
+                Projects
+              </span>
+              <div style={{ 
+                display: "flex", 
+                flexDirection: "column", 
+                gap: "1.25rem", 
+                paddingLeft: "1.25rem", 
+                borderLeft: "1px solid rgba(255,255,255,0.15)" 
+              }}>
+                {([
+                  { id: "inverater", label: "Inverater" },
+                  { id: "plebes", label: "Plebes" },
+                  { id: "cafeteria", label: "This Cafetería" },
+                  { id: "wedding", label: "Wedding Service" },
+                  { id: "nonamedbot", label: "NoNamedBot" },
+                ] as { id: Parameters<typeof navigateToSection>[0]; label: string }[]).map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      handleNav(item.id);
+                      setIsMenuOpen(false);
+                    }}
+                    className="nav-overlay-link"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "rgba(255,255,255,0.7)",
+                      cursor: "pointer",
+                      fontSize: "1.4rem",
+                      fontFamily: "inherit",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      transition: "color 0.2s",
+                      padding: 0,
+                      textAlign: "left",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                handleNav("contact");
+                setIsMenuOpen(false);
+              }}
+              className="nav-overlay-link"
+              style={{
+                background: "none",
+                border: "none",
+                color: "#ffffff",
+                cursor: "pointer",
+                fontSize: "inherit",
+                fontFamily: "inherit",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                transition: "color 0.2s",
+                padding: 0,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#ffffff")}
+            >
+              {t("contact", language) || "Contact"}
+            </button>
+            
+            <div style={{ marginTop: "2rem", width: "100%", height: "1px", background: "rgba(255,255,255,0.1)" }} />
+
+            <div style={{ marginTop: "1rem" }}>
+              <LanguageSwitcher />
+            </div>
+          </nav>
+      </div>
 
       <style>{`
+        @keyframes bracket-open-left {
+          0% { transform: translateX(38px); opacity: 0; }
+          10% { opacity: 1; }
+          100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes bracket-open-right {
+          0% { transform: translateX(-38px); opacity: 0; }
+          10% { opacity: 1; }
+          100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes text-vibrate {
+          0%, 100% { transform: translate(0); }
+          20% { transform: translate(-1.5px, 1px); }
+          40% { transform: translate(1.5px, -1px); }
+          60% { transform: translate(-1px, 1.5px); }
+          80% { transform: translate(1px, -1px); }
+        }
+
+        @keyframes slash-appear {
+          0% { opacity: 0; transform: translateX(6px) scale(0.8); width: 0; margin-right: 0; }
+          100% { opacity: 1; transform: translateX(0) scale(1); width: 8px; margin-right: 2px; }
+        }
+
+        .arrow-left-anim {
+          display: inline-block;
+          animation: bracket-open-left 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .arrow-right-anim {
+          display: inline-block;
+          animation: bracket-open-right 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .arrow-right-anim::before {
+          content: "/";
+          opacity: 0;
+          display: inline-block;
+          width: 0;
+          margin-right: 0;
+          overflow: hidden;
+          animation: slash-appear 0.4s cubic-bezier(0.16, 1, 0.3, 1) 1.6s forwards;
+        }
+
+        .brand-text-anim {
+          display: inline-block;
+          position: relative;
+          animation: text-vibrate 0.4s linear 1.2s 1 forwards;
+        }
+
         @font-face {
           font-family: "MinecraftLocal";
           src: url("/Minecraft.ttf") format("truetype");

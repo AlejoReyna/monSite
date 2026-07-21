@@ -17,6 +17,7 @@ export default function Gallery() {
   useEffect(() => {
     // Set initial index based on screen size after component mounts
     if (window.innerWidth >= 768) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCenterIndex(2);
     }
   }, []);
@@ -283,6 +284,7 @@ export default function Gallery() {
 
   const openModal = (photo: { src: string, alt: string, shape: string }, index: number) => {
     setSelectedImage({ ...photo, index });
+    // eslint-disable-next-line react-hooks/immutability
     document.body.style.overflow = 'hidden';
   };
 

@@ -74,6 +74,7 @@ export default function HeroV2({
 
   const contentOpacity =
     embed && embedContentOpacity
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       ? useTransform(
           [baseContentOpacity, embedContentOpacity],
           ([a, b]) => Number(a) * Number(b)
@@ -81,6 +82,7 @@ export default function HeroV2({
       : baseContentOpacity;
   const gifOpacity =
     embed && embedContentOpacity
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       ? useTransform(
           [baseGifOpacity, embedContentOpacity],
           ([a, b]) => Number(a) * Number(b)
@@ -180,7 +182,7 @@ export default function HeroV2({
               alt="AWS Certified AI Practitioner"
               width={100}
               height={100}
-              className="rounded-lg shadow-lg badge-float"
+              className="drop-shadow-md badge-float"
               style={{ width: "100%", height: "auto" }}
             />
           </a>

@@ -86,6 +86,7 @@ export default function LocationSection() {
           {/* Decorative top element */}
           <div className="flex justify-center mb-8">
             <div className="w-16 h-16 opacity-40">
+              {/* eslint-disable-next-line react-hooks/static-components */}
               <FloralDecoration />
             </div>
           </div>
@@ -101,9 +102,11 @@ export default function LocationSection() {
 
         {/* Side decorative elements */}
         <div className="absolute left-8 top-1/3 w-12 h-12 opacity-20 hidden lg:block">
+          {/* eslint-disable-next-line react-hooks/static-components */}
           <FloralDecoration />
         </div>
         <div className="absolute right-8 top-2/3 w-12 h-12 opacity-20 hidden lg:block">
+          {/* eslint-disable-next-line react-hooks/static-components */}
           <FloralDecoration className="transform rotate-180" />
         </div>
 

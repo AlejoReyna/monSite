@@ -30,10 +30,10 @@ type SequencePanel = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 const PANELS: { id: SequencePanel; label: string }[] = [
   { id: 0, label: "Inicio" },
   { id: 1, label: "Inverater" },
-  { id: 2, label: "This Cafetería" },
-  { id: 3, label: "Plebes" },
-  { id: 4, label: "NoNamedBot" },
-  { id: 5, label: "Wedding Service" },
+  { id: 2, label: "Plebes" },
+  { id: 3, label: "This Cafetería" },
+  { id: 4, label: "Wedding Service" },
+  { id: 5, label: "NoNamedBot" },
   { id: 6, label: "Get in touch" },
 ];
 const LAST_PANEL = (PANELS.length - 1) as SequencePanel;
@@ -46,10 +46,10 @@ const PANEL_SCROLLABLE_SELECTOR = "[data-carousel-scrollable='true']";
 const PANEL_THEME_COLORS: Record<SequencePanel, string> = {
   0: "#2f1e2f", // Hero
   1: "#ff8448", // Inverater classic hero
-  2: "#16110d", // Artisanal Brew (This Cafetería) — matches the panel's own background
-  3: "hsl(319, 43%, 28%)", // Plebes
-  4: "#000000", // NoNamedBot
-  5: "#3f3a35", // Wedding invitations
+  2: "hsl(319, 43%, 28%)", // Plebes
+  3: "#16110d", // Artisanal Brew (This Cafetería) — matches the panel's own background
+  4: "#3f3a35", // Wedding invitations
+  5: "#000000", // NoNamedBot
   6: "#1c1033", // Get in touch — banda superior del atardecer pixelado
 };
 
@@ -241,9 +241,9 @@ export default function HeroCarouselSequence() {
       setNavFontMode(
         nextPanel === 1
           ? "inverater"
-          : nextPanel === 2 || nextPanel === 4
+          : nextPanel === 3 || nextPanel === 5
           ? "cafeteria"
-          : nextPanel === 5
+          : nextPanel === 4
             ? "wedding"
             : nextPanel === 6
               ? "pixel"
@@ -252,21 +252,21 @@ export default function HeroCarouselSequence() {
       setActivePanel(nextPanel);
 
       // Pila de paneles deslizantes (índice = panelId - 1).
-      // 1: Inverater · 2: cafetería · 3: Plebes · 4: NoNamedBot · 5: boda · 6: contacto
+      // 1: Inverater · 2: Plebes · 3: cafetería · 4: boda · 5: NoNamedBot · 6: contacto
       const progresses = [
         inveraterProgress,
-        nonamedbotProgress,
         plebesProgress,
-        cafeteriaProgress,
+        nonamedbotProgress,
         minecraftProgress,
+        cafeteriaProgress,
         contactProgress,
       ];
       const pointerSetters = [
         setInveraterPointerEvents,
-        setNonamedbotPointerEvents,
         setPlebesPointerEvents,
-        setCafeteriaPointerEvents,
+        setNonamedbotPointerEvents,
         setMinecraftPointerEvents,
+        setCafeteriaPointerEvents,
         setContactPointerEvents,
       ];
 
@@ -433,8 +433,13 @@ export default function HeroCarouselSequence() {
   useEffect(() => {
     const onNavigate = (event: Event) => {
       const section = (event as CustomEvent<string>).detail;
-      if (section === "contact") goToPanel(LAST_PANEL);
-      else if (section === "home") goToPanel(0);
+      if (section === "home") goToPanel(0);
+      else if (section === "inverater") goToPanel(1);
+      else if (section === "plebes") goToPanel(2);
+      else if (section === "cafeteria") goToPanel(3);
+      else if (section === "wedding") goToPanel(4);
+      else if (section === "nonamedbot") goToPanel(5);
+      else if (section === "contact") goToPanel(6);
     };
     window.addEventListener("sequence:navigate", onNavigate);
     return () => window.removeEventListener("sequence:navigate", onNavigate);
@@ -511,7 +516,7 @@ export default function HeroCarouselSequence() {
         height: "100svh",
         position: "relative",
         zIndex: 1,
-        touchAction: activePanel === 1 || activePanel === 3 || activePanel === 5 || activePanel === 6 ? "pan-y" : "pan-x",
+        touchAction: activePanel === 1 || activePanel === 2 || activePanel === 4 || activePanel === 6 ? "pan-y" : "pan-x",
         backgroundColor: PANEL_THEME_COLORS[activePanel],
       }}
     >
@@ -556,12 +561,12 @@ export default function HeroCarouselSequence() {
             position: "absolute",
             inset: 0,
             zIndex: 5,
-            y: nonamedbotY,
-            pointerEvents: nonamedbotPointerEvents,
+            y: plebesY,
+            pointerEvents: plebesPointerEvents,
             willChange: "transform",
           }}
         >
-          <ThisCafeteriaGateway isActive={activePanel === 2} />
+          <PlebesProjectGateway isActive={activePanel === 2} />
         </motion.div>
 
         <motion.div
@@ -569,12 +574,12 @@ export default function HeroCarouselSequence() {
             position: "absolute",
             inset: 0,
             zIndex: 6,
-            y: plebesY,
-            pointerEvents: plebesPointerEvents,
+            y: nonamedbotY,
+            pointerEvents: nonamedbotPointerEvents,
             willChange: "transform",
           }}
         >
-          <PlebesProjectGateway isActive={activePanel === 3} />
+          <ThisCafeteriaGateway isActive={activePanel === 3} />
         </motion.div>
 
         <motion.div
@@ -582,12 +587,12 @@ export default function HeroCarouselSequence() {
             position: "absolute",
             inset: 0,
             zIndex: 7,
-            y: cafeteriaY,
-            pointerEvents: cafeteriaPointerEvents,
+            y: minecraftY,
+            pointerEvents: minecraftPointerEvents,
             willChange: "transform",
           }}
         >
-          <NoNamedBotGateway isActive={activePanel === 4} />
+          <WeddingServiceGateway isActive={activePanel === 4} />
         </motion.div>
 
         <motion.div
@@ -595,12 +600,12 @@ export default function HeroCarouselSequence() {
             position: "absolute",
             inset: 0,
             zIndex: 8,
-            y: minecraftY,
-            pointerEvents: minecraftPointerEvents,
+            y: cafeteriaY,
+            pointerEvents: cafeteriaPointerEvents,
             willChange: "transform",
           }}
         >
-          <WeddingServiceGateway isActive={activePanel === 5} />
+          <NoNamedBotGateway isActive={activePanel === 5} />
         </motion.div>
 
         <motion.div

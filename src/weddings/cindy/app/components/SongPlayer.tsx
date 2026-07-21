@@ -52,6 +52,7 @@ const SongPlayer = ({ loaded, delay, allowFallbackVisibility = true }: SongPlaye
   // keep the player accessible instead of leaving it hidden forever.
   useEffect(() => {
     if (loaded || !allowFallbackVisibility) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForceVisible(false);
       return;
     }

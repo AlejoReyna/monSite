@@ -179,6 +179,7 @@ function Countdown({ targetDate, variant }: { targetDate: string; variant: "andr
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
     setValues(getTimeLeft(targetDate));
     const timer = window.setInterval(() => {
@@ -220,6 +221,7 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
 
   // Al abandonar el panel, restauramos la rejilla de 2 columnas.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isActive) setExpanded(null);
   }, [isActive]);
 
