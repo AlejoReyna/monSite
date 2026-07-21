@@ -349,7 +349,7 @@ export async function POST(req: NextRequest) {
         model: config.model,
         messages,
         max_tokens: config.maxTokens,
-        temperature: 0.7,
+        temperature: 1,
       });
       text = completion.choices[0]?.message?.content ?? NO_CONTENT[lang];
       usage = completion.usage ?? null;
