@@ -50,7 +50,11 @@ function resolveProviderConfig(): ProviderConfig {
  */
 function createClient(config: ProviderConfig): OpenAI | null {
   if (!config.apiKey) return null;
-  return new OpenAI({ apiKey: config.apiKey, baseURL: config.baseURL });
+  return new OpenAI({
+    apiKey: config.apiKey,
+    baseURL: config.baseURL,
+    fetch: fetch,
+  });
 }
 
 /**
