@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type TouchEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type TouchEvent } from "react";
 import { animate, motion, useMotionValue, useMotionValueEvent, useTransform } from "framer-motion";
 import HeroV2 from "@/components/v2/hero-v2";
 import InveraterProjectGateway from "@/components/inverater-project-gateway";
@@ -38,11 +38,11 @@ const PANELS: { id: SequencePanel; label: string }[] = [
 ];
 const LAST_PANEL = (PANELS.length - 1) as SequencePanel;
 const PANEL_SCROLLABLE_SELECTOR = "[data-carousel-scrollable='true']";
+const THEME_COLOR_META_ID = "site-theme-color";
 
 // Color de la barra superior del navegador por panel. Se aplica por dos vías
-// porque Safari cambió de mecanismo: hasta Safari 18 se lee el
-// <meta name="theme-color"> (el primero válido gana, según la doc de WebKit);
-// Safari 26 ignora el meta y muestrea el background-color CSS del body.
+// mediante el único <meta name="theme-color"> declarado en el layout y el
+// color de fondo que queda detrás de la barra de estado en modo standalone.
 const PANEL_THEME_COLORS: Record<SequencePanel, string> = {
   0: "#2f1e2f", // Hero
   1: "#ff8448", // Inverater classic hero
@@ -56,9 +56,13 @@ const PANEL_THEME_COLORS: Record<SequencePanel, string> = {
 const applyThemeColor = (color: string) => {
   if (typeof document === "undefined") return null;
 
-  const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
-  if (metas.length === 0) {
-    const meta = document.createElement("meta");
+  // Keep the standalone app's translucent status-bar backdrop in sync too.
+  document.documentElement.style.setProperty("--sequence-theme-color", color);
+
+  let meta = document.getElementById(THEME_COLOR_META_ID) as HTMLMetaElement | null;
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.id = THEME_COLOR_META_ID;
     meta.name = "theme-color";
     meta.content = color;
     document.head.appendChild(meta);
@@ -66,11 +70,8 @@ const applyThemeColor = (color: string) => {
     document.body.style.backgroundColor = color;
     return meta;
   } else {
-    metas.forEach((meta) => {
-      // Sin media queries: el color del panel manda en claro y oscuro.
-      meta.removeAttribute("media");
-      meta.content = color;
-    });
+    meta.removeAttribute("media");
+    meta.content = color;
   }
   document.documentElement.style.backgroundColor = color;
   document.body.style.backgroundColor = color;
@@ -150,6 +151,7 @@ export default function HeroCarouselSequence() {
     const body = document.body;
     const rootBackgroundColor = root.style.backgroundColor;
     const bodyBackgroundColor = body.style.backgroundColor;
+    const sequenceThemeColor = root.style.getPropertyValue("--sequence-theme-color");
     const themeColors = Array.from(document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')).map(
       (meta) => ({
         meta,
@@ -161,6 +163,11 @@ export default function HeroCarouselSequence() {
     return () => {
       root.style.backgroundColor = rootBackgroundColor;
       body.style.backgroundColor = bodyBackgroundColor;
+      if (sequenceThemeColor) {
+        root.style.setProperty("--sequence-theme-color", sequenceThemeColor);
+      } else {
+        root.style.removeProperty("--sequence-theme-color");
+      }
       themeColors.forEach(({ meta, content, media }) => {
         if (content === null) meta.removeAttribute("content");
         else meta.setAttribute("content", content);
@@ -171,10 +178,9 @@ export default function HeroCarouselSequence() {
     };
   }, []);
 
-  // La barra del navegador acompaña al panel visible (en ambos sentidos de
-  // navegación). Se dispara al INICIO de la transición para que el tinte
-  // cambie junto con el deslizamiento del panel.
-  useEffect(() => {
+  // Safari supports updating theme-color in response to user interaction.
+  // Apply before paint so it changes with the touch-panel transition.
+  useLayoutEffect(() => {
     const createdMeta = applyThemeColor(PANEL_THEME_COLORS[activePanel]);
     if (createdMeta) createdThemeColorMetaRef.current = createdMeta;
   }, [activePanel]);
