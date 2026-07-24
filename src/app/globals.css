@@ -27,8 +27,9 @@ html.is-sequence-locked body {
   overscroll-behavior: none;
 }
 
-/* In standalone mode, Apple's black-translucent status bar overlays page
-   content. This layer supplies the matching backdrop for that safe area. */
+/* Keep the document canvas in sync with the active panel. Safari 26 derives
+   its top inset tint from the page canvas, while older Safari/Chrome use the
+   theme-color meta tag updated by HeroCarouselSequence. */
 @media (max-width: 767px) {
   html.is-sequence-locked {
     background-color: var(--sequence-theme-color, var(--gic-off-white));
