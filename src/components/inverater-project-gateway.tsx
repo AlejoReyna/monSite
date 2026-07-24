@@ -390,7 +390,6 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
   const workViewRef = useRef<HTMLElement>(null);
   const touchStartYRef = useRef<number | null>(null);
   const transitionUntilRef = useRef(0);
-  const exitReadyAtRef = useRef(0);
 
   useEffect(() => {
     if (isActive && activeView === "hero") {
@@ -400,7 +399,6 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
 
   const transitionTo = (view: "hero" | "work") => {
     transitionUntilRef.current = performance.now() + 720;
-    exitReadyAtRef.current = 0;
     setActiveView(view);
 
     if (view === "hero") {
@@ -425,22 +423,6 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
       return;
     }
 
-    if (activeView === "work" && event.deltaY > 30) {
-      const workView = workViewRef.current;
-      const isAtBottom = workView
-        ? workView.scrollTop + workView.clientHeight >= workView.scrollHeight - 2
-        : false;
-
-      if (!isAtBottom) {
-        exitReadyAtRef.current = 0;
-      } else if (exitReadyAtRef.current === 0 || now < exitReadyAtRef.current) {
-        if (exitReadyAtRef.current === 0) exitReadyAtRef.current = now + 900;
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-    }
-
     if (
       activeView === "work" &&
       event.deltaY < -30 &&
@@ -462,7 +444,13 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
     const endY = event.changedTouches[0]?.clientY;
     touchStartYRef.current = null;
 
-    if (startY == null || endY == null || performance.now() < transitionUntilRef.current) return;
+    if (startY == null || endY == null) return;
+
+    if (performance.now() < transitionUntilRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
 
     const upwardSwipe = startY - endY;
 
@@ -484,22 +472,8 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
       return;
     }
 
-    if (activeView === "work" && upwardSwipe > 55) {
-      const workView = workViewRef.current;
-      const isAtBottom = workView
-        ? workView.scrollTop + workView.clientHeight >= workView.scrollHeight - 2
-        : false;
-
-      if (isAtBottom) {
-        const now = performance.now();
-        if (exitReadyAtRef.current === 0) exitReadyAtRef.current = now + 900;
-
-        if (now < exitReadyAtRef.current) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      }
-    }
+    // At the bottom, let the event reach HeroCarouselSequence. Its scroll
+    // boundary check advances to Plebes with this same swipe.
   };
 
   return (

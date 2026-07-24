@@ -952,8 +952,8 @@
   }
 
   .roleInner {
-    min-height: 170svh;
-    padding: 6.75rem 1.35rem max(18rem, 45vh);
+    min-height: 0;
+    padding: 6.75rem 1.35rem 5rem;
   }
 
   .employmentBadge {
