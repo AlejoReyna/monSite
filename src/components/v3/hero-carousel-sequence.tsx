@@ -46,7 +46,7 @@ const THEME_COLOR_META_ID = "site-theme-color";
 const PANEL_THEME_COLORS: Record<SequencePanel, string> = {
   0: "#2f1e2f", // Hero
   1: "#ff8448", // Inverater classic hero
-  2: "hsl(319, 43%, 28%)", // Plebes
+  2: "#662953", // Plebes — hsl(319 43% 28%) as a Safari-safe solid color
   3: "#16110d", // Artisanal Brew (This Cafetería) — matches the panel's own background
   4: "#3f3a35", // Wedding invitations
   5: "#000000", // NoNamedBot
@@ -144,9 +144,9 @@ export default function HeroCarouselSequence() {
     };
   }, []);
 
-  // Guardamos los estilos globales que la secuencia controla para no dejar
-  // colores residuales al navegar fuera de ella.
-  useEffect(() => {
+  // Guardamos los estilos globales antes de que el primer color del carrusel
+  // se aplique, para no dejar colores residuales al navegar fuera de él.
+  useLayoutEffect(() => {
     const root = document.documentElement;
     const body = document.body;
     const rootBackgroundColor = root.style.backgroundColor;
@@ -204,6 +204,11 @@ export default function HeroCarouselSequence() {
   }, []);
 
   const setActivePanel = useCallback((panel: SequencePanel) => {
+    // Do this synchronously inside the wheel/touch/key/click call stack.
+    // Safari can miss a later React effect when its top-bar tint source changes
+    // from Inverater's opaque fixed header back to a transparent header.
+    const createdMeta = applyThemeColor(PANEL_THEME_COLORS[panel]);
+    if (createdMeta) createdThemeColorMetaRef.current = createdMeta;
     activePanelRef.current = panel;
     setActivePanelState(panel);
   }, []);
@@ -516,6 +521,7 @@ export default function HeroCarouselSequence() {
     <div
       ref={containerRef}
       id="work"
+      data-active-panel={activePanel}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       style={{
@@ -526,6 +532,22 @@ export default function HeroCarouselSequence() {
         backgroundColor: PANEL_THEME_COLORS[activePanel],
       }}
     >
+      {/* Safari 26 derives the top inset tint from a painted surface at the
+          viewport edge. Keep a real fixed surface there because the navbar
+          becomes transparent after Inverater and WebKit may otherwise retain
+          the last opaque (orange) header color. */}
+      <div
+        aria-hidden="true"
+        data-sequence-theme-surface
+        style={{
+          position: "fixed",
+          inset: "0 0 auto",
+          zIndex: 52,
+          height: "max(env(safe-area-inset-top, 0px), 1px)",
+          backgroundColor: "var(--sequence-theme-color, #2f1e2f)",
+          pointerEvents: "none",
+        }}
+      />
       <div
         style={{
           position: "relative",

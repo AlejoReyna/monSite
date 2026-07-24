@@ -540,7 +540,7 @@ export default function NavbarV2() {
         }
 
         body.is-inverater-panel-active .nav-v2-shell {
-          background: #f68a53 !important;
+          background: var(--sequence-theme-color, #ff8448) !important;
           border-bottom: 1px solid rgba(112, 53, 18, 0.28) !important;
           box-shadow: 0 4px 10px rgba(89, 35, 5, 0.28);
           color: #ffffff;
