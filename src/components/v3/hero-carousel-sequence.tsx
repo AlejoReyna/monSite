@@ -532,22 +532,6 @@ export default function HeroCarouselSequence() {
         backgroundColor: PANEL_THEME_COLORS[activePanel],
       }}
     >
-      {/* Safari 26 derives the top inset tint from a painted surface at the
-          viewport edge. Keep a real fixed surface there because the navbar
-          becomes transparent after Inverater and WebKit may otherwise retain
-          the last opaque (orange) header color. */}
-      <div
-        aria-hidden="true"
-        data-sequence-theme-surface
-        style={{
-          position: "fixed",
-          inset: "0 0 auto",
-          zIndex: 52,
-          height: "max(env(safe-area-inset-top, 0px), 1px)",
-          backgroundColor: "var(--sequence-theme-color, #2f1e2f)",
-          pointerEvents: "none",
-        }}
-      />
       <div
         style={{
           position: "relative",
