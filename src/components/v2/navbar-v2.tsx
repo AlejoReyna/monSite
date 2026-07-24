@@ -504,6 +504,18 @@ export default function NavbarV2() {
           text-shadow: 0 1px 12px rgba(0, 0, 0, 0.32);
         }
 
+        /* Safari 26 extends the background of a fixed element touching the
+           viewport edge into the Dynamic Island/status-bar area. Inverater
+           was the only opaque header, so its orange remained cached after the
+           navbar became transparent again. Keep the mobile header attached
+           and opaque with the active panel's ruled color. */
+        @media (max-width: 767px) {
+          html.is-sequence-locked .nav-v2-shell {
+            top: 0 !important;
+            background: var(--sequence-theme-color, #2f1e2f) !important;
+          }
+        }
+
         .nav-v2-shell a,
         .nav-v2-shell button {
           color: #ffffff !important;
