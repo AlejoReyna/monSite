@@ -128,6 +128,23 @@ export default function NavbarV2() {
 
             {/* CTA */}
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {/* /journal — hidden
+              <Link
+                href="/blog"
+                className="nav-blog-link"
+                style={{
+                  fontFamily: "var(--font-bebas, sans-serif)",
+                  fontSize: "0.9375rem",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: navInk,
+                  textDecoration: "none",
+                  transition: "opacity 0.2s",
+                }}
+              >
+                Blog
+              </Link>
+              */
               <button
                 onClick={() => handleNav("contact")}
                 className="nav-contact-pill"
@@ -334,6 +351,29 @@ export default function NavbarV2() {
             >
               {t("navHome", language) || "Home"}
             </button>
+
+            {/* /journal — hidden
+            Blog lives at its own route, so it's a Link rather than a
+            section scroll like the entries below it.
+            <Link
+              href="/blog"
+              onClick={() => setIsMenuOpen(false)}
+              className="nav-overlay-link"
+              style={{
+                color: "#ffffff",
+                textDecoration: "none",
+                fontSize: "inherit",
+                fontFamily: "inherit",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                transition: "color 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#ffffff")}
+            >
+              Blog
+            </Link>
+            */
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", width: "100%" }}>
               <span style={{ 
