@@ -144,7 +144,7 @@ export default function NavbarV2() {
               >
                 Blog
               </Link>
-              */
+              */}
               <button
                 onClick={() => handleNav("contact")}
                 className="nav-contact-pill"
@@ -373,7 +373,7 @@ export default function NavbarV2() {
             >
               Blog
             </Link>
-            */
+            */}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", width: "100%" }}>
               <span style={{ 
