@@ -262,6 +262,8 @@
    the chapter list) repaints without being touched individually. */
 .blog-article-grid,
 .blog-chapters,
+.blog-chapter-bar,
+.blog-chapter-sheet,
 .blog-article-content {
   --blog-bg: #0d1117;
   --blog-surface: #161b22;
@@ -637,14 +639,28 @@
   scrollbar-width: thin;
 }
 
-.blog-chapters-heading {
+/* The sticky frame is the group, not the heading alone: the way back has to
+   stay reachable from anywhere in a seven-chapter list. */
+.blog-chapters-top {
   position: sticky;
   top: 0;
   z-index: 1;
+  background: var(--blog-surface);
+}
+
+/* Scoped to the parent so it outranks .blog-back's inline-flex further down
+   the file — this one owns a full row, not a phrase inside one. */
+.blog-chapters-top .blog-chapters-back {
+  display: flex;
+  padding: 1rem 1.05rem 0.35rem;
+}
+
+/* Static: .blog-chapters-top above is what sticks now. */
+.blog-chapters-heading {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 1rem 1.05rem 0.85rem;
+  padding: 0.55rem 1.05rem 0.85rem;
   border-bottom: 1px solid var(--blog-line);
   background: var(--blog-surface);
   color: var(--blog-faint);
@@ -654,17 +670,24 @@
   text-transform: uppercase;
 }
 
-.blog-chapters nav {
+/* The mobile sheet renders the same list markup, so every rule from here
+   down is written for both containers. Without the second selector the
+   sheet's links fall back to the colour .blog inherited from the light
+   theme and land near-black on the dark panel. */
+.blog-chapters nav,
+.blog-chapter-sheet nav {
   padding: 0.85rem 0 1rem;
 }
 
-.blog-chapters a {
+.blog-chapters a,
+.blog-chapter-sheet a {
   color: var(--blog-muted);
   text-decoration: none;
   transition: color 150ms ease, border-color 150ms ease;
 }
 
-.blog-chapters a:hover {
+.blog-chapters a:hover,
+.blog-chapter-sheet a:hover {
   color: var(--blog-ink);
 }
 
@@ -752,19 +775,273 @@ html:has(.blog) {
   scroll-behavior: smooth;
 }
 
+/* ── Mobile chapter bar + sheet ────────────────────────────────
+   Below --blog-rail-stop the two-column grid can't hold a 260px rail, and
+   stacking it turned the top of every article into two screens of index.
+   The rail is replaced by a single sticky line that names the chapter you
+   are in, and the list itself moves into a sheet that opens on demand.
+   Both nodes exist in the markup at every width and are switched here —
+   the desktop rail is the one that disappears on small screens. */
+
+.blog-chapter-bar,
+.blog-chapter-sheet,
+.blog-chapter-backdrop {
+  display: none;
+}
+
+/* The rail is the article's only sticky element on desktop; on mobile the
+   bar takes that job, so it sits at the top of the stacked grid and stays
+   there. z-index keeps it over prose, under the sheet. */
+.blog-chapter-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--blog-line);
+  /* Opaque, not a translucent blur: prose scrolls under it, and on the
+     pixel-hero route there is an animated canvas behind that too — anything
+     see-through leaves text ghosting across the chapter title. */
+  background: var(--blog-surface);
+  color: var(--blog-ink);
+}
+
+/* The floating nav is fixed at top: 1rem and 58px tall, and it reappears on
+   any upward scroll — right where this bar sits. Rather than letting the two
+   overlap, the bar drops below the nav for as long as the nav is out, on the
+   nav's own timing so they read as one piece.
+   Translated, not re-`top`ed: animating a sticky element's `top` reflows on
+   every frame of the transition, which is the same trap the rail's static
+   offset avoids (see .blog-chapters). */
+.blog:has(.blog-nav-shell:not(.blog-nav-shell--hidden)) .blog-chapter-bar {
+  transform: translate3d(0, calc(58px + 1.5rem), 0);
+}
+
+.blog-chapter-bar {
+  transform: translate3d(0, 0, 0);
+  transition: transform 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-chapter-bar {
+    transition: none;
+  }
+}
+
+.blog-chapter-bar-button {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  /* 48px tall including the padding: a real thumb target, not a text link. */
+  padding: 0.6rem var(--blog-gutter);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.blog-chapter-bar-button:active {
+  background: var(--blog-line-soft);
+}
+
+/* Left half of the row: what opens, named. */
+.blog-chapter-bar-menu {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--blog-ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 520;
+}
+
+/* Three bars, the middle one short — a list, at 12px, without shipping an
+   icon font for one glyph. */
+.blog-chapter-bar-icon {
+  display: grid;
+  flex: none;
+  gap: 3px;
+  width: 14px;
+}
+
+.blog-chapter-bar-icon span {
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--blog-muted);
+}
+
+.blog-chapter-bar-icon span:nth-child(2) {
+  width: 65%;
+}
+
+/* Right half: pushed to the far edge and right-aligned, so the chapter name
+   grows towards the middle and never shoves "Menu" off its own side. */
+.blog-chapter-bar-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  margin-left: auto;
+  text-align: right;
+}
+
+.blog-chapter-bar-eyebrow {
+  color: var(--blog-faint);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* One line, always. A chapter title that wraps would change the bar's
+   height mid-scroll and shift the prose under it. */
+.blog-chapter-bar-title {
+  overflow: hidden;
+  color: var(--blog-ink);
+  font-size: 0.8125rem;
+  font-weight: 560;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Points right while closed and down while open — the same affordance a
+   docs sidebar uses for a section that expands. */
+.blog-chapter-bar-chevron {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--blog-muted);
+  transition: transform 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.blog-chapter-bar[data-open="true"] .blog-chapter-bar-chevron {
+  transform: rotate(90deg);
+}
+
+/* Reading progress, drawn on the bar's bottom edge. The width comes from a
+   custom property the component writes on every scroll frame, so the line
+   moves without React re-rendering the chapter tree. */
+.blog-chapter-bar-progress {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  width: calc(var(--blog-read-progress, 0) * 100%);
+  background: var(--blog-accent);
+}
+
+/* ── The drop-down index ──
+   A panel hung off the bar's own bottom edge, not a layer of its own: it
+   unrolls from the line you tapped and rolls back into it. Absolute inside
+   the sticky bar, so it travels with the bar instead of needing its
+   position recomputed. */
+.blog-chapter-sheet {
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  right: 0;
+  left: 0;
+  max-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-bottom: 1px solid transparent;
+  /* Darker than the bar it hangs from: the menu reads as a layer over the
+     article rather than more of the bar. */
+  background: var(--blog-bg);
+  color: var(--blog-ink);
+  box-shadow: 0 24px 48px rgba(1, 4, 9, 0.5);
+  /* Height, not transform: the list has to be revealed by the bar's edge
+     rather than slide out from under it, and there is no clipping ancestor
+     to hide an off-screen panel. Opacity trails slightly behind so the
+     first frames read as the panel emerging, not as a jump. */
+  transition:
+    max-height 300ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 160ms ease 40ms,
+    visibility 0s linear 300ms;
+  opacity: 0;
+  visibility: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.blog-chapter-bar[data-open="true"] .blog-chapter-sheet {
+  max-height: min(70svh, 560px);
+  border-bottom-color: var(--blog-line);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    max-height 300ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 160ms ease,
+    visibility 0s;
+}
+
+.blog-chapter-sheet nav {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Same role as in the rail — the way out of the article — pinned to the top
+   of the panel so it is one tap away no matter how far the list is scrolled.
+   Sits above its own rule, the way a docs sidebar separates the link out of
+   a section from the section itself. */
+.blog-chapter-sheet .blog-chapters-back {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.95rem 1.15rem;
+  border-bottom: 1px solid var(--blog-line);
+  background: var(--blog-bg);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+  letter-spacing: 0;
+}
+
+/* Dims the article under the open panel and takes the tap that closes it.
+   Fixed and below the bar's stacking context, so the bar and its panel stay
+   lit while everything else recedes. */
+.blog-chapter-backdrop {
+  position: fixed;
+  z-index: 19;
+  inset: 0;
+  display: none;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: rgba(1, 4, 9, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.blog-chapter-backdrop[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-chapter-sheet,
+  .blog-chapter-backdrop {
+    transition-duration: 1ms;
+  }
+}
+
 @media (max-width: 900px) {
   .blog-article-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* Stacked, so the seam between the two panels turns horizontal: chapters
-     draws it on its bottom edge and the content column drops the vertical
-     one it uses beside the sidebar. */
+  /* The rail's job moves to .blog-chapter-bar; keeping both would put the
+     index on screen twice. */
   .blog-chapters {
-    position: relative;
-    top: auto;
-    max-height: none;
-    border-bottom: 1px solid var(--blog-line);
+    display: none;
+  }
+
+  .blog-chapter-bar,
+  .blog-chapter-sheet,
+  .blog-chapter-backdrop {
+    display: block;
   }
 
   .blog-article-content,
@@ -772,21 +1049,70 @@ html:has(.blog) {
     border-left: 0;
   }
 
-  .blog-chapters-heading {
-    position: static;
+  /* Clears the sticky bar, which would otherwise cover the heading a
+     chapter link just jumped to. */
+  .blog-article-head,
+  .blog-prose h2,
+  .blog-prose h3 {
+    scroll-margin-top: 4.25rem;
   }
 
-  .blog-chapter-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* ── The menu, as a docs sidebar ──
+     In the rail the list is a dense index next to the text. Here it is the
+     whole screen and the only thing to read, so it drops the numbering and
+     the accent bars and becomes a plain stack of links: chapters at one
+     level, their sections indented behind a hairline, current position said
+     once in colour. Rows are sized for a thumb, not for a cursor. */
+  .blog-chapter-sheet nav {
+    padding: 0.5rem 0 0;
+  }
+
+  .blog-chapter-sheet .blog-chapter-list > li {
+    padding: 0;
+  }
+
+  /* The rail's accent bar and "CAPÍTULO 03" label: both say what the colour
+     of the active link already says, and the numbering fights the flat
+     hierarchy this layout is going for. */
+  .blog-chapter-sheet .blog-chapter-list > li::before,
+  .blog-chapter-sheet .blog-chapter-number {
+    display: none;
+  }
+
+  .blog-chapter-sheet .blog-chapter-intro,
+  .blog-chapter-sheet .blog-chapter-link,
+  .blog-chapter-sheet .blog-subchapter-list a {
+    display: block;
+    margin: 0;
+    padding: 0.62rem 1.15rem;
+    border: 0;
+    font-size: 0.95rem;
+    font-weight: 450;
+    line-height: 1.35;
+  }
+
+  .blog-chapter-sheet .blog-chapter-intro[data-active="true"],
+  .blog-chapter-sheet .blog-chapter-link[data-active="true"],
+  .blog-chapter-sheet .blog-subchapter-list a[data-active="true"] {
+    color: var(--blog-accent);
+    font-weight: 550;
+  }
+
+  /* The hairline is the indent: it reads as "these belong to the chapter
+     above" without a bullet or a second type size. */
+  .blog-chapter-sheet .blog-subchapter-list {
+    margin: 0 0 0.2rem 1.15rem;
+    padding-left: 0.35rem;
+    border-left: 1px solid var(--blog-line);
+  }
+
+  .blog-chapter-sheet .blog-subchapter-list a {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 560px) {
-  .blog-chapter-list {
-    grid-template-columns: 1fr;
-  }
-
   .blog-title-sprite {
     scale: 0.8;
   }
@@ -1675,11 +2001,26 @@ html:has(.blog) {
   background: rgba(16, 185, 129, 0.15);
 }
 
+/* The simulation is the point of the card, so it gets the room: a 4:3 frame
+   that grows with the column instead of a fixed 200px letterbox. The bounds
+   keep it from collapsing in the three-column grid or eating the page in the
+   single view. The colour matches the scene the canvas paints (see
+   .blog-scene-preview__canvas) so there is no flash of a different sky
+   before the first frame lands. */
 .blog-gen-card-viewport {
   position: relative;
   width: 100%;
-  height: 200px;
-  background: #080911;
+  min-height: 220px;
+  max-height: 360px;
+  aspect-ratio: 4 / 3;
+  background: #100d0b;
+}
+
+/* One card across the full measure: wider frame, more room to watch a full
+   approach-and-overshoot cycle play out. */
+.blog-gen-grid--single .blog-gen-card-viewport {
+  max-height: 520px;
+  aspect-ratio: 16 / 9;
 }
 
 .blog-gen-canvas {

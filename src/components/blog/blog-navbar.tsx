@@ -31,7 +31,14 @@ export default function BlogNavbar() {
   );
 
   /**
-   * Hide while reading down, reveal on the first deliberate scroll up.
+   * Inside a post the bar never comes out; everywhere else it hides while
+   * reading down and returns on the first deliberate scroll up.
+   *
+   * A post is read top to bottom, and a floating bar sliding in over it on
+   * every upward scroll is noise on top of the thing being read. The chapter
+   * column carries the link back to the index instead, so nothing is lost.
+   * The pages around it — the index, skills, guidelines — are where
+   * navigating is the point, and there the bar behaves as before.
    *
    * The class is toggled straight on the node instead of through state: this
    * reads scroll at frame rate, and re-rendering the tree to flip one boolean
@@ -42,18 +49,31 @@ export default function BlogNavbar() {
     const shell = shellRef.current;
     if (!shell) return;
 
+    if (isPostPage) {
+      shell.classList.add(HIDDEN_CLASS);
+
+      // Keyboard focus is the one exception: nothing may be tabbed to while it
+      // sits translated off-screen (see .blog-nav-shell--hidden).
+      const onFocusIn = () => shell.classList.remove(HIDDEN_CLASS);
+      const onFocusOut = () => shell.classList.add(HIDDEN_CLASS);
+
+      shell.addEventListener("focusin", onFocusIn);
+      shell.addEventListener("focusout", onFocusOut);
+
+      return () => {
+        shell.removeEventListener("focusin", onFocusIn);
+        shell.removeEventListener("focusout", onFocusOut);
+      };
+    }
+
     let lastY = window.scrollY;
-    let hidden = isPostPage;
+    let hidden = false;
     let frame = 0;
     // Focus inside the bar pins it open. Tabbing must never send focus to
     // something that has been translated off-screen.
     let pinned = false;
 
-    if (isPostPage) {
-      shell.classList.add(HIDDEN_CLASS);
-    } else {
-      shell.classList.remove(HIDDEN_CLASS);
-    }
+    shell.classList.remove(HIDDEN_CLASS);
 
     const setHidden = (next: boolean) => {
       if (next === hidden) return;
@@ -79,7 +99,7 @@ export default function BlogNavbar() {
         return;
       }
 
-      if (!isPostPage && y <= ALWAYS_VISIBLE_ABOVE) {
+      if (y <= ALWAYS_VISIBLE_ABOVE) {
         setHidden(false);
         return;
       }

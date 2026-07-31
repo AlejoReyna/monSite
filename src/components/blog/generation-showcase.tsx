@@ -2,6 +2,80 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const ASSET_BASE = "/blog/artisanal-brew-assets";
+
+/**
+ * The same files GlobalScene ships, so a card shows the real crew against the
+ * real sky rather than a diagram of it. Sheets carry their frame count: every
+ * one of these is a horizontal strip, and drawing the whole PNG paints all of
+ * its frames side by side — which is exactly what used to land in the card as
+ * a row of tiny robots.
+ */
+const ASSET_SOURCES = {
+  robot: { src: `${ASSET_BASE}/pl-robot-coincrew.png`, frames: 5 },
+  robotFlip: { src: `${ASSET_BASE}/pl-robot-coincrew-flip.png`, frames: 5 },
+  robotSip: { src: `${ASSET_BASE}/pl-robot-coincrew-sip.png`, frames: 4 },
+  jetFlame: { src: `${ASSET_BASE}/pl-robot-jetflame.png`, frames: 4 },
+  shoes: { src: `${ASSET_BASE}/pl-sonic-shoes.png`, frames: 3 },
+  coin: { src: `${ASSET_BASE}/coffee-coin-pixel.png`, frames: 1 },
+  mug: { src: `${ASSET_BASE}/pl-mug-coffee.png`, frames: 1 },
+  andromeda: { src: `${ASSET_BASE}/pl-andromeda.png`, frames: 1 },
+  planet: { src: `${ASSET_BASE}/pl-planet.png`, frames: 1 },
+  planetRinged: { src: `${ASSET_BASE}/pl-planet-ringed.png`, frames: 1 },
+  eth: { src: `${ASSET_BASE}/pl-chain-ethereum.png`, frames: 1 },
+  sol: { src: `${ASSET_BASE}/pl-chain-solana.png`, frames: 1 },
+  bnb: { src: `${ASSET_BASE}/pl-chain-bnb.png`, frames: 1 },
+} as const;
+
+type AssetKey = keyof typeof ASSET_SOURCES;
+
+/** Shared across the three cards on screen — one fetch per sprite, not three. */
+const imageCache = new Map<string, HTMLImageElement>();
+
+function loadAssets(onReady: () => void) {
+  const images = {} as Record<AssetKey, HTMLImageElement>;
+
+  (Object.keys(ASSET_SOURCES) as AssetKey[]).forEach((key) => {
+    const { src } = ASSET_SOURCES[key];
+    const cached = imageCache.get(src);
+
+    if (cached) {
+      images[key] = cached;
+      if (cached.complete) return;
+      cached.addEventListener("load", onReady, { once: true });
+      return;
+    }
+
+    const img = new Image();
+    img.src = src;
+    img.addEventListener("load", onReady, { once: true });
+    imageCache.set(src, img);
+    images[key] = img;
+  });
+
+  return images;
+}
+
+/**
+ * The star field from the pixel scene: a plus sign, not a dot, in the four
+ * tints the scene uses. Positions are fractions of the frame so they land in
+ * the same places whatever size the card ends up.
+ */
+const STARS = [
+  { x: 0.08, y: 0.12, color: "#a7a094", phase: 0 },
+  { x: 0.25, y: 0.28, color: "#8fb99b", phase: 0.7 },
+  { x: 0.48, y: 0.1, color: "#a7a094", phase: 1.4 },
+  { x: 0.88, y: 0.2, color: "#e5c078", phase: 2.1 },
+  { x: 0.12, y: 0.52, color: "#a7a094", phase: 1.8 },
+  { x: 0.55, y: 0.44, color: "#c89b6a", phase: 0.4 },
+  { x: 0.92, y: 0.62, color: "#a7a094", phase: 1.1 },
+  { x: 0.18, y: 0.85, color: "#8fb99b", phase: 2.5 },
+  { x: 0.47, y: 0.92, color: "#a7a094", phase: 0.9 },
+  { x: 0.75, y: 0.76, color: "#e5c078", phase: 1.6 },
+  { x: 0.37, y: 0.72, color: "#a7a094", phase: 2.2 },
+  { x: 0.64, y: 0.36, color: "#8fb99b", phase: 1.2 },
+];
+
 export interface CheckpointInfo {
   checkpoint: string;
   tag?: string;
@@ -108,6 +182,16 @@ function CheckpointCard({
   onSelect: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  /**
+   * Pausing must not restart the run: the render loop reads the flag through
+   * a ref so toggling it leaves the simulation — and the sprite decoding —
+   * exactly where they were.
+   */
+  const playingRef = useRef(isPlaying);
+
+  useEffect(() => {
+    playingRef.current = isPlaying;
+  }, [isPlaying]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -115,46 +199,48 @@ function CheckpointCard({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animationFrameId: number;
-    let width = (canvas.width = canvas.parentElement?.clientWidth || 320);
-    let height = (canvas.height = 200);
+    let animationFrameId = 0;
+    let width = 320;
+    let height = 240;
+    /**
+     * Sprites are drawn at whole multiples of their source size — a pixel
+     * sprite at 1.37× is a smear. One step up once the frame is tall enough
+     * to carry it, so the crew reads at a glance in the single-card view
+     * without turning into blocks in the three-column grid.
+     */
+    let unit = 1;
 
-    const handleResize = () => {
-      if (canvas && canvas.parentElement) {
-        width = canvas.width = canvas.parentElement.clientWidth;
-        height = canvas.height = 200;
-      }
-    };
-    window.addEventListener("resize", handleResize);
-
-    // Preload Real Pixel Art Image Assets
-    const assets: Record<string, HTMLImageElement> = {};
-    const assetSources = {
-      robot: "/blog/artisanal-brew-assets/pl-robot-coincrew.png",
-      robotFlip: "/blog/artisanal-brew-assets/pl-robot-coincrew-flip.png",
-      robotSip: "/blog/artisanal-brew-assets/pl-robot-coincrew-sip.png",
-      jetFlame: "/blog/artisanal-brew-assets/pl-robot-jetflame.png",
-      shoes: "/blog/artisanal-brew-assets/pl-sonic-shoes.png",
-      coin: "/blog/artisanal-brew-assets/coffee-coin-pixel.png",
-      mug: "/blog/artisanal-brew-assets/pl-mug-coffee.png",
-      andromeda: "/blog/artisanal-brew-assets/pl-andromeda.png",
-      planet: "/blog/artisanal-brew-assets/pl-planet.png",
-      planetRinged: "/blog/artisanal-brew-assets/pl-planet-ringed.png",
-      eth: "/blog/artisanal-brew-assets/pl-chain-ethereum.png",
-      sol: "/blog/artisanal-brew-assets/pl-chain-solana.png",
-    };
-
-    let loadedCount = 0;
-    const totalAssets = Object.keys(assetSources).length;
-
-    Object.entries(assetSources).forEach(([key, src]) => {
-      const img = new Image();
-      img.src = src;
-      img.onload = () => {
-        assets[key] = img;
-        loadedCount++;
-      };
+    const assets = loadAssets(() => {
+      // A sprite that arrives after the first frames still has to appear.
+      if (!playingRef.current) draw(performance.now());
     });
+
+    /** Backing store in device pixels, drawing in CSS pixels. */
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      width = rect.width;
+      height = rect.height;
+      unit = height >= 330 ? 2 : 1;
+
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Everything below is placed in fractions of the frame, so a resize
+      // only has to put the actors back inside the new one.
+      x = Math.min(x, width - 20);
+      y = Math.min(y, height - 20);
+      targetX = width * 0.72;
+      targetY = height * 0.3;
+      mugX = width * 0.8;
+      mugY = height * 0.78;
+    };
+
+    const observer = new ResizeObserver(resize);
+    observer.observe(canvas);
 
     // Physics Simulation State per checkpoint
     let x = width * 0.2;
@@ -162,90 +248,136 @@ function CheckpointCard({
     let vx = 0;
     let vy = 0;
     let angle = 0;
-    let trail: { x: number; y: number }[] = [];
+    const trail: { x: number; y: number }[] = [];
 
     // Target positions
-    let targetX = width * 0.75;
-    let targetY = height * 0.35;
-    let mugX = width * 0.82;
-    let mugY = height * 0.75;
+    let targetX = width * 0.72;
+    let targetY = height * 0.3;
+    let mugX = width * 0.8;
+    let mugY = height * 0.78;
 
     let step = 0;
     let isSipping = false;
 
-    // Stars background static positions
-    const stars = Array.from({ length: 18 }, (_, i) => ({
-      x: (i * 47 + 13) % width,
-      y: (i * 31 + 7) % height,
-      size: (i % 3) + 1,
-      opacity: 0.3 + (i % 5) * 0.15,
-    }));
+    resize();
 
-    const render = () => {
-      if (!ctx) return;
-      ctx.clearRect(0, 0, width, height);
+    /** One frame out of a horizontal sprite strip, centred on (0, 0). */
+    const drawSprite = (
+      key: AssetKey,
+      frame: number,
+      drawWidth: number,
+      drawHeight: number,
+      offsetX = 0,
+      offsetY = 0,
+      /** Fraction of the sprite's bottom to cut off, top-anchored. */
+      cropBottom = 0,
+    ) => {
+      const image = assets[key];
+      if (!image?.complete || !image.naturalWidth) return;
 
-      // Pixel crispness
-      ctx.imageSmoothingEnabled = false;
+      const { frames } = ASSET_SOURCES[key];
+      const frameWidth = image.naturalWidth / frames;
+      const keep = 1 - cropBottom;
 
-      // Real Sky Background Gradient
-      const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
-      bgGradient.addColorStop(0, "#080911");
-      bgGradient.addColorStop(0.5, "#0f101d");
-      bgGradient.addColorStop(1, "#181428");
-      ctx.fillStyle = bgGradient;
+      ctx.drawImage(
+        image,
+        frameWidth * (frame % frames),
+        0,
+        frameWidth,
+        image.naturalHeight * keep,
+        offsetX - drawWidth / 2,
+        offsetY - drawHeight / 2,
+        drawWidth,
+        drawHeight * keep,
+      );
+    };
+
+    const drawBackdrop = (time: number) => {
+      // The scene's own sky: a warm base with an amber glow top-left and a
+      // green one bottom-right (see .blog-scene-preview__canvas).
+      ctx.fillStyle = "#100d0b";
       ctx.fillRect(0, 0, width, height);
 
-      // Render Stars
-      stars.forEach((star) => {
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-        ctx.fillRect(star.x, star.y, star.size, star.size);
+      const glow = (
+        cx: number,
+        cy: number,
+        rx: number,
+        ry: number,
+        color: string,
+      ) => {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(rx, ry);
+        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, "rgba(16, 13, 11, 0)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(-1, -1, 2, 2);
+        ctx.restore();
+      };
+
+      glow(width * 0.18, height * 0.14, width * 0.62, height * 0.52, "rgba(200, 155, 106, 0.15)");
+      glow(width * 0.82, height * 0.72, width * 0.55, height * 0.48, "rgba(143, 185, 155, 0.1)");
+
+      // Plus-shaped stars, blinking on their own offsets.
+      const arm = 3 * unit;
+      const bar = unit;
+      STARS.forEach((star) => {
+        const blink = 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(time / 900 + star.phase * 2));
+        const sx = Math.round(star.x * width);
+        const sy = Math.round(star.y * height);
+
+        ctx.globalAlpha = blink;
+        ctx.fillStyle = star.color;
+        ctx.fillRect(sx - arm, sy - bar / 2, arm * 2, bar);
+        ctx.fillRect(sx - bar / 2, sy - arm, bar, arm * 2);
       });
+      ctx.globalAlpha = 1;
 
-      // Render Real Background celestial assets if loaded
-      if (assets.andromeda) {
-        ctx.globalAlpha = 0.35;
-        ctx.drawImage(assets.andromeda, width - 90, 10, 80, 50);
-        ctx.globalAlpha = 1.0;
-      }
-      if (assets.planet) {
-        ctx.globalAlpha = 0.5;
-        ctx.drawImage(assets.planet, 15, 15, 28, 28);
-        ctx.globalAlpha = 1.0;
-      }
-      if (assets.planetRinged) {
-        ctx.globalAlpha = 0.45;
-        ctx.drawImage(assets.planetRinged, width * 0.45, height * 0.15, 36, 26);
-        ctx.globalAlpha = 1.0;
-      }
-      if (assets.eth) {
-        ctx.globalAlpha = 0.3;
-        ctx.drawImage(assets.eth, 25, height - 35, 16, 20);
-        ctx.globalAlpha = 1.0;
-      }
-      if (assets.sol) {
-        ctx.globalAlpha = 0.3;
-        ctx.drawImage(assets.sol, width - 40, height - 35, 20, 16);
-        ctx.globalAlpha = 1.0;
-      }
+      // Celestial layer, in the scene's arrangement: planet top-left, ringed
+      // planet top-right, Andromeda low on the right, chains scattered.
+      ctx.globalAlpha = 0.75;
+      drawSprite("planet", 0, 22 * unit, 22 * unit, width * 0.1, height * 0.16);
+      drawSprite("planetRinged", 0, 30 * unit, 24 * unit, width * 0.86, height * 0.14);
+      ctx.globalAlpha = 0.5;
+      drawSprite("andromeda", 0, 66 * unit, 42 * unit, width * 0.78, height * 0.9);
+      ctx.globalAlpha = 0.7;
+      // Kept clear of the two hot spots: the status badge in the bottom-left
+      // corner and the coin the robot is chasing.
+      drawSprite("eth", 0, 14 * unit, 14 * unit, width * 0.07, height * 0.62);
+      drawSprite("sol", 0, 16 * unit, 16 * unit, width * 0.2, height * 0.34);
+      drawSprite("bnb", 0, 14 * unit, 14 * unit, width * 0.92, height * 0.44);
+      ctx.globalAlpha = 1;
+    };
 
-      if (isPlaying) {
+    const draw = (time: number) => {
+      ctx.clearRect(0, 0, width, height);
+      ctx.imageSmoothingEnabled = false;
+
+      drawBackdrop(time);
+
+      if (playingRef.current) {
         step += 1;
+
+        // Forces scale with the frame so the run reads the same whether the
+        // card is a narrow column or the full measure.
+        const force = unit;
+        const margin = 14 * unit;
 
         if (item.behaviorType === "untrained") {
           // Gen 0: Erratic random walk, wall bounces
           angle += (Math.random() - 0.5) * 0.45;
-          const speed = 1.8;
+          const speed = 1.8 * force;
           vx += Math.cos(angle) * speed * 0.22;
           vy += Math.sin(angle) * speed * 0.22;
           vx *= 0.94;
           vy *= 0.94;
 
-          if (x < 20 || x > width - 20) {
+          if (x < margin || x > width - margin) {
             vx *= -1;
             angle = Math.PI - angle;
           }
-          if (y < 20 || y > height - 20) {
+          if (y < margin || y > height - margin) {
             vy *= -1;
             angle = -angle;
           }
@@ -255,21 +387,21 @@ function CheckpointCard({
           const dy = targetY - y;
           const dist = Math.hypot(dx, dy);
 
-          if (dist > 18) {
-            const accel = 0.58;
+          if (dist > 18 * unit) {
+            const accel = 0.58 * force;
             vx += (dx / dist) * accel;
             vy += (dy / dist) * accel;
           } else {
             // Relocate coin on hit
-            targetX = 40 + Math.random() * (width - 80);
-            targetY = 40 + Math.random() * (height - 80);
+            targetX = margin * 2 + Math.random() * (width - margin * 4);
+            targetY = margin * 2 + Math.random() * (height - margin * 4);
           }
           vx *= 0.965;
           vy *= 0.965;
           angle = Math.atan2(vy, vx);
 
-          if (x < 20 || x > width - 20) vx *= -0.8;
-          if (y < 20 || y > height - 20) vy *= -0.8;
+          if (x < margin || x > width - margin) vx *= -0.8;
+          if (y < margin || y > height - margin) vy *= -0.8;
         } else {
           // Gen 300: Inertia glide, coffee mug evaluation
           const currentTargetX = step % 260 < 130 ? targetX : mugX;
@@ -282,9 +414,9 @@ function CheckpointCard({
           const desiredAngle = Math.atan2(dy, dx);
           angle += (desiredAngle - angle) * 0.14;
 
-          if (dist > 22) {
+          if (dist > 22 * unit) {
             isSipping = false;
-            const boost = dist > 60 ? 0.48 : 0.18;
+            const boost = (dist > 60 * unit ? 0.48 : 0.18) * force;
             vx += Math.cos(angle) * boost;
             vy += Math.sin(angle) * boost;
           } else {
@@ -297,104 +429,122 @@ function CheckpointCard({
           vy *= 0.95;
         }
 
-        x = Math.max(20, Math.min(width - 20, x + vx));
-        y = Math.max(20, Math.min(height - 20, y + vy));
+        x = Math.max(margin, Math.min(width - margin, x + vx));
+        y = Math.max(margin, Math.min(height - margin, y + vy));
 
         trail.push({ x, y });
-        if (trail.length > 50) trail.shift();
+        if (trail.length > 60) trail.shift();
       }
 
-      // Draw Real Coin Asset
-      if (assets.coin) {
-        ctx.drawImage(assets.coin, targetX - 12, targetY - 12, 24, 24);
-      } else {
-        ctx.fillStyle = "#fbbf24";
-        ctx.beginPath();
-        ctx.arc(targetX, targetY, 8, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      const behaviourColor =
+        item.behaviorType === "untrained"
+          ? "248, 113, 113"
+          : item.behaviorType === "early"
+          ? "251, 191, 36"
+          : "52, 211, 153";
 
-      // Draw Real Coffee Mug Asset
-      if (assets.mug) {
-        ctx.drawImage(assets.mug, mugX - 14, mugY - 14, 28, 28);
-      } else {
-        ctx.fillStyle = "#ec4899";
-        ctx.beginPath();
-        ctx.arc(mugX, mugY, 10, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      // What the policy is actually being paid for. A ring around the coin
+      // says "this is the target" without a caption, which is the whole
+      // reason the erratic run reads as failure and the last one as skill.
+      ctx.save();
+      ctx.strokeStyle = `rgba(${behaviourColor}, 0.45)`;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, 14 * unit, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
 
-      // Draw Trajectory Trail Line
+      // Coin and mug: the two things worth flying to.
+      ctx.save();
+      ctx.shadowColor = "rgba(236, 178, 66, 0.55)";
+      ctx.shadowBlur = 8 * unit;
+      drawSprite("coin", 0, 16 * unit, 16 * unit, targetX, targetY);
+      ctx.restore();
+      drawSprite("mug", 0, 16 * unit, 16 * unit, mugX, mugY);
+
+      // Trajectory: the record of the decisions made to get here.
       if (trail.length > 1) {
         ctx.beginPath();
         ctx.moveTo(trail[0].x, trail[0].y);
         for (let i = 1; i < trail.length; i++) {
           ctx.lineTo(trail[i].x, trail[i].y);
         }
-        const trailColor =
-          item.behaviorType === "untrained"
-            ? "rgba(248, 113, 113, "
-            : item.behaviorType === "early"
-            ? "rgba(251, 191, 36, "
-            : "rgba(52, 211, 153, ";
-        ctx.strokeStyle = trailColor + "0.65)";
-        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = `rgba(${behaviourColor}, 0.65)`;
+        ctx.lineWidth = 1.5 * unit;
         if (item.behaviorType === "untrained") ctx.setLineDash([4, 4]);
         ctx.stroke();
         ctx.setLineDash([]);
       }
 
-      // Draw Real Robot Asset
       const movingLeft = Math.cos(angle) < 0;
       const speed = Math.hypot(vx, vy);
+      const robotSize = 26 * unit;
+      // Sprite sheets run at a steady cadence rather than per animation
+      // frame, which would be a blur on a 120Hz display.
+      const spriteFrame = Math.floor(time / 140);
 
       ctx.save();
-      ctx.translate(x, y);
+      ctx.translate(Math.round(x), Math.round(y));
 
-      // Jetflame behind robot if thrusting
-      if (speed > 0.4 && assets.jetFlame) {
+      // Thrust, opposite the direction of travel.
+      if (speed > 0.4 * unit) {
         ctx.save();
         ctx.rotate(angle + Math.PI);
-        ctx.drawImage(assets.jetFlame, 12, -8, 16, 16);
+        drawSprite(
+          "jetFlame",
+          spriteFrame,
+          7 * unit,
+          12 * unit,
+          robotSize * 0.5,
+          0,
+        );
         ctx.restore();
       }
 
-      // Sonic shoes for Gen 300 boost
-      if (item.behaviorType === "trained" && assets.shoes) {
-        ctx.drawImage(assets.shoes, -14, 10, 24, 12);
+      // The sneakers only make sense on the checkpoint that earned them —
+      // they are the visible half of the caffeine boost.
+      const wearsShoes = item.behaviorType === "trained";
+      if (wearsShoes) {
+        drawSprite(
+          "shoes",
+          spriteFrame,
+          14 * unit,
+          14 * unit,
+          0,
+          robotSize * 0.42,
+        );
       }
 
-      // Pick robot asset: sip / flip / normal
-      let robotSprite = movingLeft ? assets.robotFlip : assets.robot;
-      if (isSipping && assets.robotSip) {
-        robotSprite = assets.robotSip;
-      }
-
-      if (robotSprite) {
-        ctx.drawImage(robotSprite, -20, -20, 40, 40);
-      } else {
-        // Fallback rectangle if images loading
-        ctx.fillStyle =
-          item.behaviorType === "untrained"
-            ? "#ef4444"
-            : item.behaviorType === "early"
-            ? "#f59e0b"
-            : "#10b981";
-        ctx.fillRect(-12, -12, 24, 24);
-      }
+      const robotKey: AssetKey = isSipping
+        ? "robotSip"
+        : movingLeft
+        ? "robotFlip"
+        : "robot";
+      // Same trim GlobalScene applies with clip-path: without it the robot's
+      // own feet poke out under the sneakers and you get two pairs.
+      drawSprite(
+        robotKey,
+        spriteFrame,
+        robotSize,
+        robotSize,
+        0,
+        0,
+        wearsShoes ? 0.125 : 0,
+      );
 
       ctx.restore();
 
-      animationFrameId = requestAnimationFrame(render);
+      animationFrameId = requestAnimationFrame(draw);
     };
 
-    render();
+    animationFrameId = requestAnimationFrame(draw);
 
     return () => {
-      window.removeEventListener("resize", handleResize);
+      observer.disconnect();
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isPlaying, item.behaviorType]);
+  }, [item.behaviorType]);
 
   const colorClass =
     item.behaviorType === "untrained"
