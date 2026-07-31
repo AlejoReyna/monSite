@@ -5,7 +5,7 @@ import NavbarV2 from "@/components/v2/navbar-v2";
 import { useLanguage } from "@/components/lang-context";
 import { t } from "@/lib/translations";
 
-const HIDE_CHROME_PREFIXES = ["/historia", "/legacy", "/weddings"];
+const HIDE_CHROME_PREFIXES = ["/blog", "/historia", "/legacy", "/weddings"];
 
 function shouldHideChrome(pathname: string | null): boolean {
   if (!pathname) return false;

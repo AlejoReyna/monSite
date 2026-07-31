@@ -1,0 +1,3205 @@
+/* ════════════════════════════════════════════════════════════
+   BLOG — minimal editorial reading surface
+   Built on the GIC light tokens from globals.css. Everything here
+   is scoped under .blog so it cannot leak into the rest of the site.
+   ════════════════════════════════════════════════════════════ */
+
+.blog {
+  /* ── Palette. Direct literals, never var(--other-token) chains. ──
+     Aliasing one custom property to another adds a resolution hop that
+     fails silently in some engines and falls through to initial values
+     (black text). Duplicating a hex is the cheap, safe choice. */
+  --blog-bg: #fefffc;
+  --blog-surface: #f9faf7;
+  --blog-sunken: #eef1ed;
+  --blog-ink: #171717;
+  --blog-ink-soft: #444141;
+  --blog-muted: #646464;
+  --blog-faint: #b4b8b4;
+  --blog-line: #dee2de;
+  --blog-line-soft: #eef1ed;
+  --blog-accent: #0081c0;
+  --blog-warn: #8a5a00;
+  --blog-warn-bg: #fdf6e7;
+  --blog-warn-ink: #5c4a22;
+  --blog-warn-line: #d9a441;
+  /* Note callouts are the quiet tone: a tinted panel rather than a coloured
+     one, so a warn box still wins the page when both are on screen. */
+  --blog-note-bg: #f4f6f3;
+  --blog-note-line: #c6cdc6;
+
+  /* Terminal is deliberately dark — a command block should read as a
+     different surface than prose, not as decoration. */
+  --blog-term-bg: #17181a;
+  --blog-term-ink: #e6e6e3;
+  --blog-term-muted: #8b8d8a;
+  --blog-term-prompt: #6fb3d6;
+  --blog-term-line: #2a2c2f;
+
+  /* Code blocks get the classic Monokai surface — same "different surface
+     than prose" reasoning as the terminal, with the canonical palette so
+     it reads as source code rather than another output pane. */
+  --blog-code-bg: #272822;
+  --blog-code-bg-bar: #1e1f1c;
+  --blog-code-muted: #90908a;
+  --blog-code-line: #3e3d32;
+  --blog-code-dot: #49483e;
+
+  /* ── Measure. The single most important number on the page. ──
+     ~68ch keeps lines at 60-75 characters, where the eye finds the next
+     line without effort. Wider reads as a wall; narrower fragments. */
+  --blog-measure: 68ch;
+  --blog-wide: 1100px;
+  --blog-gutter: clamp(1.25rem, 5vw, 2.5rem);
+
+  /* The floating nav's box model, shared with .blog-article so the article
+     grid's edges land exactly on the nav's content edges instead of on its
+     own independent measure. Keep these in sync with .blog-nav-shell /
+     .blog-nav if that box model ever changes. */
+  --blog-nav-inset: 1rem;
+  --blog-nav-max: 1450px;
+  --blog-nav-pad: clamp(1rem, 2.5vw, 2rem);
+
+  background: var(--blog-bg);
+  color: var(--blog-ink);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.blog ::selection {
+  background: #cfe6f2;
+  color: #0b2b3a;
+}
+
+/* ── Layout shells ─────────────────────────────────────────── */
+
+.blog-shell {
+  max-width: var(--blog-wide);
+  margin: 0 auto;
+  padding: 0 var(--blog-gutter);
+}
+
+.blog-measure {
+  max-width: var(--blog-measure);
+}
+
+/* The measure is applied to the text elements themselves, not to the prose
+   container. A capped container would clamp its children too, so a table or
+   terminal could never reach full width without negative-margin escapes —
+   which break as soon as the gutter changes. Constraining leaf text keeps
+   .blog-bleed a no-op that simply doesn't inherit a cap. */
+.blog-bleed {
+  max-width: 100%;
+}
+
+/* ── Masthead ──────────────────────────────────────────────── */
+
+.blog-masthead {
+  border-bottom: 1px solid var(--blog-line);
+  padding: clamp(4.5rem, 9vw, 7rem) 0 clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.blog-eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--blog-faint);
+  margin: 0 0 1.25rem;
+}
+
+.blog-masthead h1 {
+  font-size: clamp(2.25rem, 5.5vw, 3.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+  margin: 0;
+  max-width: 20ch;
+}
+
+.blog-masthead p {
+  margin: 1.25rem 0 0;
+  max-width: 56ch;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--blog-muted);
+}
+
+/* ── Index list ────────────────────────────────────────────── */
+
+.blog-coming-soon {
+  margin: 0 0 3rem;
+  text-align: center;
+  color: var(--blog-muted);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.blog-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.blog-row {
+  border-bottom: 1px solid var(--blog-line-soft);
+}
+
+.blog-row a {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 0 2rem;
+  padding: 2rem 0;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.18s ease;
+}
+
+.blog-row a:hover .blog-row-title {
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+}
+
+.blog-row-date {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--blog-faint);
+  padding-top: 0.35rem;
+  white-space: nowrap;
+}
+
+.blog-row-title {
+  font-size: 1.375rem;
+  line-height: 1.25;
+  letter-spacing: -0.018em;
+  font-weight: 550;
+  margin: 0;
+}
+
+.blog-row-summary {
+  margin: 0.5rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--blog-muted);
+  max-width: 62ch;
+}
+
+.blog-row-meta {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .blog-row a {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    padding: 1.6rem 0;
+  }
+
+  .blog-row-date {
+    padding-top: 0;
+  }
+}
+
+.blog-readtime {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: var(--blog-faint);
+  letter-spacing: 0.04em;
+}
+
+/* ── Article ───────────────────────────────────────────────── */
+
+/* Full bleed. The article used to share the floating nav's box model —
+   capped at --blog-nav-max, inset by --blog-nav-inset + --blog-nav-pad —
+   which left the panels floating inside two strips of route background at
+   every width. The reading surface now runs edge to edge and the panels
+   carry their own inner padding, so nothing shows through beside them. */
+/* The background covers the two bands the grid can't reach: the 5rem of
+   nav clearance plus the back link above it, and the tail below it. It is
+   the dark scheme's page colour rather than either panel's surface, so the
+   sidebar still reads as a raised rail against it. Literal, not
+   var(--blog-bg): the dark tokens are declared on .blog-article-grid and
+   below, and this element sits above them in the tree. */
+.blog-article {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 0 clamp(5rem, 10vw, 8rem);
+  background: #0d1117;
+}
+
+/* The only child without a panel of its own, so it keeps the gutter the
+   panels dropped — otherwise it sits flush against the viewport edge. */
+.blog-article-back {
+  margin-bottom: 1rem;
+  padding-inline: var(--blog-gutter);
+}
+
+/* gap: 0 — a gap here is a column of route background between the two
+   panels. They meet on a shared 1px divider instead (see the border-left
+   on .blog-article-content), and the grid carries the surface colour so
+   the strip beside the sticky sidebar, which is shorter than the article,
+   stays part of the same surface rather than falling through to the bg. */
+.blog-article-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 0;
+  align-items: start;
+  background: var(--blog-surface);
+}
+
+/* GitHub dark-mode surface for the sidebar and the content card. Both
+   redefine the shared tokens locally rather than getting new one-off
+   properties — every rule below that already reads var(--blog-ink),
+   var(--blog-surface), var(--blog-line), etc. (prose, tables, callouts,
+   the chapter list) repaints without being touched individually. */
+.blog-article-grid,
+.blog-chapters,
+.blog-chapter-bar,
+.blog-chapter-sheet,
+.blog-article-content {
+  --blog-bg: #0d1117;
+  --blog-surface: #161b22;
+  --blog-sunken: rgba(110, 118, 129, 0.4);
+  --blog-ink: #e6edf3;
+  --blog-ink-soft: #c9d1d9;
+  --blog-muted: #8b949e;
+  --blog-faint: #6e7681;
+  --blog-line: #30363d;
+  --blog-line-soft: #21262d;
+  --blog-accent: #58a6ff;
+  --blog-measure: 100%;
+  /* Without these the callouts keep the light-theme literals and a cream box
+     lands in the middle of the dark card. Same reasoning as the tokens above:
+     redefine, don't add a one-off rule per callout. */
+  --blog-warn: #e3b341;
+  --blog-warn-bg: rgba(187, 128, 9, 0.12);
+  --blog-warn-ink: #d8cdb4;
+  --blog-warn-line: #bb8009;
+  --blog-note-bg: #1b212a;
+  --blog-note-line: #3d4655;
+}
+
+/* No max-width here: this column stretches to the grid's right edge (see
+   .blog-article above), which is also the nav's right content edge. Prose
+   still wraps at --blog-measure — only .blog-bleed elements use the extra
+   width — so this doesn't widen paragraphs, just where code/tables can go. */
+/* Redefining the custom properties above only changes what var(--blog-ink)
+   resolves to for descendants — it doesn't touch the `color` property this
+   element already inherited from .blog further up. Headings (h1/h2/h3) set
+   no color of their own, so without this they'd keep inheriting the old
+   light-theme ink instead of picking up the dark one. */
+/* The left border is the only edge left: it is the seam against the
+   sidebar, and it lives here rather than on .blog-chapters because this
+   column is what sets the grid's height — a border on the sidebar would
+   stop where the sticky card stops, a third of the way down the article. */
+.blog-article-content {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: clamp(1.5rem, 3.5vw, 2.75rem);
+  border: 0;
+  border-left: 1px solid var(--blog-line);
+  border-radius: 0;
+  background: #000000;
+  color: var(--blog-ink);
+}
+
+/* The GlobalScene becomes the viewport background only when the Artisanal
+   Brew article renders this route-specific node. The /blog index and every
+   other post have no matching element or selector. */
+.blog-pixel-route-bg {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #100d0b;
+}
+
+.blog-pixel-route-bg .blog-scene-preview__canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 100svh;
+  filter: brightness(0.72) saturate(0.78);
+}
+
+.blog-pixel-route-bg::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(180deg, rgba(16, 13, 11, 0.08), rgba(16, 13, 11, 0.48)),
+    radial-gradient(circle at center, transparent 0 28%, rgba(16, 13, 11, 0.25) 78%);
+}
+
+.blog-article--pixel-hero {
+  position: relative;
+  z-index: 1;
+  padding-bottom: clamp(1rem, 2.5vw, 2rem);
+}
+
+.blog-article--pixel-hero .blog-back {
+  color: rgba(255, 253, 249, 0.78);
+}
+
+.blog-article--pixel-hero .blog-back:hover {
+  color: #fffdf9;
+}
+
+/* No backdrop-filter and no shadow any more: both existed to sell this as
+   a glass card floating over the pixel scene. Now that it is opaque wall
+   to wall there is nothing behind it to blur and no edge for a shadow to
+   fall on — they would cost a compositing layer and paint nothing. */
+.blog-article--pixel-hero .blog-article-content {
+  padding: clamp(1.1rem, 3vw, 2rem);
+  border: 0;
+  border-left: 1px solid rgba(110, 118, 129, 0.4);
+  border-radius: 0;
+  background: #000000;
+}
+
+.blog-article--pixel-hero .blog-article-head {
+  border-radius: 0;
+}
+
+.blog:has(.blog-article--pixel-hero) .blog-footer,
+.blog-article--pixel-hero ~ .blog-footer {
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+  padding: 2.25rem 0 4rem;
+  padding-inline: 0;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.blog:has(.blog-article--pixel-hero) .blog-footer p,
+.blog-article--pixel-hero ~ .blog-footer p {
+  color: #6e7681;
+}
+
+.blog:has(.blog-article--pixel-hero) .blog-footer a,
+.blog-article--pixel-hero ~ .blog-footer a {
+  color: #8b949e;
+}
+
+.blog:has(.blog-article--pixel-hero) .blog-footer a:hover,
+.blog-article--pixel-hero ~ .blog-footer a:hover {
+  color: #e6edf3;
+}
+
+.blog-article-head {
+  margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
+  padding-bottom: clamp(0.85rem, 2vw, 1.25rem);
+  border-bottom: 1px solid var(--blog-line);
+  scroll-margin-top: 2rem;
+}
+
+.blog-article-head h1 {
+  font-size: clamp(2rem, 4.6vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+  font-weight: 600;
+  margin: 0.9rem 0 0;
+  max-width: 100%;
+}
+
+.blog-article-title-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(0.75rem, 3vw, 2rem);
+  align-items: end;
+  margin-top: 0.9rem;
+}
+
+.blog-article-title-row h1 {
+  margin-top: 0;
+}
+
+.blog-title-sprite {
+  animation:
+    blog-title-sprite-frames 1s steps(1, end) infinite,
+    blog-robot-backflip 5s steps(8, end) infinite;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: calc(var(--blog-sprite-frames) * 100%) 100%;
+  flex: none;
+  image-rendering: pixelated;
+  /* The pivot sits at the robot's torso, not its feet: a flip rotates around
+     the center of mass, and a feet origin would swing the sprite in an arc. */
+  transform-origin: 50% 58%;
+  will-change: transform;
+}
+
+/* All five frames of the sheet, not four: the last column was being skipped,
+   which cost the walk cycle its return pose. */
+@keyframes blog-title-sprite-frames {
+
+  0%,
+  19% {
+    background-position: 0% 0;
+  }
+
+  20%,
+  39% {
+    background-position: 25% 0;
+  }
+
+  40%,
+  59% {
+    background-position: 50% 0;
+  }
+
+  60%,
+  79% {
+    background-position: 75% 0;
+  }
+
+  80%,
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+/* One 5s cycle: the original dance runs untouched through the first half, then
+   the robot crouches and throws a backflip, lands with a squash, and grooves
+   back into the loop. Percentages map to 50ms each, so 1% of the timeline is
+   one frame at 20fps — the flip window is keyframed every 2% (100ms) precisely
+   so the rotation has enough of them to read as an arc instead of a snap. The
+   rotation ends at -360deg, identical to the 0% pose, so the loop is seamless.
+   Stepped timing keeps it native to the robot's pixel-art language rather than
+   imitating organic motion. */
+@keyframes blog-robot-backflip {
+
+  /* ── 0–50% (0–2.5s): the dance, unchanged — wide lateral steps and
+     alternating torso leans. ── */
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+
+  5% {
+    transform: translate3d(-4px, 6px, 0) rotate(-5deg) scale(1.04, 0.92);
+  }
+
+  10% {
+    transform: translate3d(-12px, 2px, 0) rotate(-11deg) skewX(-4deg);
+  }
+
+  15% {
+    transform: translate3d(-15px, 7px, 0) rotate(-4deg) scale(1.08, 0.88);
+  }
+
+  20% {
+    transform: translate3d(-6px, -4px, 0) rotate(6deg) scale(0.96, 1.06);
+  }
+
+  25% {
+    transform: translate3d(0, -7px, 0) rotate(0deg) scale(0.94, 1.09);
+  }
+
+  30% {
+    transform: translate3d(7px, -3px, 0) rotate(-6deg) scale(0.98, 1.04);
+  }
+
+  35% {
+    transform: translate3d(15px, 7px, 0) rotate(5deg) scale(1.08, 0.88);
+  }
+
+  40% {
+    transform: translate3d(12px, 2px, 0) rotate(11deg) skewX(4deg);
+  }
+
+  45% {
+    transform: translate3d(4px, 6px, 0) rotate(5deg) scale(1.04, 0.92);
+  }
+
+  50% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+
+  /* ── 50–54% (200ms): anticipation. Two beats of crouch so the jump reads
+     as loaded, not teleported. ── */
+  52% {
+    transform: translate3d(1px, 6px, 0) rotate(3deg) scale(1.1, 0.87);
+  }
+
+  54% {
+    transform: translate3d(3px, 10px, 0) rotate(5deg) scale(1.17, 0.79);
+  }
+
+  /* ── 54–76% (1.1s): the backflip. One keyframe per 100ms, ~33deg apart. ── */
+  56% {
+    transform: translate3d(-1px, -8px, 0) rotate(-30deg) scale(0.9, 1.14);
+  }
+
+  58% {
+    transform: translate3d(-4px, -20px, 0) rotate(-68deg) scale(0.93, 1.07);
+  }
+
+  60% {
+    transform: translate3d(-7px, -30px, 0) rotate(-104deg) scale(0.96, 1.02);
+  }
+
+  62% {
+    transform: translate3d(-10px, -37px, 0) rotate(-140deg) scale(0.93, 0.95);
+  }
+
+  /* Apex: fully tucked, smallest silhouette of the cycle. */
+  64% {
+    transform: translate3d(-12px, -41px, 0) rotate(-176deg) scale(0.89, 0.89);
+  }
+
+  66% {
+    transform: translate3d(-13px, -40px, 0) rotate(-211deg) scale(0.89, 0.89);
+  }
+
+  68% {
+    transform: translate3d(-13px, -35px, 0) rotate(-246deg) scale(0.91, 0.91);
+  }
+
+  70% {
+    transform: translate3d(-11px, -27px, 0) rotate(-281deg) scale(0.94, 0.96);
+  }
+
+  72% {
+    transform: translate3d(-9px, -18px, 0) rotate(-313deg) scale(0.97, 1.01);
+  }
+
+  74% {
+    transform: translate3d(-6px, -9px, 0) rotate(-339deg) scale(0.96, 1.06);
+  }
+
+  /* Opens out of the tuck to spot the floor before contact. */
+  76% {
+    transform: translate3d(-3px, -2px, 0) rotate(-360deg) scale(0.93, 1.11);
+  }
+
+  /* ── 76–88%: landing squash and two decaying rebounds. ── */
+  78% {
+    transform: translate3d(-1px, 8px, 0) rotate(-360deg) scale(1.18, 0.8);
+  }
+
+  81% {
+    transform: translate3d(0, -5px, 0) rotate(-360deg) scale(0.95, 1.07);
+  }
+
+  84% {
+    transform: translate3d(0, 3px, 0) rotate(-360deg) scale(1.06, 0.94);
+  }
+
+  88% {
+    transform: translate3d(0, -2px, 0) rotate(-360deg) scale(0.98, 1.02);
+  }
+
+  /* ── 88–100%: back on the beat, ready to restart the dance. ── */
+  94% {
+    transform: translate3d(0, 3px, 0) rotate(-360deg) scale(1.03, 0.96);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-360deg) scale(1);
+  }
+}
+
+.blog-article-head .blog-row-summary {
+  margin-top: 1.1rem;
+  font-size: 1.0625rem;
+}
+
+
+/* ── Synchronized chapter navigation ─────────────────────── */
+
+/* Parks clear of the floating nav rather than sliding under it. The offset is
+   static even though the nav auto-hides: tying it to the nav's state would
+   animate a sticky `top`, which reflows on every frame and jitters far more
+   than the reclaimed 3.5rem is worth. */
+/* Borderless and square: the seam against the content column is drawn by
+   that column (see .blog-article-content), and .blog-article-grid paints
+   the same surface underneath, so the strip left over below this card
+   reads as more sidebar instead of a hole onto the route background. */
+.blog-chapters {
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 0;
+  background: var(--blog-surface);
+  scrollbar-width: thin;
+}
+
+/* The sticky frame is the group, not the heading alone: the way back has to
+   stay reachable from anywhere in a seven-chapter list. */
+.blog-chapters-top {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--blog-surface);
+}
+
+/* Scoped to the parent so it outranks .blog-back's inline-flex further down
+   the file — this one owns a full row, not a phrase inside one. */
+.blog-chapters-top .blog-chapters-back {
+  display: flex;
+  padding: 1rem 1.05rem 0.35rem;
+}
+
+/* Static: .blog-chapters-top above is what sticks now. */
+.blog-chapters-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 1.05rem 0.85rem;
+  border-bottom: 1px solid var(--blog-line);
+  background: var(--blog-surface);
+  color: var(--blog-faint);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* The mobile sheet renders the same list markup, so every rule from here
+   down is written for both containers. Without the second selector the
+   sheet's links fall back to the colour .blog inherited from the light
+   theme and land near-black on the dark panel. */
+.blog-chapters nav,
+.blog-chapter-sheet nav {
+  padding: 0.85rem 0 1rem;
+}
+
+.blog-chapters a,
+.blog-chapter-sheet a {
+  color: var(--blog-muted);
+  text-decoration: none;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+
+.blog-chapters a:hover,
+.blog-chapter-sheet a:hover {
+  color: var(--blog-ink);
+}
+
+.blog-chapter-intro {
+  display: block;
+  margin: 0 1rem 1rem;
+  padding: 0.4rem 0 0.4rem 0.8rem;
+  border-left: 2px solid var(--blog-line);
+  font-size: 0.78rem;
+}
+
+.blog-chapter-intro[data-active="true"] {
+  border-left-color: var(--blog-accent);
+  color: var(--blog-ink);
+  font-weight: 600;
+}
+
+.blog-chapter-list,
+.blog-subchapter-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.blog-chapter-list>li {
+  position: relative;
+  padding: 0.55rem 1rem 0.7rem;
+}
+
+.blog-chapter-list>li::before {
+  position: absolute;
+  top: 0.55rem;
+  bottom: 0.25rem;
+  left: 0;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: transparent;
+  content: "";
+}
+
+.blog-chapter-list>li[data-active="true"]::before {
+  background: var(--blog-accent);
+}
+
+.blog-chapter-number {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--blog-faint);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.59rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.blog-chapter-link {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 560;
+  line-height: 1.35;
+}
+
+.blog-chapter-link[data-active="true"] {
+  color: var(--blog-ink);
+}
+
+.blog-subchapter-list {
+  margin-top: 0.45rem;
+  padding-left: 0.65rem;
+  border-left: 1px solid var(--blog-line);
+}
+
+.blog-subchapter-list a {
+  display: block;
+  padding: 0.28rem 0.45rem;
+  font-size: 0.73rem;
+  line-height: 1.35;
+}
+
+.blog-subchapter-list a[data-active="true"] {
+  color: var(--blog-ink);
+  font-weight: 600;
+}
+
+html:has(.blog) {
+  scroll-behavior: smooth;
+}
+
+/* ── Mobile chapter bar + sheet ────────────────────────────────
+   Below --blog-rail-stop the two-column grid can't hold a 260px rail, and
+   stacking it turned the top of every article into two screens of index.
+   The rail is replaced by a single sticky line that names the chapter you
+   are in, and the list itself moves into a sheet that opens on demand.
+   Both nodes exist in the markup at every width and are switched here —
+   the desktop rail is the one that disappears on small screens. */
+
+.blog-chapter-bar,
+.blog-chapter-sheet,
+.blog-chapter-backdrop {
+  display: none;
+}
+
+/* The rail is the article's only sticky element on desktop; on mobile the
+   bar takes that job, so it sits at the top of the stacked grid and stays
+   there. z-index keeps it over prose, under the sheet. */
+.blog-chapter-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--blog-line);
+  /* Opaque, not a translucent blur: prose scrolls under it, and on the
+     pixel-hero route there is an animated canvas behind that too — anything
+     see-through leaves text ghosting across the chapter title. */
+  background: var(--blog-surface);
+  color: var(--blog-ink);
+}
+
+/* The floating nav is fixed at top: 1rem and 58px tall, and it reappears on
+   any upward scroll — right where this bar sits. Rather than letting the two
+   overlap, the bar drops below the nav for as long as the nav is out, on the
+   nav's own timing so they read as one piece.
+   Translated, not re-`top`ed: animating a sticky element's `top` reflows on
+   every frame of the transition, which is the same trap the rail's static
+   offset avoids (see .blog-chapters). */
+.blog:has(.blog-nav-shell:not(.blog-nav-shell--hidden)) .blog-chapter-bar {
+  transform: translate3d(0, calc(58px + 1.5rem), 0);
+}
+
+.blog-chapter-bar {
+  transform: translate3d(0, 0, 0);
+  transition: transform 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-chapter-bar {
+    transition: none;
+  }
+}
+
+.blog-chapter-bar-button {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  /* 48px tall including the padding: a real thumb target, not a text link. */
+  padding: 0.6rem var(--blog-gutter);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.blog-chapter-bar-button:active {
+  background: var(--blog-line-soft);
+}
+
+/* Left half of the row: what opens, named. */
+.blog-chapter-bar-menu {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--blog-ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 520;
+}
+
+/* Three bars, the middle one short — a list, at 12px, without shipping an
+   icon font for one glyph. */
+.blog-chapter-bar-icon {
+  display: grid;
+  flex: none;
+  gap: 3px;
+  width: 14px;
+}
+
+.blog-chapter-bar-icon span {
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--blog-muted);
+}
+
+.blog-chapter-bar-icon span:nth-child(2) {
+  width: 65%;
+}
+
+/* Right half: pushed to the far edge and right-aligned, so the chapter name
+   grows towards the middle and never shoves "Menu" off its own side. */
+.blog-chapter-bar-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  margin-left: auto;
+  text-align: right;
+}
+
+.blog-chapter-bar-eyebrow {
+  color: var(--blog-faint);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* One line, always. A chapter title that wraps would change the bar's
+   height mid-scroll and shift the prose under it. */
+.blog-chapter-bar-title {
+  overflow: hidden;
+  color: var(--blog-ink);
+  font-size: 0.8125rem;
+  font-weight: 560;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Points right while closed and down while open — the same affordance a
+   docs sidebar uses for a section that expands. */
+.blog-chapter-bar-chevron {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--blog-muted);
+  transition: transform 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.blog-chapter-bar[data-open="true"] .blog-chapter-bar-chevron {
+  transform: rotate(90deg);
+}
+
+/* Reading progress, drawn on the bar's bottom edge. The width comes from a
+   custom property the component writes on every scroll frame, so the line
+   moves without React re-rendering the chapter tree. */
+.blog-chapter-bar-progress {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  width: calc(var(--blog-read-progress, 0) * 100%);
+  background: var(--blog-accent);
+}
+
+/* ── The drop-down index ──
+   A panel hung off the bar's own bottom edge, not a layer of its own: it
+   unrolls from the line you tapped and rolls back into it. Absolute inside
+   the sticky bar, so it travels with the bar instead of needing its
+   position recomputed. */
+.blog-chapter-sheet {
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  right: 0;
+  left: 0;
+  max-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-bottom: 1px solid transparent;
+  /* Darker than the bar it hangs from: the menu reads as a layer over the
+     article rather than more of the bar. */
+  background: var(--blog-bg);
+  color: var(--blog-ink);
+  box-shadow: 0 24px 48px rgba(1, 4, 9, 0.5);
+  /* Height, not transform: the list has to be revealed by the bar's edge
+     rather than slide out from under it, and there is no clipping ancestor
+     to hide an off-screen panel. Opacity trails slightly behind so the
+     first frames read as the panel emerging, not as a jump. */
+  transition:
+    max-height 300ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 160ms ease 40ms,
+    visibility 0s linear 300ms;
+  opacity: 0;
+  visibility: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.blog-chapter-bar[data-open="true"] .blog-chapter-sheet {
+  max-height: min(70svh, 560px);
+  border-bottom-color: var(--blog-line);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    max-height 300ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 160ms ease,
+    visibility 0s;
+}
+
+.blog-chapter-sheet nav {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Same role as in the rail — the way out of the article — pinned to the top
+   of the panel so it is one tap away no matter how far the list is scrolled.
+   Sits above its own rule, the way a docs sidebar separates the link out of
+   a section from the section itself. */
+.blog-chapter-sheet .blog-chapters-back {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.95rem 1.15rem;
+  border-bottom: 1px solid var(--blog-line);
+  background: var(--blog-bg);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+  letter-spacing: 0;
+}
+
+/* Dims the article under the open panel and takes the tap that closes it.
+   Fixed and below the bar's stacking context, so the bar and its panel stay
+   lit while everything else recedes. */
+.blog-chapter-backdrop {
+  position: fixed;
+  z-index: 19;
+  inset: 0;
+  display: none;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: rgba(1, 4, 9, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.blog-chapter-backdrop[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-chapter-sheet,
+  .blog-chapter-backdrop {
+    transition-duration: 1ms;
+  }
+}
+
+@media (max-width: 900px) {
+  .blog-article-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The rail's job moves to .blog-chapter-bar; keeping both would put the
+     index on screen twice. */
+  .blog-chapters {
+    display: none;
+  }
+
+  .blog-chapter-bar,
+  .blog-chapter-sheet,
+  .blog-chapter-backdrop {
+    display: block;
+  }
+
+  .blog-article-content,
+  .blog-article--pixel-hero .blog-article-content {
+    border-left: 0;
+  }
+
+  /* Clears the sticky bar, which would otherwise cover the heading a
+     chapter link just jumped to. */
+  .blog-article-head,
+  .blog-prose h2,
+  .blog-prose h3 {
+    scroll-margin-top: 4.25rem;
+  }
+
+  /* ── The menu, as a docs sidebar ──
+     In the rail the list is a dense index next to the text. Here it is the
+     whole screen and the only thing to read, so it drops the numbering and
+     the accent bars and becomes a plain stack of links: chapters at one
+     level, their sections indented behind a hairline, current position said
+     once in colour. Rows are sized for a thumb, not for a cursor. */
+  .blog-chapter-sheet nav {
+    padding: 0.5rem 0 0;
+  }
+
+  .blog-chapter-sheet .blog-chapter-list > li {
+    padding: 0;
+  }
+
+  /* The rail's accent bar and "CAPÍTULO 03" label: both say what the colour
+     of the active link already says, and the numbering fights the flat
+     hierarchy this layout is going for. */
+  .blog-chapter-sheet .blog-chapter-list > li::before,
+  .blog-chapter-sheet .blog-chapter-number {
+    display: none;
+  }
+
+  .blog-chapter-sheet .blog-chapter-intro,
+  .blog-chapter-sheet .blog-chapter-link,
+  .blog-chapter-sheet .blog-subchapter-list a {
+    display: block;
+    margin: 0;
+    padding: 0.62rem 1.15rem;
+    border: 0;
+    font-size: 0.95rem;
+    font-weight: 450;
+    line-height: 1.35;
+  }
+
+  .blog-chapter-sheet .blog-chapter-intro[data-active="true"],
+  .blog-chapter-sheet .blog-chapter-link[data-active="true"],
+  .blog-chapter-sheet .blog-subchapter-list a[data-active="true"] {
+    color: var(--blog-accent);
+    font-weight: 550;
+  }
+
+  /* The hairline is the indent: it reads as "these belong to the chapter
+     above" without a bullet or a second type size. */
+  .blog-chapter-sheet .blog-subchapter-list {
+    margin: 0 0 0.2rem 1.15rem;
+    padding-left: 0.35rem;
+    border-left: 1px solid var(--blog-line);
+  }
+
+  .blog-chapter-sheet .blog-subchapter-list a {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .blog-title-sprite {
+    scale: 0.8;
+  }
+}
+
+/* ── Prose blocks ──────────────────────────────────────────── */
+
+/* Vertical rhythm lives on the container, not on individual blocks, so
+   spacing can never drift between block types. Exceptions below are
+   relationships (heading→body), not one-off tweaks. */
+.blog-prose > * + * {
+  margin-top: 1.5rem;
+}
+
+/* Generous breathing room above and below media cards, photos/videos, galleries, tables, and code blocks. */
+.blog-prose > .blog-photo + *,
+.blog-prose > .blog-asset-gallery + *,
+.blog-prose > .blog-side-by-side + *,
+.blog-prose > .blog-scene-preview + *,
+.blog-prose > .blog-code + *,
+.blog-prose > .sanic-code-wrapper + *,
+.blog-prose > .blog-table-wrap + * {
+  margin-top: 2.25rem;
+}
+
+.blog-prose > * + .blog-photo,
+.blog-prose > * + .blog-asset-gallery,
+.blog-prose > * + .blog-side-by-side,
+.blog-prose > * + .blog-scene-preview,
+.blog-prose > * + .blog-code,
+.blog-prose > * + .sanic-code-wrapper,
+.blog-prose > * + .blog-table-wrap {
+  margin-top: 2.25rem;
+}
+
+/* Reading measure applied per text element — see .blog-bleed above for why
+   this isn't on the container. */
+.blog-prose>p,
+.blog-prose>h2,
+.blog-prose>h3,
+.blog-prose>ul,
+.blog-prose>ol,
+.blog-prose>.blog-callout {
+  max-width: var(--blog-measure);
+}
+
+.blog-prose h2 {
+  font-size: 1.5rem;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  margin-top: 2.25rem;
+  margin-bottom: 0.85rem;
+  scroll-margin-top: 2rem;
+}
+
+.blog-prose h3 {
+  font-size: 1.125rem;
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+  font-weight: 600;
+  margin-top: 1.75rem;
+  margin-bottom: 0.65rem;
+  scroll-margin-top: 2rem;
+}
+
+/* A heading and the text under it — comfortable breathing room under title. */
+.blog-prose h2+*,
+.blog-prose h3+* {
+  margin-top: 1.25rem;
+}
+
+.blog-prose p {
+  font-size: 1.0625rem;
+  line-height: 1.72;
+  color: var(--blog-ink-soft);
+  margin: 0;
+}
+
+.blog-lede {
+  font-size: 1.25rem !important;
+  line-height: 1.55 !important;
+  letter-spacing: -0.012em;
+  color: var(--blog-ink) !important;
+  font-weight: 450;
+}
+
+.blog-prose a {
+  color: var(--blog-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(0, 129, 192, 0.35);
+}
+
+.blog-prose a:hover {
+  text-decoration-color: currentColor;
+}
+
+.blog-prose strong {
+  font-weight: 600;
+  color: var(--blog-ink);
+}
+
+.blog-prose em {
+  font-style: italic;
+}
+
+/* Inline code sits inside a line of prose — it must not change line height. */
+.blog-prose :not(pre)>code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.875em;
+  background: var(--blog-sunken);
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  color: var(--blog-ink);
+  word-break: break-word;
+}
+
+.blog-prose ul,
+.blog-prose ol {
+  padding-left: 1.35rem;
+  margin: 0;
+}
+
+.blog-prose li {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--blog-ink-soft);
+}
+
+.blog-prose li+li {
+  margin-top: 0.6rem;
+}
+
+.blog-prose li::marker {
+  color: var(--blog-faint);
+}
+
+/* ── Code ──────────────────────────────────────────────────── */
+
+.blog-code {
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--blog-code-bg);
+  border: 1px solid var(--blog-code-line);
+}
+
+.blog-code-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--blog-code-line);
+  background: var(--blog-code-bg-bar);
+}
+
+.blog-code-dots {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.blog-code-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--blog-code-dot);
+}
+
+.blog-code-caption {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--blog-code-muted);
+  margin-right: auto;
+}
+
+.blog-code-body {
+  overflow-x: auto;
+}
+
+/* Shiki ships its own <pre style="background-color:...;color:...">; the
+   background is redundant with .blog-code's own background (same value,
+   the real Monokai bg) and fights the block's rounded corners, so it's
+   dropped in favor of the wrapper's. Token colors on the inner spans are
+   left untouched — that's the whole point of using Shiki. */
+.blog-code-body pre.shiki {
+  margin: 0;
+  padding: 1rem 1.15rem;
+  background: transparent !important;
+}
+
+.blog-code-body code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  white-space: pre;
+}
+
+/* ── Sanic Easter Egg ──────────────────────────────────────── */
+
+.sanic-code-wrapper {
+  position: relative;
+  max-width: 100%;
+}
+
+.sanic-code-inner {
+  position: relative;
+  z-index: 2;
+}
+
+.sanic-peeker {
+  position: absolute;
+  right: 25px;
+  top: -45px;
+  z-index: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  transform: translateX(-30px) translateY(-5px) scale(0.6) rotate(-15deg);
+  opacity: 0;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+}
+
+.sanic-peeker.is-visible {
+  opacity: 1;
+  transform: translateX(18%) translateY(0) scale(0.85) rotate(10deg);
+}
+
+.sanic-peeker.is-visible:hover {
+  transform: translateX(24%) translateY(-4px) scale(0.92) rotate(14deg);
+}
+
+.sanic-img {
+  width: 120px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  image-rendering: pixelated;
+}
+
+.sanic-peeker.is-dashing {
+  animation: sanic-dash-fast 1.1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes sanic-dash-fast {
+  0% {
+    transform: translateX(36%) translateY(0) scale(0.85) rotate(10deg);
+  }
+  20% {
+    transform: translateX(20%) translateY(0) scale(0.8) rotate(-10deg);
+  }
+  45% {
+    transform: translateX(500px) translateY(-50px) scale(1.2) rotate(20deg);
+    opacity: 0;
+  }
+  75% {
+    transform: translateX(-100px) translateY(-20px) scale(0.6) rotate(-10deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(36%) translateY(0) scale(0.85) rotate(10deg);
+    opacity: 1;
+  }
+}
+
+.sanic-speech-bubble {
+  position: absolute;
+  top: -36px;
+  right: 8px;
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-weight: 800;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 2px solid #000000;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0px #000000;
+  animation: sanic-pop-bubble 0.2s ease-out forwards;
+  z-index: 10;
+}
+
+.sanic-speech-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: 18px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #000000;
+}
+
+@keyframes sanic-pop-bubble {
+  0% {
+    transform: scale(0.5) translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .sanic-peeker.is-visible {
+    transform: translateX(30%) translateY(0) scale(0.7) rotate(8deg);
+  }
+  .sanic-peeker.is-visible:hover {
+    transform: translateX(35%) translateY(-2px) scale(0.75) rotate(12deg);
+  }
+  .sanic-img {
+    width: 90px;
+  }
+}
+
+/* ── Terminal ──────────────────────────────────────────────── */
+
+.blog-term {
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--blog-term-bg);
+  border: 1px solid var(--blog-term-line);
+}
+
+.blog-term-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--blog-term-line);
+}
+
+.blog-term-dots {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.blog-term-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3a3d40;
+}
+
+.blog-term-label {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--blog-term-muted);
+  margin-right: auto;
+}
+
+.blog-term-copy {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--blog-term-muted);
+  background: transparent;
+  border: 1px solid var(--blog-term-line);
+  border-radius: 5px;
+  padding: 0.28rem 0.6rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.blog-term-copy:hover {
+  color: var(--blog-term-ink);
+  border-color: #45484b;
+}
+
+.blog-term-copy:focus-visible {
+  outline: 2px solid var(--blog-term-prompt);
+  outline-offset: 2px;
+}
+
+.blog-term-copy[data-copied="true"] {
+  color: #8fd4a8;
+  border-color: #2f5c40;
+}
+
+.blog-term-body {
+  margin: 0;
+  padding: 1rem 1.1rem 1.15rem;
+  overflow-x: auto;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.75;
+}
+
+.blog-term-line {
+  display: flex;
+  gap: 0.65rem;
+  white-space: pre;
+}
+
+.blog-term-sigil {
+  color: var(--blog-term-prompt);
+  user-select: none;
+  flex: none;
+}
+
+.blog-term-cmd {
+  color: var(--blog-term-ink);
+}
+
+/* Output and comments are context, not instructions — never selectable as
+   part of a copy-paste, and visually subordinate. */
+.blog-term-out,
+.blog-term-comment {
+  color: var(--blog-term-muted);
+  user-select: none;
+}
+
+.blog-term-comment {
+  font-style: italic;
+}
+
+/* ── Callout ───────────────────────────────────────────────── */
+
+/* Both tones share one box so they read as a single device with the volume
+   turned up or down — the old `note` was a bare left rule next to a filled
+   `warn`, which looked like two unrelated components. Only the accent colour
+   and the surface change between them. */
+.blog-callout {
+  --callout-accent: var(--blog-note-line);
+  --callout-surface: var(--blog-note-bg);
+  --callout-ink: var(--blog-ink-soft);
+  --callout-label: var(--blog-muted);
+
+  position: relative;
+  padding: 1rem 1.15rem 1.05rem;
+  border: 1px solid var(--blog-line);
+  border-left: 3px solid var(--callout-accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--callout-surface);
+}
+
+.blog-callout p {
+  font-size: 1rem;
+  line-height: 1.68;
+  color: var(--callout-ink);
+  margin: 0;
+}
+
+.blog-callout-title {
+  display: block;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--callout-label);
+  margin-bottom: 0.45rem;
+}
+
+.blog-callout[data-tone="warn"] {
+  --callout-accent: var(--blog-warn-line);
+  --callout-surface: var(--blog-warn-bg);
+  --callout-ink: var(--blog-warn-ink);
+  --callout-label: var(--blog-warn);
+
+  border-color: var(--blog-warn-line);
+  border-left-color: var(--blog-warn-line);
+}
+
+/* ── Table ─────────────────────────────────────────────────── */
+
+.blog-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--blog-line);
+  border-radius: 8px;
+}
+
+.blog-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.blog-table th,
+.blog-table td {
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--blog-line-soft);
+  vertical-align: top;
+  line-height: 1.55;
+}
+
+.blog-table th {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--blog-muted);
+  background: var(--blog-surface);
+  white-space: nowrap;
+}
+
+.blog-table tr:last-child td {
+  border-bottom: none;
+}
+
+.blog-table td {
+  color: var(--blog-ink-soft);
+}
+
+.blog-table code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+}
+
+/* ── Project asset gallery ────────────────────────────────── */
+
+.blog-asset-gallery {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.blog-asset-card {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--blog-line);
+  border-radius: 10px;
+  background: var(--blog-surface);
+  display: flex;
+  flex-direction: column;
+}
+
+.blog-asset-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--blog-line);
+  color: var(--blog-ink);
+  background: var(--blog-bg);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.blog-asset-card-info {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.blog-asset-card-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.blog-asset-card-format {
+  font-size: 0.6rem;
+  padding: 0.12rem 0.35rem;
+  border-radius: 4px;
+  background: var(--blog-sunken);
+  color: var(--blog-muted);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.blog-asset-switcher {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--blog-sunken);
+  border: 1px solid var(--blog-line-soft);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.blog-asset-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.45rem;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.64rem;
+  font-weight: 500;
+  color: var(--blog-muted);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.blog-asset-tab:hover {
+  color: var(--blog-ink);
+}
+
+.blog-asset-tab.is-active {
+  color: var(--blog-ink);
+  background: var(--blog-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+}
+
+.blog-asset-card-viewport {
+  height: 12.5rem;
+  position: relative;
+  overflow: hidden;
+  background-color: #17181a;
+}
+
+.blog-asset-media {
+  width: 100%;
+  height: 100%;
+  padding: 1.25rem;
+  display: grid;
+  place-items: center;
+  background-image:
+    linear-gradient(45deg, #202225 25%, transparent 25%),
+    linear-gradient(-45deg, #202225 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #202225 75%),
+    linear-gradient(-45deg, transparent 75%, #202225 75%);
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+  background-size: 16px 16px;
+}
+
+.blog-asset-media img {
+  width: auto;
+  min-width: min(4.5rem, 100%);
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.34));
+}
+
+.blog-asset-code-view {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 0.75rem 0.9rem;
+  background: #0d1117;
+  color: #c9d1d9;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.blog-asset-code-view::-webkit-scrollbar {
+  width: 6px;
+}
+.blog-asset-code-view::-webkit-scrollbar-track {
+  background: #0d1117;
+}
+.blog-asset-code-view::-webkit-scrollbar-thumb {
+  background: #21262d;
+  border-radius: 3px;
+}
+.blog-asset-code-view::-webkit-scrollbar-thumb:hover {
+  background: #30363d;
+}
+
+.blog-asset-code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #21262d;
+}
+
+.blog-asset-code-lang {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8b949e;
+  font-weight: 600;
+}
+
+/* ── Generation Showcase (Checkpoints & Trajectories) ─────────────── */
+
+.blog-gen-showcase {
+  margin-top: 1.75rem;
+  margin-bottom: 1.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--blog-line);
+  border-radius: 12px;
+  background: var(--blog-surface);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.blog-gen-showcase-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--blog-line-soft);
+}
+
+.blog-gen-showcase-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.blog-gen-showcase-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.blog-gen-showcase-title {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--blog-ink);
+  text-transform: uppercase;
+}
+
+.blog-gen-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.blog-gen-play-btn {
+  padding: 0.25rem 0.65rem;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--blog-ink);
+  background: var(--blog-sunken);
+  border: 1px solid var(--blog-line);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.blog-gen-play-btn:hover {
+  background: var(--blog-line-soft);
+}
+
+.blog-gen-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+}
+
+.blog-gen-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.5rem 0.8rem;
+  background: var(--blog-bg);
+  border: 1px solid var(--blog-line-soft);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 130px;
+}
+
+.blog-gen-tab:hover {
+  border-color: var(--blog-line);
+}
+
+.blog-gen-tab.is-active {
+  background: var(--blog-sunken);
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+.blog-gen-tab-name {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--blog-ink);
+}
+
+.blog-gen-tab-score {
+  font-size: 0.65rem;
+  color: var(--blog-muted);
+}
+
+.blog-gen-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.blog-gen-grid--three {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .blog-gen-grid--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.blog-gen-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--blog-line-soft);
+  border-radius: 10px;
+  background: #111215;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.blog-gen-card:hover {
+  border-color: var(--blog-line);
+}
+
+.blog-gen-card.is-selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+}
+
+.blog-gen-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.blog-gen-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.blog-gen-card-title {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.blog-gen-card-tag {
+  font-size: 0.62rem;
+  color: #9ca3af;
+}
+
+.blog-gen-card-badge {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+}
+
+.blog-gen-card.is-untrained .blog-gen-card-badge {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.blog-gen-card.is-early .blog-gen-card-badge {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.blog-gen-card.is-trained .blog-gen-card-badge {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+/* The simulation is the point of the card, so it gets the room: a 4:3 frame
+   that grows with the column instead of a fixed 200px letterbox. The bounds
+   keep it from collapsing in the three-column grid or eating the page in the
+   single view. The colour matches the scene the canvas paints (see
+   .blog-scene-preview__canvas) so there is no flash of a different sky
+   before the first frame lands. */
+.blog-gen-card-viewport {
+  position: relative;
+  width: 100%;
+  min-height: 220px;
+  max-height: 360px;
+  aspect-ratio: 4 / 3;
+  background: #100d0b;
+}
+
+/* One card across the full measure: wider frame, more room to watch a full
+   approach-and-overshoot cycle play out. */
+.blog-gen-grid--single .blog-gen-card-viewport {
+  max-height: 520px;
+  aspect-ratio: 16 / 9;
+}
+
+.blog-gen-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.blog-gen-canvas-overlay {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  right: 0.5rem;
+  pointer-events: none;
+}
+
+.blog-gen-sim-status {
+  display: inline-block;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  color: #d1d5db;
+}
+
+.blog-gen-card-body {
+  padding: 0.75rem 0.85rem;
+  background: #0d0e11;
+  flex: 1;
+}
+
+.blog-gen-card-desc {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: #9ca3af;
+}
+
+.blog-asset-code-copy {
+  font-size: 0.6rem;
+  padding: 0.15rem 0.4rem;
+  background: transparent;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #8b949e;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.blog-asset-code-copy:hover {
+  color: #c9d1d9;
+  border-color: #8b949e;
+}
+
+.blog-asset-code-copy[data-copied="true"] {
+  color: #7ee787;
+  border-color: #238636;
+}
+
+.blog-asset-code-usage {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.68rem;
+  color: #8b949e;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.blog-asset-code-content {
+  margin: 0;
+  padding: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: inherit;
+  color: #e6edf3;
+}
+
+@media (min-width: 640px) {
+  .blog-asset-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Side-by-side row: 60% text / 40% asset ───────────────── */
+
+.blog-side-by-side {
+  display: grid;
+  grid-template-columns: calc(60% - 0.75rem) calc(40% - 0.75rem);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.blog-side-by-side--reverse {
+  grid-template-columns: calc(40% - 0.75rem) calc(60% - 0.75rem);
+}
+
+.blog-side-by-side--reverse .blog-side-by-side-text {
+  order: 2;
+}
+
+.blog-side-by-side--reverse .blog-side-by-side-asset {
+  order: 1;
+}
+
+.blog-side-by-side-text p {
+  font-size: 1.0625rem;
+  line-height: 1.72;
+  color: var(--blog-ink-soft);
+  margin: 0;
+}
+
+.blog-side-by-side-asset .blog-asset-media {
+  min-height: 13.2rem; /* 20% increase from 11rem */
+  padding: 1.5rem;
+}
+
+.blog-side-by-side-asset .blog-asset-media img {
+  transform: scale(1.2); /* 20% visual scale increase */
+}
+
+@media (max-width: 768px) {
+  .blog-side-by-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .blog-side-by-side--reverse .blog-side-by-side-text,
+  .blog-side-by-side--reverse .blog-side-by-side-asset {
+    order: initial;
+  }
+}
+
+/* ── Narrative photo ──────────────────────────────────────── */
+
+.blog-photo {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--blog-line);
+  border-radius: 10px;
+  background: var(--blog-surface);
+}
+
+.blog-photo-media {
+  display: grid;
+  place-items: center;
+  background: var(--blog-sunken);
+}
+
+.blog-photo-media img,
+.blog-photo-media video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.blog-photo figcaption {
+  padding: 0.75rem 0.9rem;
+  border-top: 1px solid var(--blog-line);
+  color: var(--blog-muted);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+/* ── Live background preview ─────────────────────────────── */
+
+.blog-scene-preview {
+  margin-inline: 0;
+  overflow: hidden;
+  border: 1px solid var(--blog-line);
+  border-radius: 12px;
+  background: #100d0b;
+}
+
+.blog-scene-preview figcaption {
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid #302822;
+  color: #d2c8ba;
+  background: #17120f;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.blog-scene-preview__canvas {
+  position: relative;
+  min-height: clamp(19rem, 48vw, 28rem);
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 62% 52% at 18% 14%, rgba(200, 155, 106, 0.15), transparent 70%),
+    radial-gradient(ellipse 55% 48% at 82% 72%, rgba(143, 185, 155, 0.1), transparent 70%),
+    #100d0b;
+}
+
+.blog-scene-preview__canvas img {
+  position: absolute;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.blog-scene-star {
+  position: absolute;
+  width: 9px;
+  height: 3px;
+  background: #a7a094;
+  animation: blog-scene-star 2.8s steps(2, end) infinite alternate;
+}
+
+.blog-scene-star::after {
+  position: absolute;
+  top: -3px;
+  left: 3px;
+  width: 3px;
+  height: 9px;
+  background: inherit;
+  content: "";
+}
+
+.blog-scene-star--1 {
+  top: 12%;
+  left: 8%;
+}
+
+.blog-scene-star--2 {
+  top: 28%;
+  left: 25%;
+  background: #8fb99b;
+  animation-delay: -0.7s;
+}
+
+.blog-scene-star--3 {
+  top: 10%;
+  left: 48%;
+  animation-delay: -1.4s;
+}
+
+.blog-scene-star--4 {
+  top: 20%;
+  right: 12%;
+  background: #e5c078;
+  animation-delay: -2.1s;
+}
+
+.blog-scene-star--5 {
+  top: 52%;
+  left: 12%;
+  animation-delay: -1.8s;
+}
+
+.blog-scene-star--6 {
+  top: 44%;
+  left: 55%;
+  background: #c89b6a;
+  animation-delay: -0.4s;
+}
+
+.blog-scene-star--7 {
+  top: 62%;
+  right: 8%;
+  animation-delay: -1.1s;
+}
+
+.blog-scene-star--8 {
+  bottom: 15%;
+  left: 18%;
+  background: #8fb99b;
+  animation-delay: -2.5s;
+}
+
+.blog-scene-star--9 {
+  bottom: 8%;
+  left: 47%;
+  animation-delay: -0.9s;
+}
+
+.blog-scene-star--10 {
+  bottom: 24%;
+  right: 25%;
+  background: #e5c078;
+  animation-delay: -1.6s;
+}
+
+.blog-scene-star--11 {
+  top: 72%;
+  left: 37%;
+  animation-delay: -2.2s;
+}
+
+.blog-scene-star--12 {
+  top: 36%;
+  right: 36%;
+  background: #8fb99b;
+  animation-delay: -1.2s;
+}
+
+.blog-scene-andromeda {
+  right: 3%;
+  bottom: 4%;
+  width: clamp(8rem, 22vw, 13rem);
+  opacity: 0.55;
+}
+
+.blog-scene-planet {
+  top: 10%;
+  left: 4%;
+  width: clamp(3rem, 8vw, 4.5rem);
+}
+
+.blog-scene-planet-ringed {
+  top: 8%;
+  right: 5%;
+  width: clamp(4rem, 10vw, 6rem);
+  opacity: 0.8;
+}
+
+.blog-scene-chain {
+  width: clamp(2.3rem, 7vw, 3.5rem);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.18));
+}
+
+.blog-scene-chain--eth {
+  top: 45%;
+  left: 6%;
+}
+
+.blog-scene-chain--sol {
+  bottom: 9%;
+  left: 28%;
+}
+
+.blog-scene-chain--bnb {
+  top: 27%;
+  right: 30%;
+}
+
+.blog-scene-coin {
+  width: clamp(1.8rem, 5vw, 2.6rem);
+  filter: drop-shadow(0 0 7px rgba(236, 178, 66, 0.5));
+}
+
+.blog-scene-coin--one {
+  top: 18%;
+  left: 38%;
+}
+
+.blog-scene-coin--two {
+  bottom: 22%;
+  right: 14%;
+}
+
+.blog-scene-mug {
+  right: 38%;
+  bottom: 10%;
+  width: clamp(2rem, 6vw, 3rem);
+  rotate: -4deg;
+}
+
+.blog-scene-robot {
+  position: absolute;
+  top: 43%;
+  left: 50%;
+  width: 64px;
+  height: 64px;
+  translate: -50% -50%;
+  /* Same backflip as the title sprite — it is the same character, so it should
+     move the same way. The float stays: it runs on margin-top, outside the
+     transform, so the hover and the flip compose instead of fighting. */
+  animation:
+    blog-scene-robot-frames 1s steps(1, end) infinite,
+    blog-scene-robot-float 2.4s ease-in-out infinite alternate,
+    blog-robot-backflip 5s steps(8, end) infinite;
+  background: url("/blog/artisanal-brew-assets/pl-robot-coincrew.png") 0 0 / 500% 100% no-repeat;
+  image-rendering: pixelated;
+  transform-origin: 50% 58%;
+  will-change: transform;
+}
+
+@keyframes blog-scene-star {
+  from {
+    opacity: 0.25;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Five frames, matching the 500% background-size above — the fifth column was
+   being skipped. */
+@keyframes blog-scene-robot-frames {
+
+  0%,
+  19% {
+    background-position: 0% 0;
+  }
+
+  20%,
+  39% {
+    background-position: 25% 0;
+  }
+
+  40%,
+  59% {
+    background-position: 50% 0;
+  }
+
+  60%,
+  79% {
+    background-position: 75% 0;
+  }
+
+  80%,
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+@keyframes blog-scene-robot-float {
+  from {
+    margin-top: -7px;
+  }
+
+  to {
+    margin-top: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .blog-scene-star,
+  .blog-scene-robot {
+    animation: none;
+  }
+}
+
+/* ── Divider ───────────────────────────────────────────────── */
+
+.blog-divider {
+  border: none;
+  border-top: 1px solid var(--blog-line);
+  margin: 3rem 0 !important;
+  width: 100%;
+}
+
+/* ── Skill cards ───────────────────────────────────────────── */
+
+.blog-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+.blog-skill {
+  border: 1px solid var(--blog-line);
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: var(--blog-bg);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.blog-skill:hover {
+  border-color: var(--blog-faint);
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 8px 0px;
+}
+
+.blog-skill-name {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--blog-ink);
+}
+
+.blog-skill-tagline {
+  margin: 0.4rem 0 0;
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  font-weight: 550;
+  color: var(--blog-ink);
+}
+
+.blog-skill-desc {
+  margin: 0.75rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--blog-muted);
+}
+
+.blog-skill-takeaway {
+  margin: 1rem 0 0;
+  padding-left: 0.85rem;
+  border-left: 2px solid var(--blog-line);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--blog-ink-soft);
+}
+
+.blog-skill-takeaway span {
+  display: block;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--blog-faint);
+  margin-bottom: 0.35rem;
+}
+
+.blog-skill-foot {
+  margin-top: auto;
+  padding-top: 1.25rem;
+}
+
+.blog-skill-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: var(--blog-faint);
+  letter-spacing: 0.04em;
+  margin-bottom: 0.9rem;
+}
+
+.blog-skill-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.blog-btn {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--blog-ink);
+  background: var(--blog-ink);
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: opacity 0.15s ease;
+}
+
+.blog-btn:hover {
+  opacity: 0.82;
+}
+
+.blog-btn:focus-visible {
+  outline: 2px solid var(--blog-accent);
+  outline-offset: 2px;
+}
+
+.blog-btn[data-variant="ghost"] {
+  background: transparent;
+  color: var(--blog-ink);
+  border-color: var(--blog-line);
+}
+
+.blog-btn[data-variant="ghost"]:hover {
+  border-color: var(--blog-faint);
+  opacity: 1;
+}
+
+.blog-btn[data-copied="true"] {
+  border-color: #2f7a4d;
+  color: #2f7a4d;
+}
+
+/* ── Section header (used on skills + guidelines) ──────────── */
+
+.blog-section {
+  padding: clamp(3rem, 6vw, 4.5rem) 0 0;
+}
+
+.blog-section-title {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+  margin: 0 0 0.6rem;
+}
+
+.blog-section-note {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--blog-muted);
+  max-width: 62ch;
+  margin: 0 0 1.75rem;
+}
+
+/* ── Back link ─────────────────────────────────────────────── */
+
+.blog-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--blog-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.blog-back:hover {
+  color: var(--blog-ink);
+}
+
+/* ── Footer ────────────────────────────────────────────────── */
+
+.blog-footer {
+  border-top: 1px solid var(--blog-line);
+  margin-top: clamp(4rem, 8vw, 6rem);
+  padding: 2.25rem 0 4rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.blog-footer p {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--blog-faint);
+}
+
+.blog-footer nav {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.blog-footer a {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--blog-muted);
+  text-decoration: none;
+}
+
+.blog-footer a:hover {
+  color: var(--blog-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* ── Guidelines page specifics ─────────────────────────────── */
+
+.blog-spec {
+  border: 1px solid var(--blog-line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 1.25rem;
+}
+
+.blog-spec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1.1rem;
+  background: var(--blog-surface);
+  border-bottom: 1px solid var(--blog-line);
+}
+
+.blog-spec-name {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--blog-ink);
+}
+
+.blog-spec-rule {
+  font-size: 0.8125rem;
+  color: var(--blog-muted);
+  line-height: 1.5;
+}
+
+.blog-spec-demo {
+  padding: 1.35rem 1.1rem;
+}
+
+/* Reduced motion — the only transitions here are hover affordances, but
+   honour the preference rather than assume they're exempt. */
+@media (prefers-reduced-motion: reduce) {
+
+  .blog *,
+  .blog *::before,
+  .blog *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+
+  .blog-title-sprite {
+    animation: none;
+    background-position: 0 0;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   CINEMATIC INDEX + BLOG NAVIGATION
+   ════════════════════════════════════════════════════════════ */
+
+.blog {
+  --blog-nav-ink: #f7f8fa;
+  --blog-night: #11192b;
+  overflow-x: clip;
+}
+
+.blog .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.blog-nav-shell {
+  position: fixed;
+  z-index: 100;
+  top: 1rem;
+  right: var(--blog-nav-inset);
+  left: var(--blog-nav-inset);
+  color: var(--blog-nav-ink);
+  pointer-events: none;
+  /* Identity transform in the resting state so the compositor layer exists
+     before the first toggle — otherwise the opening slide promotes the layer
+     mid-animation and drops frames on the one transition people notice. */
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 260ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 180ms ease;
+}
+
+/* Its own height plus the top inset, so the shadow clears the viewport edge
+   instead of leaving a smudge along the top. Deliberately transform + opacity
+   and never `visibility`: the bar has to stay in the tab order so that
+   focusing it can bring it back (see the focusin handler in blog-navbar.tsx). */
+.blog-nav-shell--hidden {
+  transform: translate3d(0, calc(-100% - 1rem), 0);
+  opacity: 0;
+}
+
+.blog-nav-shell--hidden .blog-nav {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-nav-shell {
+    transition: none;
+  }
+}
+
+.blog-nav {
+  pointer-events: auto;
+  width: min(100%, var(--blog-nav-max));
+  height: 58px;
+  margin: 0 auto;
+  padding: 0 var(--blog-nav-pad);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: #000000;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: clamp(1rem, 2vw, 2rem);
+}
+
+.blog-nav-left,
+.blog-nav-right,
+.blog-nav-brand,
+.blog-author {
+  display: flex;
+  align-items: center;
+}
+
+.blog-nav-left {
+  min-width: 0;
+  gap: clamp(1.5rem, 3vw, 3rem);
+}
+
+.blog-nav-brand {
+  flex: none;
+  display: inline-flex;
+  flex-direction: column;
+  color: inherit;
+  font-size: 0.94rem;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.blog-nav-brand-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.blog-nav-bracket {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.blog-nav-subtitle {
+  display: block;
+  margin-top: 0.12rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.54rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.blog-nav-mark {
+  width: 25px;
+  height: 25px;
+}
+
+.blog-nav-links,
+.blog-nav-right {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.9rem, 1.8vw, 1.65rem);
+}
+
+.blog-nav-links a,
+.blog-nav-portfolio {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.blog-nav-links a:hover,
+.blog-nav-portfolio:hover {
+  color: #ffffff;
+}
+
+.blog-nav-search {
+  height: 42px;
+  padding: 0 0.5rem 0 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.09);
+  display: flex;
+  align-items: center;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.blog-nav-search:focus-within {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.blog-nav-search input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #ffffff;
+  background: transparent;
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.blog-nav-search input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.blog-nav-search input::-webkit-search-cancel-button {
+  filter: invert(1);
+  opacity: 0.5;
+}
+
+.blog-nav-search button {
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  border: 0;
+  border-radius: 7px;
+  color: rgba(255, 255, 255, 0.84);
+  background: transparent;
+  cursor: pointer;
+}
+
+.blog-nav-search button:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.blog-nav-search svg {
+  width: 100%;
+  height: 100%;
+}
+
+.blog-nav-right {
+  justify-content: flex-end;
+}
+
+.blog-nav-socials {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.blog-nav-socials a {
+  display: inline-flex;
+  color: rgba(255, 255, 255, 0.62);
+  transition: color 160ms ease;
+}
+
+.blog-nav-socials a:hover {
+  color: #ffffff;
+}
+
+.blog-nav-socials svg {
+  width: 17px;
+  height: 17px;
+}
+
+.blog-nav-cta {
+  padding: 0.68rem 1rem;
+  border-radius: 8px;
+  color: #121829;
+  background: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.blog-nav-cta:hover {
+  background: #edf2ff;
+  transform: translateY(-1px);
+}
+
+.blog-home {
+  background: #ffffff;
+}
+
+.blog-feature {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.blog-feature-image,
+.blog-feature-shade {
+  position: absolute;
+  inset: 0;
+}
+
+.blog-feature-image {
+  z-index: -2;
+  overflow: hidden;
+  background: var(--blog-night);
+}
+
+.blog-feature-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.blog-feature-shade {
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(7, 12, 25, 0.16) 0%, rgba(7, 12, 25, 0.06) 38%, rgba(7, 10, 20, 0.8) 100%),
+    linear-gradient(90deg, rgba(7, 11, 25, 0.35) 0%, transparent 56%);
+}
+
+.blog-feature-content {
+  position: absolute;
+  inset: auto clamp(1.5rem, 3vw, 3rem) clamp(1.75rem, 4vw, 3rem);
+  color: #ffffff;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  align-items: end;
+  gap: clamp(2rem, 5vw, 6rem);
+}
+
+.blog-feature-copy {
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+}
+
+.blog-feature-label {
+  display: inline-flex;
+  margin-bottom: 1rem;
+  padding: 0.43rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.13);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.blog-feature-copy h1 {
+  max-width: 22ch;
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 4.8rem);
+  font-weight: 550;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blog-feature-copy>p {
+  max-width: 60ch;
+  margin: 1rem 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: clamp(0.9rem, 1.25vw, 1.05rem);
+  line-height: 1.55;
+}
+
+.blog-feature-link {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 1.2rem;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.blog-feature-link span {
+  transition: transform 160ms ease;
+}
+
+.blog-feature-link:hover span {
+  transform: translate(2px, -2px);
+}
+
+.blog-feature-byline {
+  justify-self: end;
+  min-width: 280px;
+  padding-bottom: 1.2rem;
+}
+
+.blog-author {
+  justify-content: flex-end;
+  gap: 0.75rem;
+  font-size: 0.86rem;
+  font-weight: 550;
+}
+
+.blog-author small {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.55rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.blog-author-avatar {
+  width: 39px;
+  height: 39px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #dce6ff, #77698c);
+  color: #161829;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.blog-feature-byline>p {
+  margin: 0.8rem 0 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.68rem;
+  text-align: right;
+}
+
+.blog-feature-byline>p span {
+  padding: 0 0.65rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.blog-feature-dots {
+  position: absolute;
+  bottom: -0.15rem;
+  left: 0;
+  display: flex;
+  gap: 0.34rem;
+}
+
+.blog-feature-dots span {
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: 50%;
+}
+
+.blog-feature-dots span[data-active="true"] {
+  background: #ffffff;
+}
+
+.blog-index {
+  padding-top: clamp(4.5rem, 8vw, 7rem);
+}
+
+.blog-index-heading {
+  padding-bottom: clamp(1.8rem, 4vw, 2.8rem);
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.blog-index-heading .blog-eyebrow {
+  margin-bottom: 0.8rem;
+  color: #7f8794;
+}
+
+.blog-index-heading h2 {
+  max-width: 16ch;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 550;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.blog-index-heading>p {
+  max-width: 43ch;
+  margin: 0 0 0.3rem;
+  color: var(--blog-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.blog-index-list {
+  border-top: 1px solid var(--blog-line);
+}
+
+.blog-index-list .blog-row a {
+  grid-template-columns: 8rem minmax(0, 1fr) auto;
+  align-items: start;
+}
