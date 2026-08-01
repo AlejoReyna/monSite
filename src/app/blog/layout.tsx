@@ -41,9 +41,6 @@ export default function BlogLayout({
       <footer className="blog-footer blog-shell">
         <p>© {new Date().getFullYear()} Alexis Reyna</p>
         <nav aria-label="Blog sections">
-          <Link href="/blog">Writing</Link>
-          <Link href="/blog/skills">Skills</Link>
-          <Link href="/blog/guidelines">Guidelines</Link>
           <Link href="/">Portfolio</Link>
         </nav>
       </footer>

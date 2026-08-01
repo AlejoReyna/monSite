@@ -320,11 +320,6 @@ theta += learningRate * estimateGradient(shaped);`,
       kind: "textAndCode",
       paragraphs: [
         [
-          "Los tres checkpoints se envían, no sólo el bueno. El switcher ",
-          { kind: "strong", text: "CREW BRAIN" },
-          " del hero cambia cuál está manejando sin reconstruir el mundo: los robots y las monedas se quedan exactamente donde estaban, así que lo único que cambia es el comportamiento. Ese es el punto de enviar el checkpoint sin entrenar, la diferencia sólo es legible si nada más se mueve.",
-        ],
-        [
           "El entrenamiento completo tardó 275 segundos en un núcleo de CPU. La mayor parte de la competencia apareció entre las generaciones 20 y 30; el resto compró una mejora menor y ruidosa. Con la política reentrenada, la captura de tazas subió de 46% a 67% sin sacrificar de forma material la recolección de monedas.",
         ],
       ],
