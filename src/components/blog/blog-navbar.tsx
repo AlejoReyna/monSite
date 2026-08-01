@@ -185,7 +185,7 @@ export default function BlogNavbar() {
             </a>
           </div>
           <Link className="blog-nav-cta" href="/#contact">
-            Let&apos;s talk
+            Hablemos
           </Link>
         </div>
       </nav>
