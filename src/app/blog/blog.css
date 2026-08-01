@@ -2138,18 +2138,26 @@
 
 .blog-hero-layer-stack {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.7rem;
 }
 
 .blog-hero-layer {
   min-width: 0;
 }
 
+/* The controls used to float inside the frame, where they sat exactly on top
+   of the hero's own nav and the label ran across the whole composition. Above
+   the frame both fit on one line and the hero underneath stays intact. */
+.blog-hero-layer-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 0.9rem;
+  min-width: 0;
+}
+
 .blog-hero-layer-selector {
-  position: absolute;
-  z-index: 4;
-  top: 0.75rem;
-  left: 0.75rem;
   display: inline-flex;
   align-items: stretch;
   gap: 0.2rem;
@@ -2157,8 +2165,7 @@
   padding: 0.2rem;
   border: 1px solid var(--blog-line);
   border-radius: 8px;
-  background: var(--blog-bg);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.32);
+  background: var(--blog-surface);
 }
 
 .blog-hero-layer-tab {
@@ -2206,11 +2213,10 @@
   box-shadow: 0 0 12px rgba(88, 166, 255, 0.14);
 }
 
-.blog-hero-layer-label {
-  position: absolute;
-  z-index: 4;
-  top: 0.95rem;
-  right: 1rem;
+/* Scoped under .blog-prose so it outweighs the `.blog-prose p` body size —
+   unscoped, the label rendered at the full 1.0625rem and ran the width of the
+   frame. */
+.blog-prose .blog-hero-layer-label {
   margin: 0;
   color: var(--blog-ink-soft);
   font-family: var(--font-geist-mono), ui-monospace, monospace;
@@ -2218,7 +2224,6 @@
   font-weight: 500;
   letter-spacing: 0.04em;
   text-align: right;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
 }
 
 .blog-hero-layer-label span {
@@ -2337,6 +2342,14 @@
   display: grid;
   grid-template-rows: auto 1fr;
   padding: clamp(1rem, 3vw, 2rem) clamp(1.1rem, 5vw, 4rem);
+  /* The real hero sits over a sparse sky; this one is a condensed crop of it,
+     so the copy gets its own pool of shade to stay readable over the coins. */
+  background: radial-gradient(
+    ellipse 78% 62% at 50% 58%,
+    rgba(16, 13, 11, 0.72) 0%,
+    rgba(16, 13, 11, 0.42) 52%,
+    rgba(16, 13, 11, 0) 78%
+  );
 }
 
 .blog-hero-layer-nav {
@@ -2359,8 +2372,16 @@
 }
 
 .blog-hero-layer-links {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.75rem, 2vw, 1.7rem);
   font-size: clamp(0.4rem, 0.8vw, 0.58rem);
   letter-spacing: 0.08em;
+}
+
+.blog-hero-layer-links i {
+  font-style: normal;
 }
 
 .blog-hero-layer-nav-actions {
@@ -2394,7 +2415,14 @@
   font-style: normal;
 }
 
+.blog-hero-layer-login em {
+  font-style: normal;
+}
+
+/* Desktop keeps the four links, so there is nothing for a burger to open —
+   the real hero doesn't draw one either. It returns under 640px. */
 .blog-hero-layer-menu {
+  display: none;
   color: #f1eadf;
   font-family: Arial, sans-serif;
   font-size: 0.9rem;
@@ -2407,6 +2435,13 @@
   align-content: center;
   gap: clamp(0.65rem, 1.6vw, 1rem);
   text-align: center;
+}
+
+.blog-hero-layer-chain {
+  width: clamp(1.35rem, 3.4vw, 2.75rem);
+  height: auto;
+  margin-bottom: -0.15rem;
+  image-rendering: pixelated;
 }
 
 .blog-hero-layer-copy > strong {
@@ -2448,30 +2483,78 @@
 }
 
 @media (max-width: 640px) {
+  .blog-hero-layer-controls {
+    gap: 0.3rem 0.6rem;
+  }
+
   .blog-hero-layer-selector {
-    top: 0.55rem;
-    left: 0.55rem;
+    gap: 0.14rem;
+    padding: 0.14rem;
+    border-radius: 7px;
   }
 
-  .blog-hero-layer-label {
-    top: 0.75rem;
-    right: 0.65rem;
+  .blog-hero-layer-tab {
+    min-width: 0;
+    padding: 0.24rem 0.36rem;
+    border-radius: 5px;
   }
 
+  .blog-hero-layer-tab span {
+    font-size: 0.54rem;
+  }
+
+  .blog-hero-layer-tab small {
+    font-size: 0.45rem;
+  }
+
+  .blog-prose .blog-hero-layer-label {
+    font-size: 0.58rem;
+  }
+
+  /* Mobile top section: links fold into the burger and the wallet button
+     keeps only its dot, which is what fits next to the wordmark. */
   .blog-hero-layer-links {
+    display: none;
+  }
+
+  .blog-hero-layer-menu {
+    display: block;
+  }
+
+  .blog-hero-layer-login {
+    padding: 0.3rem;
+    border-radius: 999px;
+  }
+
+  .blog-hero-layer-login em {
     display: none;
   }
 
   .blog-hero-layer-nav {
     grid-template-columns: 1fr auto;
+    gap: 0.6rem;
   }
 
+  /* Sized for reading on a phone rather than scaled down with the frame. */
   .blog-hero-layer-copy {
-    padding-top: 0.75rem;
+    padding-top: 0.5rem;
+    gap: 0.85rem;
+  }
+
+  .blog-hero-layer-copy > strong {
+    font-size: clamp(1.3rem, 6.2vw, 1.85rem);
+    text-shadow: 3px 4px 0 #261b14;
   }
 
   .blog-hero-layer-copy > p {
     max-width: 26rem;
+    font-size: 0.66rem;
+    line-height: 1.6;
+  }
+
+  .blog-hero-layer-copy b {
+    padding: 0.62rem 0.8rem;
+    font-size: 0.5rem;
   }
 }
 
@@ -5629,11 +5712,14 @@
   }
 }
 
+/* The clip it covers is the Artisanal Brew hero, so its own pixel headline is
+   white and lands right where this page's title goes. The scrim is what keeps
+   one readable on top of the other. */
 .blog-feature-shade {
   z-index: -1;
   background:
-    linear-gradient(180deg, rgba(7, 12, 25, 0.16) 0%, rgba(7, 12, 25, 0.06) 38%, rgba(7, 10, 20, 0.8) 100%),
-    linear-gradient(90deg, rgba(7, 11, 25, 0.35) 0%, transparent 56%);
+    linear-gradient(180deg, rgba(7, 12, 25, 0.18) 0%, rgba(7, 12, 25, 0.08) 32%, rgba(7, 10, 20, 0.88) 100%),
+    linear-gradient(90deg, rgba(7, 11, 25, 0.62) 0%, rgba(7, 11, 25, 0.24) 42%, transparent 68%);
 }
 
 .blog-feature-content {
@@ -5812,28 +5898,60 @@
     padding-inline: 0.85rem;
   }
 
+  /* A 1440×752 clip cropped to a portrait viewport blows one syllable of the
+     Artisanal Brew headline across the whole screen, and the post title had to
+     sit on top of it. On phones the clip becomes a band that keeps the hero
+     legible as a hero, and the copy moves below it onto the night background. */
   .blog-feature {
-    min-height: max(100svh, 46rem);
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: max(100svh, 40rem);
+    background: var(--blog-night);
+  }
+
+  .blog-feature-image,
+  .blog-feature-shade {
+    position: relative;
+    inset: auto;
+    grid-area: 1 / 1;
+  }
+
+  .blog-feature-image {
+    height: min(42svh, 20rem);
+    background-position: center 42%;
+  }
+
+  .blog-feature-shade {
+    background: linear-gradient(
+      180deg,
+      rgba(7, 12, 25, 0.28) 0%,
+      rgba(7, 12, 25, 0.1) 34%,
+      rgba(17, 25, 43, 0.72) 82%,
+      var(--blog-night) 100%
+    );
   }
 
   .blog-feature-content {
-    right: 1.25rem;
-    bottom: 2.4rem;
-    left: 1.25rem;
+    position: relative;
+    inset: auto;
+    grid-row: 2;
+    align-content: start;
+    padding: 1.6rem 1.25rem 2.4rem;
     grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
   }
 
   .blog-feature-copy h1 {
     max-width: 18ch;
-    font-size: clamp(2.35rem, 11vw, 3.25rem);
-    line-height: 1;
+    font-size: clamp(2.1rem, 9.5vw, 3rem);
+    line-height: 1.02;
     -webkit-line-clamp: initial;
     overflow: visible;
   }
 
   .blog-feature-copy > p {
     max-width: 38ch;
+    color: rgba(255, 255, 255, 0.82);
     font-size: 0.95rem;
   }
 
@@ -5851,6 +5969,13 @@
   .blog-feature-byline > p {
     margin-top: 0;
     text-align: left;
+  }
+
+  /* In flow now that the copy is: pinned to the bottom of a stretched box it
+     would drift to the fold, a screen away from the byline it belongs to. */
+  .blog-feature-dots {
+    position: relative;
+    bottom: auto;
   }
 }
 

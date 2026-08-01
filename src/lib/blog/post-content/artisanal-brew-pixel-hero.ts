@@ -4,8 +4,7 @@ export const artisanalBrewPixelHero: Post = {
   slug: "red-neuronal-javascript-robots-pixel-art",
   title: "Cómo entrené robots pixel art con una red neuronal en JavaScript",
   seoTitle: "Red neuronal en JavaScript y robots pixel art | Alexis Reyna",
-  summary:
-    "Cómo entrené robots pixel art con una red neuronal de 258 parámetros y Evolution Strategies, y llevé el modelo al frontend de Artisanal Brew.",
+  summary: "Una historia de assets pixeleados, evolution strategies, y mucho café.",
   date: "2026-08-01",
   locale: "es-MX",
   keywords: [

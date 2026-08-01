@@ -8,10 +8,17 @@ type NavigatorWithConnection = Navigator & {
   };
 };
 
+const ENCODES = {
+  mobile: "/article_bg-mobile.mp4",
+  desktop: "/article_bg.mp4",
+} as const;
+
+const MOBILE_QUERY = "(max-width: 720px)";
+
 /**
  * Keeps the cinematic cover inexpensive: the poster is the initial visual and
- * video sources are attached only after the page has had an idle moment. The
- * browser still selects a smaller mobile encode, while reduced-motion and
+ * the file is attached only after the page has had an idle moment. Phones get
+ * the small encode and desktops the full one, while reduced-motion and
  * Save-Data visitors never download a clip.
  */
 export default function BlogFeatureVideo() {
@@ -22,19 +29,24 @@ export default function BlogFeatureVideo() {
     if (!video) return;
 
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const mobileQuery = window.matchMedia(MOBILE_QUERY);
     const connection = (navigator as NavigatorWithConnection).connection;
     let isVisible = true;
     let isIdle = false;
-    let sourcesAttached = false;
 
-    const attachSources = () => {
-      if (sourcesAttached) return;
+    /**
+     * The encode is chosen here rather than through `<source media>`: that
+     * attribute only does anything inside a `<picture>`, and a media element
+     * takes the first source it can decode. Listed mobile-first, that handed
+     * every desktop the 720-wide file; listed the other way, phones pull the
+     * 1440-wide one. Neither ordering can be right, so nothing is listed.
+     */
+    const applyEncode = () => {
+      const encode = mobileQuery.matches ? "mobile" : "desktop";
+      if (video.dataset.encode === encode) return;
 
-      video.querySelectorAll<HTMLSourceElement>("source[data-src]").forEach((source) => {
-        const src = source.dataset.src;
-        if (src) source.src = src;
-      });
-      sourcesAttached = true;
+      video.dataset.encode = encode;
+      video.src = ENCODES[encode];
       video.load();
     };
 
@@ -51,10 +63,19 @@ export default function BlogFeatureVideo() {
         return;
       }
 
-      attachSources();
+      applyEncode();
       void video.play().catch(() => {
         // The poster remains visible when a device refuses autoplay.
       });
+    };
+
+    // A resize across the breakpoint (or a rotated phone) swaps the file only
+    // once one is already loaded — crossing it while the poster is still up
+    // costs nothing, since the choice is made when playback starts.
+    const onBreakpointChange = () => {
+      if (!video.dataset.encode) return;
+      applyEncode();
+      syncPlayback();
     };
 
     const observer = new IntersectionObserver(
@@ -90,11 +111,13 @@ export default function BlogFeatureVideo() {
     observer.observe(video);
     document.addEventListener("visibilitychange", syncPlayback);
     motionQuery.addEventListener("change", syncPlayback);
+    mobileQuery.addEventListener("change", onBreakpointChange);
 
     return () => {
       observer.disconnect();
       document.removeEventListener("visibilitychange", syncPlayback);
       motionQuery.removeEventListener("change", syncPlayback);
+      mobileQuery.removeEventListener("change", onBreakpointChange);
       if (idleHandle !== undefined) {
         idleWindow.cancelIdleCallback?.(idleHandle);
       }
@@ -113,13 +136,6 @@ export default function BlogFeatureVideo() {
       playsInline
       preload="none"
       poster="/article_bg-poster.jpg"
-    >
-      <source
-        data-src="/article_bg-mobile.mp4"
-        type="video/mp4"
-        media="(max-width: 720px)"
-      />
-      <source data-src="/article_bg.mp4" type="video/mp4" />
-    </video>
+    />
   );
 }
