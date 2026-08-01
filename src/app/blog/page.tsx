@@ -1,5 +1,5 @@
 import Link from "next/link";
-import BlogFeatureVideo from "@/components/blog/blog-feature-video";
+import ArtisanalBrewHero from "@/components/blog/artisanal-brew-hero";
 import { getAllPosts, formatDate } from "@/lib/blog/posts";
 
 export default async function BlogIndex() {
@@ -14,7 +14,7 @@ export default async function BlogIndex() {
       <div className="blog-home">
         <section className="blog-feature" aria-labelledby="featured-post-title">
           <div className="blog-feature-image" aria-hidden="true">
-            <BlogFeatureVideo />
+            <ArtisanalBrewHero className="blog-feature-scene" />
           </div>
           <div className="blog-feature-shade" aria-hidden="true" />
 
