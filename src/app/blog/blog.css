@@ -5904,8 +5904,10 @@
      legible as a hero, and the copy moves below it onto the night background. */
   .blog-feature {
     display: grid;
-    grid-template-rows: auto 1fr;
-    min-height: max(100svh, 40rem);
+    /* The clip takes whatever the copy leaves rather than a fixed height, so
+       the fold never lands on a band of dead night between the two. */
+    grid-template-rows: minmax(10rem, 1fr) auto;
+    min-height: max(100svh, 38rem);
     background: var(--blog-night);
   }
 
@@ -5917,7 +5919,6 @@
   }
 
   .blog-feature-image {
-    height: min(42svh, 20rem);
     background-position: center 42%;
   }
 
@@ -5936,7 +5937,7 @@
     inset: auto;
     grid-row: 2;
     align-content: start;
-    padding: 1.6rem 1.25rem 2.4rem;
+    padding: 1.75rem 1.25rem 2.25rem;
     grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
   }
