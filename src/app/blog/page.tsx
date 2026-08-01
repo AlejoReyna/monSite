@@ -23,7 +23,7 @@ export default async function BlogIndex() {
               <h1 id="featured-post-title">{featuredPost.title}</h1>
               <p>{featuredPost.summary}</p>
               <Link className="blog-feature-link" href={`/blog/${featuredPost.slug}`}>
-                {featuredIsSpanish ? "Leer el artículo" : "Read the story"}
+                {featuredIsSpanish ? "Lee el post" : "Read the story"}
               </Link>
             </div>
 

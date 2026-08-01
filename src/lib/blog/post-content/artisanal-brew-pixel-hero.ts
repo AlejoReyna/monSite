@@ -31,7 +31,7 @@ export const artisanalBrewPixelHero: Post = {
     {
       kind: "paragraph",
       content: [
-        "Durante estos últimos días me he encontrado trabajando en el frontend de Artisanal Brew, una aplicación que corre sobre el framework .NET que simula una eShop de artículos relacionados al café, esto como parte de la búsqueda de una nueva oportunidad laboral. Para destacarme, pensé en implementar algunas de las últimas propuestas que se han venido desarrollando en Ethereum, como lo son los ",
+        "Durante estos últimos días me he encontrado trabajando en el frontend de Artisanal Brew como parte del desarrollo de mi portafolio personal. Pensé en implementar algunas de las últimas propuestas que se han venido desarrollando en Ethereum, como lo son los ",
         { kind: "strong", text: "ERC-4337" },
         ", ",
         { kind: "strong", text: "ERC-8004" },
@@ -73,22 +73,13 @@ export const artisanalBrewPixelHero: Post = {
     {
       kind: "paragraph",
       content: [
-        "Estos protocolos tienen algo en común: habilitan pagos agénticos, es decir, transacciones que la propia wallet firma sin que un humano intervenga en cada una, y que además patrocinan (sponsorship) los fees de gas. Eso me hizo preguntarme de qué otra forma podía representar ese tipo de interacción en el home actual. Así se veía el diseño anterior:",
+        "Estos protocolos tienen algo en común: habilitan pagos agénticos, es decir, transacciones que la propia wallet firma sin que un humano intervenga en cada una, y que además patrocinan (sponsorship) los fees de gas. Eso me hizo preguntarme de qué otra forma podía representar ese tipo de interacción en el home actual.",
       ],
-    },
-    {
-      kind: "video",
-      src: "/blog/artisanal-brew-assets/previous-hero-video.mp4",
-      poster: "/blog/artisanal-brew-assets/previous-hero-video.webp",
-      alt: "Video de fondo del home anterior: dos personas envueltas en cobijas tomando café",
-      width: 1280,
-      height: 720,
-      caption: "El hero anterior de ArtisanalBrew — el video de fondo, corriendo en loop",
     },
     {
       kind: "paragraph",
       content: [
-        "No es que me pareciera mal, el único problema real era que, al ser un video, a veces tardaba en cargar. Al inicio el proyecto era simplemente un storefront: comprabas artículos con Sepolia Tokens, recibías tu voucher por correo, y también podías hacer staking de tokens que viven en esa misma testnet. Pero conforme fui avanzando e implementando más funcionalidad, empecé a querer algo que se adaptara mejor a lo que el proyecto se estaba convirtiendo.",
+        "Al inicio el proyecto era simplemente un storefront: comprabas artículos con Sepolia Tokens, recibías tu voucher por correo, y también podías hacer staking de tokens que viven en esa misma testnet. Pero conforme fui avanzando e implementando más funcionalidad, empecé a querer algo que se adaptara mejor a lo que el proyecto se estaba convirtiendo.",
       ],
     },
 
