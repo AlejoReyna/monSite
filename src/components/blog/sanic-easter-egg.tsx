@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 interface SanicEasterEggWrapperProps {
@@ -62,10 +63,14 @@ export default function SanicEasterEggWrapper({
             <span>GOTTA GO FAST!</span>
           </div>
         )}
-        <img
+        <Image
           src="/sanic.png"
           alt="Sanic Easter Egg"
           className="sanic-img"
+          width={591}
+          height={531}
+          loading="lazy"
+          unoptimized
         />
       </div>
 

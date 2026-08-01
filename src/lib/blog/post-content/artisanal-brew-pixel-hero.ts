@@ -1,16 +1,27 @@
 import type { Post } from "../types";
 
 export const artisanalBrewPixelHero: Post = {
-  slug: "hero-pixel-artisanal-brew",
-  title: "Una interfaz con una red neuronal implementada",
+  slug: "red-neuronal-javascript-robots-pixel-art",
+  title: "Cómo entrené robots pixel art con una red neuronal en JavaScript",
+  seoTitle: "Red neuronal en JavaScript y robots pixel art | Alexis Reyna",
   summary:
-    "Ayer tomándome un café se me ocurrió entrenar a unos archivos .png a recolectar graficamente otros archivos .png, utilizando PPO.",
-  date: "2026-07-29",
-  readingMinutes: 17,
-  tags: ["frontend", "machine-learning", "pixel-art"],
+    "Cómo entrené robots pixel art con una red neuronal de 258 parámetros y Evolution Strategies, y llevé el modelo al frontend de Artisanal Brew.",
+  date: "2026-08-01",
+  locale: "es-MX",
+  keywords: [
+    "red neuronal en JavaScript",
+    "Evolution Strategies",
+    "robots pixel art",
+    "machine learning en el navegador",
+    "frontend interactivo",
+    "Artisanal Brew",
+  ],
+  ogImage: "/blog/red-neuronal-javascript-og.png",
+  readingMinutes: 5,
+  tags: [],
   titleAsset: {
     src: "/blog/artisanal-brew-robot.png",
-    alt: "Robot pixel de Artisanal Brew bailando y dando una mortal hacia atrás",
+    alt: "Dos robots pixel de Artisanal Brew sobre la línea divisoria: uno salta sin parar y el otro baila a su izquierda",
     frames: 5,
     frameWidth: 64,
     frameHeight: 64,
@@ -77,7 +88,7 @@ export const artisanalBrewPixelHero: Post = {
     {
       kind: "paragraph",
       content: [
-        "No es que me pareciera mal — el único problema real era que, al ser un video, a veces tardaba en cargar. Al inicio el proyecto era simplemente un storefront: comprabas artículos con Sepolia Tokens, recibías tu voucher por correo, y también podías hacer staking de tokens que viven en esa misma testnet. Pero conforme fui avanzando e implementando más funcionalidad, empecé a querer algo que se adaptara mejor a lo que el proyecto se estaba convirtiendo.",
+        "No es que me pareciera mal, el único problema real era que, al ser un video, a veces tardaba en cargar. Al inicio el proyecto era simplemente un storefront: comprabas artículos con Sepolia Tokens, recibías tu voucher por correo, y también podías hacer staking de tokens que viven en esa misma testnet. Pero conforme fui avanzando e implementando más funcionalidad, empecé a querer algo que se adaptara mejor a lo que el proyecto se estaba convirtiendo.",
       ],
     },
 
@@ -85,7 +96,7 @@ export const artisanalBrewPixelHero: Post = {
     {
       kind: "sideBySide",
       content: [
-        "La versión 1 del crew ya existía, pero no se parecía en nada a la de ahora: la cabeza era prácticamente un monitor CRT — pantalla verde fosforescente y cuerpo color crema — más cercano a una vieja computadora de escritorio con patas que a un personaje con personalidad. Funcionaba para probar las animaciones básicas en loop, pero se sentía plano y le faltaba esa vibra retro-futurista que buscaba para la experiencia del hero.",
+        "La versión 1 del crew ya existía, pero no se parecía en nada a la de ahora: la cabeza era prácticamente un monitor CRT (pantalla verde fosforescente y cuerpo color crema), más cercano a una vieja computadora de escritorio con patas que a un personaje con personalidad. Funcionaba para probar las animaciones básicas en loop, pero se sentía plano y le faltaba esa vibra retro-futurista que buscaba para la experiencia del hero.",
       ],
       asset: {
         title: "pl-robot-scout.png (versión 1)",
@@ -112,102 +123,72 @@ export const artisanalBrewPixelHero: Post = {
 
     { kind: "subheading", text: "¿Y si los hiciera recogerlas?" },
     {
-      kind: "paragraph",
+      kind: "sideBySide",
       content: [
         "Originalmente los cuatro robots se ubicaban en las cuatro esquinas de la pantalla y flotaban ahí, estáticos, para siempre. Había monedas repartidas por el fondo, y me pregunté: ¿y si hiciera que las recogieran? Lo primero que se me ocurrió fue programar cinco escenarios distintos, cada uno con las monedas repartidas de forma diferente, y rotar el escenario en cada refresh. No me convenció: seguía siendo una coreografía fija, no una decisión. Fue ahí cuando le pregunté a mi mejor amigo Claudio (mi alias para la familia de modelos de lenguaje de Anthropic) qué método de entrenamiento le convenía más a este proyecto:",
       ],
-    },
-    {
-      kind: "photo",
-      src: "/blog/artisanal-brew-assets/claude-training-conversation.webp",
-      alt: "Conversación con Claude sobre cómo entrenar a los robots para recolectar monedas",
-      width: 1510,
-      height: 1294,
-      caption:
-        "La pregunta que terminó reemplazando cinco escenarios cableados a mano por Evolution Strategies",
+      asset: {
+        title: "Conversación con Claude",
+        src: "/claude_conv.png",
+        alt: "Conversación con Claude sobre cómo entrenar a los robots para recolectar monedas",
+        width: 1098,
+        height: 1118,
+        imageStyle: "smooth",
+      },
     },
 
     { kind: "heading", text: "El entrenamiento" },
     {
-      kind: "paragraph",
+      kind: "table",
+      head: ["Hiperparámetro", "Valor", "Para qué sirve"],
+      rows: [
+        ["Población", "64", "Prueba 32 pares de variaciones opuestas"],
+        ["Sigma", "0.1", "Define cuánto cambian los pesos en cada prueba"],
+        ["Learning rate", "0.03", "Controla el tamaño de cada actualización"],
+        ["Evaluación", "3 episodios", "Promedia resultados para reducir el factor suerte"],
+        ["Generaciones", "300", "Guarda checkpoints desde la generación 20"],
+      ],
+    },
+    {
+      kind: "neuralNetworkOverview",
       content: [
-        "La política es una red multicapa ",
+        "El cerebro de cada robot es una red pequeña de ",
         { kind: "strong", text: "13 → 16 → 2" },
         " con ",
         { kind: "code", text: "tanh" },
-        " en ambas capas: 258 parámetros. Trece números entran (a dónde está mi moneda, qué tan lejos, a qué velocidad voy, qué tan cerca están las cuatro paredes, dónde está la taza más próxima y cuánta cafeína me queda) y salen dos: cuánto acelero en x y cuánto en y. Nada más. Es tan pequeña que evaluarla cuatro veces por frame es ruido, y que los pesos entrenados viajan como ~7 KB de números literales dentro de un módulo ES, no como un archivo de modelo.",
+        " en la capa oculta y en la salida. Una entrada es simplemente un número que describe el estado del robot en ese frame; la red no recibe imágenes. Sus trece entradas resumen la posición y distancia de la moneda que persigue, su velocidad, la distancia a cada una de las cuatro paredes, la taza más cercana y la cafeína que todavía le queda. Esos valores llegan a dieciséis neuronas y cada conexión tiene un peso que el entrenamiento va ajustando. Al final salen sólo dos números: la aceleración horizontal y la vertical. En total son 258 parámetros, así que evaluarla cuatro veces por frame cuesta muy poco. Incluso los pesos entrenados caben en unos 7 KB y viajan como números dentro de un módulo ES, sin necesidad de cargar un archivo de modelo.",
       ],
     },
 
-    { kind: "subheading", text: "Qué significa “entrenar” aquí" },
+    { kind: "subheading", text: "Cómo implementé Evolution Strategies" },
     {
       kind: "paragraph",
       content: [
-        "Esta es la parte que más me costó explicarle a la gente, porque el vocabulario de ML se usa muy suelto. Aquí no hay dataset, no hay etiquetas y no hay backpropagation. Hay un mundo que se corre completo, se mide cuántas monedas juntó el crew, y ese único número decide si los pesos que lo produjeron valían la pena. Las unidades son estas:",
+        "Evolution Strategies cabe en una frase: en cada generación pruebo variaciones aleatorias de los pesos, puntúo cada una y muevo los pesos originales hacia las que salieron mejor. Lo que me gustó fue lo poco que hace falta para implementarlo.",
       ],
     },
-    {
-      kind: "table",
-      head: ["Unidad", "Cuánto es", "Qué pasa dentro"],
-      rows: [
-        [
-          "Paso",
-          "1/60 de segundo",
-          "Cada robot observa, la red decide y la física avanza un frame",
-        ],
-        [
-          "Episodio",
-          "1,800 pasos",
-          "Treinta segundos simulados con un layout de monedas nuevo",
-        ],
-        [
-          "Evaluación",
-          "3 episodios",
-          "Se promedian, para que un layout afortunado no decida nada",
-        ],
-        [
-          "Generación",
-          "64 evaluaciones",
-          "32 pares de perturbaciones ± sobre los mismos pesos, y una actualización",
-        ],
-        [
-          "Entrenamiento",
-          "300 generaciones",
-          "~57,600 episodios: veinte días de tiempo simulado en 275 segundos de reloj",
-        ],
-      ],
-    },
-
-    {
-      kind: "terminal",
-      caption: "Salida real del script de entrenamiento (tools/train_pixel_crew.mjs)",
-      lines: [
-        { kind: "cmd", text: "node tools/train_pixel_crew.mjs --gens 300 --pop 64" },
-        { kind: "out", text: "training 258 parameters, shape 13→16→2, pop 64, 300 generations" },
-        { kind: "out", text: "gen   0  reward 0.12  coins 1.8  (untrained baseline)" },
-        { kind: "out", text: "gen   1  reward 0.85  coins 4.2" },
-        { kind: "out", text: "gen  10  reward 4.80  coins 14.5" },
-        { kind: "out", text: "gen  20  reward 8.95  coins 25.2  (checkpoint early guardado)" },
-        { kind: "out", text: "gen  50  reward 9.82  coins 26.1" },
-        { kind: "out", text: "gen 100  reward 10.12  coins 26.8" },
-        { kind: "out", text: "gen 300  reward 10.45  coins 27.0  (checkpoint trained final)" },
-        { kind: "out", text: "" },
-        { kind: "out", text: "held-out coins per episode (evaluación ciega):" },
-        { kind: "out", text: "  untrained   1.8 coins/ep" },
-        { kind: "out", text: "  early      25.2 coins/ep" },
-        { kind: "out", text: "  trained    27.0 coins/ep" },
-        { kind: "out", text: "" },
-        { kind: "out", text: "trained in 275.4s" },
-        { kind: "out", text: "wrote src/ThisCafeteria.Web/wwwroot/js/pixelCrewPolicy.js" },
-        { kind: "out", text: "wrote scratch/pixel-crew-training.csv" },
-      ],
-    },
-
-    { kind: "subheading", text: "Por qué Evolution Strategies y no PPO" },
     {
       kind: "paragraph",
       content: [
-        "PPO es la respuesta refleja y habría sido la equivocada: pide autograd, una red de valor, cálculo de ventajas y unas 300 líneas que pueden estar sutilmente mal, todo para resolver un problema de dirección de 258 parámetros. La estrategia evolutiva hace lo mismo tratando al mundo como una caja negra: se perturban los pesos, se corren episodios y se conserva la dirección que produjo mejores retornos. No hay gradientes, no hay tensores y no queda ninguna dependencia de machine learning en producción.",
+        "El trainer es un script de Node sin dependencias de machine learning. Los 258 parámetros viven en un ",
+        { kind: "code", text: "Float64Array" },
+        " llamado ",
+        { kind: "code", text: "theta" },
+        ", el simulador es una función que recibe ese arreglo y devuelve un número, y el entrenamiento completo es un ",
+        { kind: "code", text: "for" },
+        " de 300 generaciones alrededor de este ciclo:",
+      ],
+    },
+    {
+      kind: "esTrainingDiagram",
+      variant: "generation-loop",
+      caption:
+        "Una generación completa de train_pixel_crew.mjs — 32 ruidos, 64 individuos, una sola actualización de theta",
+    },
+    {
+      kind: "paragraph",
+      content: [
+        "Traducido a código, ese ciclo son ocho líneas:",
       ],
     },
     {
@@ -228,36 +209,65 @@ theta += learningRate * estimateGradient(shaped);`,
     {
       kind: "paragraph",
       content: [
-        "Dos detalles de esas diez líneas son los que hacen que esto no se desarme. El primero es el ",
+        "Con una población de 64, el bucle sólo da 32 vueltas: cada una genera un vector de ruido gaussiano ",
+        { kind: "code", text: "eps" },
+        " del mismo tamaño que theta y lo usa dos veces, en ambas direcciones. Eso es el ",
         { kind: "strong", text: "muestreo espejeado" },
-        ": cada perturbación se evalúa en las dos direcciones, ",
-        { kind: "code", text: "θ + σε" },
-        " y ",
-        { kind: "code", text: "θ − σε" },
-        ", y el par cancela gratis buena parte de la varianza del estimador. El segundo es la ",
-        { kind: "strong", text: "normalización por rango" },
-        ": antes de actualizar, los retornos se reemplazan por su posición en el orden, dentro de ",
-        { kind: "code", text: "[-0.5, 0.5]" },
-        ". Así un episodio con suerte y un retorno enorme no puede dominar el paso — sólo importa quién quedó arriba de quién.",
-      ],
-    },
-    {
-      kind: "table",
-      head: ["Hiperparámetro", "Valor", "Motivo"],
-      rows: [
-        ["Población", "64", "32 pares de perturbaciones positivas y negativas"],
-        ["Sigma", "0.1", "Escala del ruido aplicado a los pesos"],
-        ["Learning rate", "0.03", "Paso de actualización de la política"],
-        ["Evaluación", "3 episodios", "Promedio para reducir la suerte del layout"],
-        ["Generaciones", "300", "Con checkpoint temprano en la generación 20"],
+        ", y en código me salió gratis, un solo ",
+        { kind: "code", text: "gaussianNoise()" },
+        " por par, escalado por un sigma de 0.1, que es cuánto se le permite moverse a cada peso en la prueba.",
       ],
     },
     {
       kind: "paragraph",
       content: [
-        "Los layouts se resiembran en cada generación, así que la política no puede memorizar un acomodo de monedas: tiene que generalizar. Pero el detalle más importante no es el algoritmo, es que ",
-        { kind: "strong", text: "trainer y navegador importan el mismo pixelCrewSim.js" },
-        ". Física, observaciones, recompensa y forward pass viven una sola vez. Una segunda copia del entorno —aunque esté escrita con cuidado desde las mismas notas— se desvía en silencio: los pesos siguen cargando, los robots siguen moviéndose, y el comportamiento simplemente es peor de lo que prometían los números, sin nada a qué apuntarle.",
+        "Comparar cada versión contra su opuesta es lo que me deja distinguir si el cambio ayudó de verdad o si sólo tuvo suerte. Del otro lado, ",
+        { kind: "code", text: "evaluate()" },
+        " es toda la interfaz con el simulador: le paso los pesos, corre tres episodios completos y me devuelve el promedio. El trainer no sabe nada de monedas, tazas ni colisiones.",
+      ],
+    },
+    {
+      kind: "paragraph",
+      content: [
+        "Las dos últimas líneas son la actualización. ",
+        { kind: "code", text: "rankNormalise" },
+        " tira las magnitudes y se queda sólo con el orden: reemplaza los 64 retornos por su posición dentro del grupo, repartida de forma pareja entre ",
+        { kind: "code", text: "-0.5" },
+        " y ",
+        { kind: "code", text: "0.5" },
+        ".",
+      ],
+    },
+    {
+      kind: "esTrainingDiagram",
+      variant: "rank-normalise",
+      caption:
+        "8 de los 64 individuos — a la izquierda lo que puntuaron, a la derecha lo que pesan en la actualización",
+      content: [
+        "Sin ese paso, una sola partida afortunada se adueña de la actualización y arrastra los pesos hacia un ruido que no tenía nada de especial. Con él, lo único que importa es qué versiones quedaron arriba de las demás.",
+      ],
+    },
+    { kind: "subheading", text: "La actualización final" },
+    {
+      kind: "paragraph",
+      content: [
+        "Después ",
+        { kind: "code", text: "estimateGradient" },
+        " multiplica cada ruido por la puntuación ya normalizada, suma los 64 vectores y divide entre población por sigma. El resultado tiene la misma forma que theta, se escala por el learning rate de 0.03 y se suma. No hay gradientes reales ni tensores en ningún punto: son sumas y multiplicaciones sobre arreglos planos.",
+      ],
+    },
+    { kind: "subheading", text: "Dos detalles de implementación" },
+    {
+      kind: "list",
+      items: [
+        [
+          { kind: "strong", text: "El tablero cambia en cada generación." },
+          " Vuelvo a sortear la posición de los objetos, así que ningún individuo se evalúa sobre el mismo tablero que el anterior. La red no puede memorizar un acomodo específico de monedas y tiene que aprender una estrategia que funcione en escenarios distintos.",
+        ],
+        [
+          { kind: "strong", text: "Trainer y navegador importan el mismo pixelCrewSim.js." },
+          " La física, las observaciones, las recompensas y el cálculo de la red están definidos en un solo lugar. Así evito que ambos entornos se comporten de manera ligeramente distinta, un error difícil de notar porque los pesos cargan y los robots se mueven, pero no tan bien como durante las pruebas.",
+        ],
       ],
     },
 
@@ -273,7 +283,7 @@ theta += learningRate * estimateGradient(shaped);`,
       content: [
         "Mi primera reacción fue que la recompensa era muy baja. Estaba a medias: el problema de fondo era geométrico. El crew cruza la pantalla completa en unos 10.6 segundos, así que una taza que aparecía del otro lado ",
         { kind: "em", text: "no se podía alcanzar" },
-        " dentro de una ventana de 7 segundos. La política tenía razón en ignorarla — la recompensa era inalcanzable, no estaba subvaluada. Corrí un barrido de 120 generaciones por configuración:",
+        " dentro de una ventana de 7 segundos. La política tenía razón en ignorarla (la recompensa era inalcanzable, no estaba subvaluada). Corrí un barrido de 120 generaciones por configuración:",
       ],
     },
     {
@@ -288,10 +298,9 @@ theta += learningRate * estimateGradient(shaped);`,
     },
 
 
-    { kind: "subheading", text: "Qué aprendió el crew" },
     {
       kind: "generationShowcase",
-      title: "Trayectorias y Comportamientos por Checkpoint",
+      title: "Qué aprendió el crew",
       items: [
         {
           checkpoint: "Generación 0",
@@ -317,18 +326,29 @@ theta += learningRate * estimateGradient(shaped);`,
       ],
     },
     {
-      kind: "paragraph",
-      content: [
-        "Los tres checkpoints se envían, no sólo el bueno. El switcher ",
-        { kind: "strong", text: "CREW BRAIN" },
-        " del hero cambia cuál está manejando sin reconstruir el mundo: los robots y las monedas se quedan exactamente donde estaban, así que lo único que cambia es el comportamiento. Ese es el punto de enviar el checkpoint sin entrenar — la diferencia sólo es legible si nada más se mueve.",
+      kind: "textAndCode",
+      paragraphs: [
+        [
+          "Los tres checkpoints se envían, no sólo el bueno. El switcher ",
+          { kind: "strong", text: "CREW BRAIN" },
+          " del hero cambia cuál está manejando sin reconstruir el mundo: los robots y las monedas se quedan exactamente donde estaban, así que lo único que cambia es el comportamiento. Ese es el punto de enviar el checkpoint sin entrenar, la diferencia sólo es legible si nada más se mueve.",
+        ],
+        [
+          "El entrenamiento completo tardó 275 segundos en un núcleo de CPU. La mayor parte de la competencia apareció entre las generaciones 20 y 30; el resto compró una mejora menor y ruidosa. Con la política reentrenada, la captura de tazas subió de 46% a 67% sin sacrificar de forma material la recolección de monedas.",
+        ],
       ],
-    },
-    {
-      kind: "paragraph",
-      content: [
-        "El entrenamiento completo tardó 275 segundos en un núcleo de CPU. La mayor parte de la competencia apareció entre las generaciones 20 y 30; el resto compró una mejora menor y ruidosa. Con la política reentrenada, la captura de tazas subió de 46% a 67% sin sacrificar de forma material la recolección de monedas.",
-      ],
+      code: {
+        language: "javascript",
+        caption: "pixelCrewPolicy.js — los 258 pesos exportados como literales (~7 KB)",
+        source: `export const SHAPE = [13, 16, 2];
+export const GENERATIONS = 300;
+
+export const WEIGHTS = {
+  untrained: [-0.0314, 0.0821, -0.0105, 0.0442, ...], // Baseline azaroso
+  early:     [0.1284, -0.4501, 0.3892, -0.1042, ...], // Gen 20
+  trained:   [0.4812, -0.8910, 0.7321, -0.3129, ...]  # Gen 300 final
+};`,
+      },
     },
     {
       kind: "terminal",
@@ -343,28 +363,6 @@ theta += learningRate * estimateGradient(shaped);`,
         { kind: "out", text: "✔ release gate passed (258 parameters, generation 300)" },
       ],
     },
-    {
-      kind: "code",
-      language: "javascript",
-      caption: "pixelCrewPolicy.js — los 258 pesos exportados como literales (~7 KB)",
-      code: `export const SHAPE = [13, 16, 2];
-export const GENERATIONS = 300;
-
-export const WEIGHTS = {
-  untrained: [-0.0314, 0.0821, -0.0105, 0.0442, ...], // Baseline azaroso
-  early:     [0.1284, -0.4501, 0.3892, -0.1042, ...], // Gen 20
-  trained:   [0.4812, -0.8910, 0.7321, -0.3129, ...]  # Gen 300 final
-};`,
-    },
-    {
-      kind: "callout",
-      tone: "warn",
-      title: "La cifra honesta",
-      content: [
-        "“300 generaciones” suena más espectacular de lo que muestra la curva. El sistema aprende casi todo muy pronto. El valor del trabajo posterior está en validar, ajustar la economía de las tazas y comprobar que la política generaliza, no en presumir el número de iteraciones.",
-      ],
-    },
-
     { kind: "heading", text: "La composición del Hero" },
     {
       kind: "paragraph",
@@ -373,80 +371,14 @@ export const WEIGHTS = {
       ],
     },
     {
-      kind: "table",
-      head: ["Plano", "Contenido", "Responsabilidad"],
-      rows: [
-        [
-          "z-index 0",
-          "GlobalScene / gs-scene",
-          "Cielo, estrellas, Andrómeda, planetas, badges, tazas y monedas",
-        ],
-        [
-          "z-index 1",
-          "GlobalScene / gs-crew",
-          "Los cuatro robots y sus efectos visuales",
-        ],
-        [
-          "z-index 2",
-          "PixelHome / main",
-          "Título, texto y botones siempre legibles",
-        ],
-      ],
-    },
-    {
-      kind: "assetGallery",
-      assets: [
-        {
-          title: "z-index 0",
-          src: "/blog/artisanal-brew-assets/layer-0.webp",
-          alt: "GlobalScene / gs-scene",
-          width: 1440,
-          height: 900,
-        },
-        {
-          title: "z-index 1",
-          src: "/blog/artisanal-brew-assets/layer-1.webp",
-          alt: "GlobalScene / gs-crew",
-          width: 1440,
-          height: 900,
-        },
-        {
-          title: "z-index 2",
-          src: "/blog/artisanal-brew-assets/layer-2.webp",
-          alt: "PixelHome / main",
-          width: 1440,
-          height: 900,
-        },
-      ],
-    },
-    {
-      kind: "code",
-      language: "razor",
-      caption: "GlobalScene.razor — la escena debajo y el crew encima",
-      code: `<div class="gs-scene gs-scene--bg-@_bgVariant"
-     id="ph-scene-root"
-     data-permanent
-     aria-hidden="true">
-    <img class="ph-sky__andromeda"
-         src="images/pl-andromeda.png" alt="" />
-    <div class="gs-layer gs-layer--home ph-scene">
-        <!-- tazas y monedas -->
-    </div>
-</div>
-
-<div class="gs-crew"
-     id="ph-scene-root-over"
-     data-permanent
-     aria-hidden="true">
-    <!-- scout, buyer, courier e inspector -->
-</div>`,
+      kind: "heroLayerStack",
     },
     {
       kind: "paragraph",
       content: [
-        "El atributo ",
+        "GlobalScene conserva ambos planos con ",
         { kind: "code", text: "data-permanent" },
-        " hace que Blazor conserve esos nodos durante la navegación mejorada. El cielo no se reinicia, la paleta aleatoria no cambia al entrar a staking y las animaciones no vuelven al fotograma cero. Lo único que cambia es la capa visible, seleccionada mediante ",
+        " durante la navegación mejorada. El cielo no se reinicia, la paleta aleatoria no cambia al entrar a staking y las animaciones no vuelven al fotograma cero. Lo único que cambia es la capa visible, seleccionada mediante ",
         { kind: "code", text: "data-scene-route" },
         " en el elemento ",
         { kind: "code", text: "<html>" },
@@ -517,6 +449,7 @@ export const WEIGHTS = {
         "Ese truco se rompía al arrastrar un robot: había que mover también su moneda para que la coreografía siguiera coincidiendo. La simulación eliminó ese acoplamiento. Ahora soltar un robot es simplemente cambiar su posición; la política vuelve a observar y continúa desde ahí.",
       ],
     },
+    { kind: "choreographyComparison" },
 
     { kind: "subheading", text: "Un mundo normalizado para desktop y móvil" },
     {
@@ -525,6 +458,7 @@ export const WEIGHTS = {
         "La física vive en un cuadrado normalizado de 0 a 1. El runtime transforma esas coordenadas a píxeles al renderizar. Por eso la misma política funciona en un teléfono y en un monitor ancho sin entrenar dos modelos.",
       ],
     },
+    { kind: "simulationEvidence", variant: "normalized-world" },
     {
       kind: "table",
       head: ["Parte", "Tamaño", "Qué representa"],
@@ -593,6 +527,7 @@ export const PARAMS = {
         ". Su imagen sube 14 píxeles, se reduce y desaparece durante 360 ms. Permanece oculta 5.5 segundos; después reaparece en una nueva posición válida y el runtime retira la clase.",
       ],
     },
+    { kind: "simulationEvidence", variant: "coin-lifecycle" },
     {
       kind: "code",
       language: "javascript",
@@ -637,7 +572,7 @@ if (!coin.alive && world.time >= coin.respawnAt) {
       content: [
         "Las monedas son el trabajo; las tazas son la capa de dificultad. La diferencia es que las seis tazas ",
         { kind: "em", text: "no existen permanentemente" },
-        ". Cada slot arranca dormido con un tiempo de aparición distinto —escalonado a propósito, para que no aparezcan todas juntas en el primer segundo de la página—. Cuando ese reloj vence, el simulador elige una posición nueva fuera del copy, activa la taza y le da una vida aleatoria de 12 a 20 segundos. Si nadie llega, expira y vuelve a dormir entre 6 y 18 segundos.",
+        ". Cada slot arranca dormido con un tiempo de aparición distinto (escalonado a propósito, para que no aparezcan todas juntas en el primer segundo de la página). Cuando ese reloj vence, el simulador elige una posición nueva fuera del copy, activa la taza y le da una vida aleatoria de 12 a 20 segundos. Si nadie llega, expira y vuelve a dormir entre 6 y 18 segundos.",
       ],
     },
     {
@@ -681,6 +616,7 @@ if (!mug.alive && world.time >= mug.appearAt) {
         " durante seis segundos. Los zapatos sónicos muestran visualmente el aumento de 40% en la velocidad máxima.",
       ],
     },
+    { kind: "simulationEvidence", variant: "mug-lifecycle" },
     {
       kind: "code",
       language: "css",
@@ -711,6 +647,18 @@ if (!mug.alive && world.time >= mug.appearAt) {
       ],
     },
     {
+      kind: "paragraph",
+      content: [
+        "Los dos detalles que no eran obvios hasta que lo vi roto en pantalla: el ",
+        { kind: "code", text: "clip-path" },
+        " y el sprite espejeado. Sin el recorte, los pies originales del robot se asoman por debajo de los tenis y quedan dos siluetas encimadas; con él, el sprite reemplaza limpiamente las últimas dos filas de pierna. Y como las puntas de los tenis son largas y apuntan hacia adelante, un robot que viaja a la izquierda necesita la variante ",
+        { kind: "code", text: "-flip" },
+        " o parece que camina de reversa. Mientras nadie tiene café, los tenis están en ",
+        { kind: "code", text: "display: none" },
+        " y no cuestan nada.",
+      ],
+    },
+    {
       kind: "code",
       language: "css",
       caption: "GlobalScene.razor.css — los tenis viven de .is-boosted",
@@ -734,19 +682,8 @@ if (!mug.alive && world.time >= mug.appearAt) {
 }`,
     },
     {
-      kind: "paragraph",
-      content: [
-        "Los dos detalles que no eran obvios hasta que lo vi roto en pantalla: el ",
-        { kind: "code", text: "clip-path" },
-        " y el sprite espejeado. Sin el recorte, los pies originales del robot se asoman por debajo de los tenis y quedan dos siluetas encimadas; con él, el sprite reemplaza limpiamente las últimas dos filas de pierna. Y como las puntas de los tenis son largas y apuntan hacia adelante, un robot que viaja a la izquierda necesita la variante ",
-        { kind: "code", text: "-flip" },
-        " o parece que camina de reversa. Mientras nadie tiene café, los tenis están en ",
-        { kind: "code", text: "display: none" },
-        " y no cuestan nada.",
-      ],
-    },
-    {
       kind: "assetGallery",
+      variant: "sonic-shoes",
       assets: [
         {
           title: "pl-sonic-shoes.png",
@@ -1095,40 +1032,11 @@ def flip_shoes(img_path):
     {
       kind: "paragraph",
       content: [
-        "El trainer escribe tres juegos de pesos —sin entrenar, temprano y final— en ",
+        "El trainer escribe tres juegos de pesos (sin entrenar, temprano y final) en ",
         { kind: "code", text: "pixelCrewPolicy.js" },
         ". El runtime importa ese archivo y la simulación compartida. En cada frame observa el mundo, ejecuta la red, integra la física y escribe posiciones con ",
         { kind: "code", text: "translate3d" },
         ".",
-      ],
-    },
-    {
-      kind: "code",
-      language: "csharp",
-      caption: "PixelHome.razor — montaje y teardown del runtime",
-      code: `protected override async Task OnAfterRenderAsync(bool firstRender)
-{
-    if (!firstRender) return;
-
-    _crew = await JSRuntime.InvokeAsync<IJSObjectReference>(
-        "import", "./js/pixelCrewRuntime.js");
-
-    _simRunning = await _crew.InvokeAsync<bool>(
-        "init", "ph-scene-root", "trained");
-}
-
-public async ValueTask DisposeAsync()
-{
-    await _crew!.InvokeVoidAsync("destroy", "ph-scene-root");
-    await _crew.DisposeAsync();
-}`,
-    },
-    {
-      kind: "paragraph",
-      content: [
-        "La destrucción explícita evita dos loops de ",
-        { kind: "code", text: "requestAnimationFrame" },
-        " después de navegar. Si JavaScript no carga, quedan los keyframes de fallback. Si el usuario prefiere movimiento reducido, el runtime ni siquiera arranca y CSS congela la composición, oculta la llama y elimina las transiciones.",
       ],
     },
 
@@ -1136,8 +1044,42 @@ public async ValueTask DisposeAsync()
     {
       kind: "paragraph",
       content: [
-        "Me faltaba la última pieza, y es la que más me interesaba resolver bien: qué pasa cuando todo esto se sube. Un hero con una red neuronal adentro tiene una forma nueva de romperse — los pesos pueden truncarse, alguien (yo) puede tocar la física y olvidar reentrenar, y nada de eso falla ruidosamente. Los robots se siguen moviendo; simplemente son peores de lo que dicen los números del post.",
+        "Me faltaba la última pieza, y es la que más me interesaba resolver bien: qué pasa cuando todo esto se sube. Un hero con una red neuronal adentro tiene una forma nueva de romperse, los pesos pueden truncarse, alguien (yo) puede tocar la física y olvidar reentrenar, y nada de eso falla ruidosamente. Los robots se siguen moviendo; simplemente son peores de lo que dicen los números del post.",
       ],
+    },
+
+    { kind: "subheading", text: "El modelo viaja dentro de la imagen" },
+    {
+      kind: "paragraph",
+      content: [
+        "El hero no descarga un modelo de ningún lado. Cuando el entrenamiento termina, ",
+        { kind: "code", text: "train_pixel_crew.mjs" },
+        " escribe los 258 pesos de cada checkpoint como literales en ",
+        { kind: "code", text: "pixelCrewPolicy.js" },
+        ", y ese archivo entra al repositorio con un commit: el modelo entrenado es código fuente, se revisa en el pull request y se compara con diff como cualquier otro cambio. No hay ",
+        { kind: "code", text: "modelo.bin" },
+        ", ni bucket de artefactos, ni servidor de inferencia. Después ",
+        { kind: "code", text: "docker build" },
+        " lo copia dentro de la imagen del Web igual que copia los ",
+        { kind: "code", text: ".css" },
+        " y los ",
+        { kind: "code", text: ".png" },
+        ", y ahí está la propiedad que me importa: los bytes que el gate de CI verificó son exactamente los que el navegador termina descargando.",
+      ],
+    },
+    {
+      kind: "paragraph",
+      content: [
+        "Así que lo que se ve al abrir la portada no es una grabación del entrenamiento ni una coreografía que lo imita. El navegador importa esos mismos pesos, el runtime ejecuta la red en cada frame sobre el mismo ",
+        { kind: "code", text: "pixelCrewSim.js" },
+        " que usó el gate, y los robots que recogen monedas son los 258 números multiplicándose en vivo, en la máquina de quien visita. Si CI aprobó la política, la política aprobada es (literalmente, byte a byte) la que está moviendo al crew en pantalla.",
+      ],
+    },
+    {
+      kind: "deployPipeline",
+      variant: "pipeline",
+      caption:
+        "El recorrido completo: el archivo que verifica CI es el mismo que la imagen sirve al navegador",
     },
 
     { kind: "subheading", text: "Entrenamiento y deploy forman un solo contrato" },
@@ -1199,43 +1141,11 @@ public async ValueTask DisposeAsync()
         " demostraría que ASP.NET arrancó, no que la portada correcta fue desplegada. El segundo check busca el Hero y el contenedor de la escena en el HTML real. Es una verificación pequeña, pero conecta el release con la experiencia que el usuario debe recibir.",
       ],
     },
-
-    { kind: "divider" },
-
-    { kind: "subheading", text: "El futuro" },
     {
-      kind: "paragraph",
-      content: [
-        "Quiero cerrar con la parte incómoda, porque si no la digo yo la va a pensar cualquiera que lea esto: ",
-        { kind: "code", text: "accel = normalize(coin - pos)" },
-        " son cinco líneas de dirección y se ven prácticamente igual en pantalla. Ningún visitante puede distinguir una política entrenada de un steering escrito a mano nomás viendo el hero. La red no está ahí porque el movimiento la necesitara.",
-      ],
-    },
-    {
-      kind: "paragraph",
-      content: [
-        "Está ahí porque el artefacto era el punto, y porque un artefacto así sólo vale algo si el aprendizaje se puede ",
-        { kind: "em", text: "ver" },
-        ". Por eso se envían los tres checkpoints detrás del switcher en lugar de sólo el bueno: la generación 0 estrellándose contra una pared está haciendo más trabajo que la 300 barriendo el campo.",
-      ],
-    },
-    {
-      kind: "paragraph",
-      content: [
-        "De lo que sigue, lo que más ganas tengo de construir es lo que hoy está a medias. El ",
-        { kind: "strong", text: "ERC-8004" },
-        " abre la puerta a que un agente tenga identidad y reputación verificables, y eso cambia la pregunta del proyecto: ya no es “¿puede un robot pagar por mí?” sino “¿por qué debería confiarle esta compra a ",
-        { kind: "em", text: "este" },
-        " agente y no a otro”. Con el ",
-        { kind: "strong", text: "ERC-7683" },
-        " encima, el checkout deja de elegir una chain y empieza a declarar un resultado. Son estándares jóvenes, se están moviendo mientras escribo esto, y me parece el mejor momento para estar equivocándome en público con ellos.",
-      ],
-    },
-    {
-      kind: "paragraph",
-      content: [
-        "Todo esto empezó como una eShop de café para destacar en una búsqueda de trabajo, y terminó siendo el proyecto donde más he aprendido en mucho tiempo: sobre Blazor, sobre pagos agénticos, sobre cuánto cuesta que una animación sea honesta. Si llegaste hasta aquí y estás construyendo algo en esa intersección —o quieres a alguien que se tome esto con este nivel de detalle— la puerta está abierta. Y si no, ojalá al menos te quedes con la idea de entrenar unos .png para que recojan otros .png. Se lo debo a un café.",
-      ],
+      kind: "deployPipeline",
+      variant: "release-gate",
+      caption:
+        "La decisión del workflow después de actualizar Container Apps — latest sólo avanza si el hero responde",
     },
   ],
 };

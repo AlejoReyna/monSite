@@ -1,12 +1,20 @@
 import { Fragment } from "react";
+import Image from "next/image";
 import { getPostHeadings } from "@/lib/blog/chapters";
 import { highlightCode } from "@/lib/blog/highlight";
 import type { Block, Inline } from "@/lib/blog/types";
 import AssetCard from "./asset-card";
+import ChoreographyComparison from "./choreography-comparison";
+import DeployPipeline from "./deploy-pipeline";
+import EsTrainingDiagram from "./es-training-diagram";
+import HeroLayerStack from "./hero-layer-stack";
 import GenerationShowcase from "./generation-showcase";
 import LoopingVideo from "./looping-video";
+import NeuralNetworkDiagram from "./neural-network-diagram";
 import PixelScene from "./pixel-scene";
 import SanicEasterEggWrapper from "./sanic-easter-egg";
+import SimulationEvidence from "./simulation-evidence";
+import SonicShoesGallery from "./sonic-shoes-gallery";
 import Terminal from "./terminal";
 
 /**
@@ -83,6 +91,9 @@ async function BlockView({
             <span className="blog-code-caption">
               {block.caption ?? block.language}
             </span>
+            <span className="blog-code-scroll-hint" aria-hidden="true">
+              Desliza ↔
+            </span>
           </div>
           <div
             className="blog-code-body"
@@ -139,7 +150,9 @@ async function BlockView({
               {block.rows.map((row, i) => (
                 <tr key={i}>
                   {row.map((cell, j) => (
-                    <td key={j}>{cell}</td>
+                    <td key={j} data-label={block.head[j]}>
+                      {cell}
+                    </td>
                   ))}
                 </tr>
               ))}
@@ -149,12 +162,49 @@ async function BlockView({
       );
 
     case "assetGallery":
+      if (block.variant === "sonic-shoes") {
+        return <SonicShoesGallery assets={block.assets} />;
+      }
+
       return (
         <div className="blog-asset-gallery blog-bleed">
           {block.assets.map((asset) => (
             <AssetCard key={asset.src} asset={asset} />
           ))}
         </div>
+      );
+
+    case "heroLayerStack":
+      return <HeroLayerStack />;
+
+    case "neuralNetworkOverview":
+      return (
+        <div className="blog-neural-network-overview blog-bleed">
+          <div className="blog-neural-network-overview__text">
+            <p>{renderInline(block.content)}</p>
+          </div>
+          <NeuralNetworkDiagram />
+        </div>
+      );
+
+    case "esTrainingDiagram":
+      if (block.content) {
+        return (
+          <div className="blog-es-diagram-row blog-bleed">
+            <EsTrainingDiagram
+              variant={block.variant}
+              caption={block.caption}
+              bleed={false}
+            />
+            <div className="blog-es-diagram-row__text">
+              <p>{renderInline(block.content)}</p>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <EsTrainingDiagram variant={block.variant} caption={block.caption} />
       );
 
     case "sideBySide":
@@ -167,31 +217,81 @@ async function BlockView({
           <div className="blog-side-by-side-text">
             <p>{renderInline(block.content)}</p>
           </div>
-          <figure className="blog-asset-card blog-side-by-side-asset">
-            <figcaption>{block.asset.title}</figcaption>
-            <div className="blog-asset-media">
-              <img
-                src={block.asset.src}
-                alt={block.asset.alt}
-                width={block.asset.width}
-                height={block.asset.height}
-                loading="lazy"
-              />
+          <figure
+            className={`blog-asset-card blog-side-by-side-asset${
+              block.asset.imageStyle === "smooth"
+                ? " blog-side-by-side-asset--smooth"
+                : ""
+            }`}
+          >
+            <figcaption className="blog-asset-card-header">
+              <div className="blog-asset-card-info">
+                <span className="blog-asset-card-title">
+                  {block.asset.title}
+                </span>
+              </div>
+            </figcaption>
+            <div className="blog-asset-card-viewport">
+              <div className="blog-asset-media">
+                <Image
+                  src={block.asset.src}
+                  alt={block.asset.alt}
+                  width={block.asset.width}
+                  height={block.asset.height}
+                  loading="lazy"
+                  sizes="(max-width: 760px) calc(100vw - 2.5rem), 520px"
+                  unoptimized={block.asset.imageStyle === "pixelated"}
+                />
+              </div>
             </div>
           </figure>
         </div>
       );
 
+    case "textAndCode": {
+      const html = await highlightCode(block.code.source, block.code.language);
+
+      return (
+        <div className="blog-text-and-code blog-bleed">
+          <div className="blog-text-and-code__text">
+            {block.paragraphs.map((paragraph, i) => (
+              <p key={i}>{renderInline(paragraph)}</p>
+            ))}
+          </div>
+          <div className="blog-code">
+            <div className="blog-code-bar">
+              <div className="blog-code-dots" aria-hidden="true">
+                <span className="blog-code-dot" />
+                <span className="blog-code-dot" />
+                <span className="blog-code-dot" />
+              </div>
+              <span className="blog-code-caption">
+                {block.code.caption ?? block.code.language}
+              </span>
+              <span className="blog-code-scroll-hint" aria-hidden="true">
+                Desliza ↔
+              </span>
+            </div>
+            <div
+              className="blog-code-body"
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          </div>
+        </div>
+      );
+    }
+
     case "photo":
       return (
         <figure className="blog-photo blog-bleed">
           <div className="blog-photo-media">
-            <img
+            <Image
               src={block.src}
               alt={block.alt}
               width={block.width}
               height={block.height}
               loading="lazy"
+              sizes="(max-width: 900px) calc(100vw - 2.2rem), 70rem"
             />
           </div>
           {block.caption && <figcaption>{block.caption}</figcaption>}
@@ -222,11 +322,21 @@ async function BlockView({
         </figure>
       );
 
+    case "choreographyComparison":
+      return <ChoreographyComparison />;
+
+    case "simulationEvidence":
+      return <SimulationEvidence variant={block.variant} />;
+
+    case "deployPipeline":
+      return <DeployPipeline variant={block.variant} caption={block.caption} />;
+
     case "generationShowcase":
       return (
         <GenerationShowcase
           items={block.items}
           title={block.title}
+          titleId={headingId}
         />
       );
 
@@ -235,12 +345,37 @@ async function BlockView({
   }
 }
 
+async function renderCodeBlock(block: Extract<Block, { kind: "code" }>) {
+  const html = await highlightCode(block.code, block.language);
+  return (
+    <div className="blog-code blog-bleed">
+      <div className="blog-code-bar">
+        <div className="blog-code-dots" aria-hidden="true">
+          <span className="blog-code-dot" />
+          <span className="blog-code-dot" />
+          <span className="blog-code-dot" />
+        </div>
+        <span className="blog-code-caption">
+          {block.caption ?? block.language}
+        </span>
+        <span className="blog-code-scroll-hint" aria-hidden="true">
+          Desliza ↔
+        </span>
+      </div>
+      <div
+        className="blog-code-body"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </div>
+  );
+}
+
 /**
  * The prose container owns vertical rhythm (see `.blog-prose > * + *`), so
  * blocks never carry their own outer margins. Full-width blocks step outside
  * the measure via `.blog-bleed` rather than by restyling the container.
  */
-export default function Blocks({ blocks }: { blocks: Block[] }) {
+export default async function Blocks({ blocks }: { blocks: Block[] }) {
   const headingIds = new Map(
     getPostHeadings(blocks).map((heading) => [
       heading.blockIndex,
@@ -248,13 +383,40 @@ export default function Blocks({ blocks }: { blocks: Block[] }) {
     ]),
   );
 
-  return (
-    <div className="blog-prose">
-      {blocks.map((block, i) => (
-        <BlockView block={block} headingId={headingIds.get(i)} key={i} />
-      ))}
-    </div>
-  );
+  const renderedBlocks: React.ReactNode[] = [];
+
+  for (let i = 0; i < blocks.length; i += 1) {
+    const block = blocks[i];
+    const nextBlock = blocks[i + 1];
+
+    if (
+      block.kind === "code" &&
+      block.easterEgg === "sanic" &&
+      nextBlock?.kind === "assetGallery" &&
+      nextBlock.variant === "sonic-shoes"
+    ) {
+      const codeNode = await renderCodeBlock(block);
+
+      renderedBlocks.push(
+        <div className="blog-sonic-shoes-section blog-bleed" key={i}>
+          <SonicShoesGallery assets={nextBlock.assets} />
+          <div className="blog-sonic-shoes-code">
+            <SanicEasterEggWrapper>{codeNode}</SanicEasterEggWrapper>
+          </div>
+        </div>,
+      );
+      i += 1;
+      continue;
+    }
+
+    renderedBlocks.push(
+      <Fragment key={i}>
+        {await BlockView({ block, headingId: headingIds.get(i) })}
+      </Fragment>,
+    );
+  }
+
+  return <div className="blog-prose">{renderedBlocks}</div>;
 }
 
 export { renderInline };

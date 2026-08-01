@@ -14,8 +14,10 @@ export default function ChapterNavigation({
   chapters,
 }: ChapterNavigationProps) {
   const [activeId, setActiveId] = useState(INTRO_ID);
-  /** Only the mobile sheet uses this; the desktop rail is always open. */
+  /** Only the mobile sheet uses this; the desktop rail folds instead. */
   const [sheetOpen, setSheetOpen] = useState(false);
+  /** Desktop only: the rail folds away to give the prose the full width. */
+  const [railCollapsed, setRailCollapsed] = useState(false);
   /** Written straight to a CSS variable, never to state — see the effect. */
   const barRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -32,9 +34,17 @@ export default function ChapterNavigation({
       .map((id) => document.getElementById(id))
       .filter((heading): heading is HTMLElement => Boolean(heading));
 
+    let initialHashFrame = 0;
     if (window.location.hash) {
       const hashId = decodeURIComponent(window.location.hash.slice(1));
-      if (ids.includes(hashId)) setActiveId(hashId);
+      if (ids.includes(hashId)) {
+        initialHashFrame = window.requestAnimationFrame(() => {
+          setActiveId(hashId);
+          document
+            .getElementById(hashId)
+            ?.scrollIntoView({ block: "start", behavior: "auto" });
+        });
+      }
     }
 
     const observer = new IntersectionObserver(
@@ -60,7 +70,10 @@ export default function ChapterNavigation({
     );
 
     headings.forEach((heading) => observer.observe(heading));
-    return () => observer.disconnect();
+    return () => {
+      if (initialHashFrame) window.cancelAnimationFrame(initialHashFrame);
+      observer.disconnect();
+    };
   }, [chapters]);
 
   /**
@@ -154,7 +167,13 @@ export default function ChapterNavigation({
 
     document.body.style.overflow = "";
     window.history.replaceState(null, "", `#${id}`);
-    document.getElementById(id)?.scrollIntoView({ block: "start" });
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    document.getElementById(id)?.scrollIntoView({
+      block: "start",
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
   }, []);
 
   const activeChapterIndex = chapters.findIndex(
@@ -178,6 +197,20 @@ export default function ChapterNavigation({
     <Link className="blog-back blog-chapters-back" href="/blog">
       <span aria-hidden="true">←</span> Volver al blog
     </Link>
+  );
+
+  /** One glyph for both rail toggles: a panel with a rail on its left edge. */
+  const railIcon = (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      aria-hidden="true"
+    >
+      <rect x="1.5" y="2.5" width="13" height="11" rx="2" />
+      <path d="M6 2.5v11" />
+    </svg>
   );
 
   /** One list, rendered into the rail on desktop and the sheet on mobile. */
@@ -314,21 +347,50 @@ export default function ChapterNavigation({
         onClick={() => setSheetOpen(false)}
       />
 
-      {/* Desktop: the sticky rail, unchanged. */}
-      <aside className="blog-chapters" aria-label="Capítulos del artículo">
-        {/* Both stay put while the list scrolls under them — the way back and
-            the chapter count are the column's fixed frame. */}
-        <div className="blog-chapters-top">
-          {backLink}
+      {/* Desktop: the sticky rail. It folds to zero width on demand, leaving
+          the floating toggle below as the only way back in. */}
+      <aside
+        className="blog-chapters"
+        id="blog-chapters-rail"
+        aria-label="Capítulos del artículo"
+        data-collapsed={railCollapsed}
+      >
+        {/* Only the way back stays pinned — it has to stay reachable from
+            anywhere in a seven-chapter list. The heading below scrolls with
+            the list it introduces instead of sticking to the exit. */}
+        <div className="blog-chapters-top">{backLink}</div>
 
-          <div className="blog-chapters-heading">
-            <span>Contenido</span>
-            <span>{String(chapters.length).padStart(2, "0")} capítulos</span>
-          </div>
+        <div className="blog-chapters-heading">
+          <span>Contenido</span>
+          <button
+            type="button"
+            className="blog-rail-toggle"
+            onClick={() => setRailCollapsed(true)}
+            aria-expanded={!railCollapsed}
+            aria-controls="blog-chapters-rail"
+            aria-label="Ocultar el índice"
+          >
+            {railIcon}
+          </button>
         </div>
 
         {chapterList}
       </aside>
+
+      {/* What the folded rail leaves behind: the same glyph, floating where
+          the rail's corner was, as the one tap that brings the index back.
+          Only ever shown above the mobile breakpoint (see the CSS). */}
+      <button
+        type="button"
+        className="blog-rail-toggle blog-rail-expand"
+        data-open={railCollapsed}
+        onClick={() => setRailCollapsed(false)}
+        aria-expanded={!railCollapsed}
+        aria-controls="blog-chapters-rail"
+        aria-label="Mostrar el índice"
+      >
+        {railIcon}
+      </button>
     </>
   );
 }

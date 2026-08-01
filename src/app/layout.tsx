@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Bebas_Neue, Cormorant_Garamond, Space_Mono, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 import AppChrome from "@/components/app-chrome";
@@ -15,7 +15,6 @@ function generateiOSMetaTags() {
     'apple-mobile-web-app-title': 'Alexis\' desktop',
     // Additional iOS meta tags
     'format-detection': 'telephone=no',
-    'viewport': 'width=device-width, initial-scale=1, viewport-fit=cover',
   };
 }
 
@@ -35,6 +34,7 @@ const bebas = Bebas_Neue({
   subsets: ["latin"],
   variable: "--font-bebas",
   display: "swap",
+  preload: false,
 });
 
 const cormorant = Cormorant_Garamond({
@@ -43,6 +43,7 @@ const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   variable: "--font-cormorant",
   display: "swap",
+  preload: false,
 });
 
 const spaceMono = Space_Mono({
@@ -50,6 +51,7 @@ const spaceMono = Space_Mono({
   subsets: ["latin"],
   variable: "--font-space-mono",
   display: "swap",
+  preload: false,
 });
 
 /* ── Pixel font — Get in touch panel ── */
@@ -91,6 +93,13 @@ export const metadata: Metadata = {
   other: generateiOSMetaTags(),
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f9faf7",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -99,14 +108,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Additional iOS specific meta tags */}
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Alexis' desktop" />
-        {/* One stable tag prevents competing theme-color declarations. */}
-        <meta id="site-theme-color" name="theme-color" content="#f9faf7" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         {/* Favicon */}
         <link rel="icon" href="/tags.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

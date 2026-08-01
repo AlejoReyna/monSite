@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import type { AssetGalleryItem } from "@/lib/blog/types";
 
@@ -92,12 +93,13 @@ export default function AssetCard({ asset }: AssetCardProps) {
       <div className="blog-asset-card-viewport">
         {viewMode === "asset" ? (
           <div className="blog-asset-media">
-            <img
+            <Image
               src={asset.src}
               alt={asset.alt}
               width={asset.width}
               height={asset.height}
               loading="lazy"
+              unoptimized
             />
           </div>
         ) : (

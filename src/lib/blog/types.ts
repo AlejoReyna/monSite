@@ -52,6 +52,22 @@ export type Block =
   | {
       kind: "assetGallery";
       assets: AssetGalleryItem[];
+      variant?: "sonic-shoes";
+    }
+  /** A separated preview of the background, crew, and readable hero content. */
+  | { kind: "heroLayerStack" }
+  /** The robot policy explained as prose beside its 13 → 16 → 2 topology. */
+  | { kind: "neuralNetworkOverview"; content: Inline[] }
+  /**
+   * The two Evolution Strategies figures: one generation as a cycle, and the
+   * rank transform that turns raw returns into evenly spaced weights.
+   */
+  | {
+      kind: "esTrainingDiagram";
+      variant: "generation-loop" | "rank-normalise";
+      caption?: string;
+      /** When present, the figure and this text share a two-column row. */
+      content?: Inline[];
     }
   /** A full-color photo or screenshot — no pixelation, unlike assetGallery. */
   | {
@@ -80,9 +96,27 @@ export type Block =
     }
   /** Live miniature of the pixel-space background using the real assets. */
   | { kind: "scenePreview"; label: string }
+  /** Animated before/after proof of the fixed route being replaced by simulation. */
+  | { kind: "choreographyComparison" }
+  /** Graphical evidence for the simulator's coordinate and object lifecycles. */
+  | {
+      kind: "simulationEvidence";
+      variant: "normalized-world" | "coin-lifecycle" | "mug-lifecycle";
+    }
+  /**
+   * The two deploy figures: the trained policy's path from the offline
+   * trainer into the Docker image and the browser, and the health gate that
+   * decides whether `latest` moves or the previous image comes back.
+   */
+  | {
+      kind: "deployPipeline";
+      variant: "pipeline" | "release-gate";
+      caption?: string;
+    }
   /** Interactive visual showcase of training generation checkpoints & behaviors. */
   | {
       kind: "generationShowcase";
+      /** Rendered as the section's h3, on the same row as the view controls. */
       title?: string;
       items: {
         checkpoint: string;
@@ -102,8 +136,19 @@ export type Block =
         alt: string;
         width: number;
         height: number;
+        imageStyle?: "pixelated" | "smooth";
       };
       reverse?: boolean;
+    }
+  /** A two-column row pairing prose with a code sample. */
+  | {
+      kind: "textAndCode";
+      paragraphs: Inline[][];
+      code: {
+        language: string;
+        source: string;
+        caption?: string;
+      };
     }
   /** Breathing room between movements of an argument. Never decorative. */
   | { kind: "divider" };
@@ -119,11 +164,21 @@ export type TerminalLine =
 export interface PostMeta {
   slug: string;
   title: string;
+  /** Search-result title when the visible editorial title is intentionally longer. */
+  seoTitle?: string;
   /** One sentence. Shown on the index and as the meta description. */
   summary: string;
   /** ISO date. */
   date: string;
-  /** Minutes. Computed at authoring time — honest, not word-count theater. */
+  /** ISO date of the latest substantial revision. */
+  updated?: string;
+  /** BCP 47 locale used for visible article metadata. */
+  locale?: string;
+  /** Natural-language search phrases used by metadata and structured data. */
+  keywords?: string[];
+  /** Route-specific 1200×630 social preview. */
+  ogImage?: string;
+  /** Minutes. Derived from readable blocks when the registry is built. */
   readingMinutes: number;
   /** Max 3. More than that and the taxonomy stops meaning anything. */
   tags: string[];
@@ -137,7 +192,9 @@ export interface PostTitleAsset {
   frameHeight: number;
 }
 
-export interface Post extends PostMeta {
+export interface Post extends Omit<PostMeta, "readingMinutes"> {
+  /** Manual override for reading time in minutes, if specified. */
+  readingMinutes?: number;
   /** Optional animated visual displayed alongside the article title. */
   titleAsset?: PostTitleAsset;
   blocks: Block[];
