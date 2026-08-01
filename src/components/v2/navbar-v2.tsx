@@ -128,7 +128,6 @@ export default function NavbarV2() {
 
             {/* CTA */}
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              {/* /journal — hidden
               <Link
                 href="/blog"
                 className="nav-blog-link"
@@ -144,7 +143,6 @@ export default function NavbarV2() {
               >
                 Blog
               </Link>
-              */}
               <button
                 onClick={() => handleNav("contact")}
                 className="nav-contact-pill"
@@ -213,6 +211,21 @@ export default function NavbarV2() {
             </Link>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Link
+                href="/blog"
+                className="nav-blog-link"
+                style={{
+                  fontFamily: "var(--font-bebas, sans-serif)",
+                  fontSize: "0.8125rem",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: navInk,
+                  textDecoration: "none",
+                  transition: "opacity 0.2s",
+                }}
+              >
+                Blog
+              </Link>
               <button
                 onClick={() => handleNav("contact")}
                 className="nav-contact-pill"
@@ -352,9 +365,6 @@ export default function NavbarV2() {
               {t("navHome", language) || "Home"}
             </button>
 
-            {/* /journal — hidden
-            Blog lives at its own route, so it's a Link rather than a
-            section scroll like the entries below it.
             <Link
               href="/blog"
               onClick={() => setIsMenuOpen(false)}
@@ -373,7 +383,6 @@ export default function NavbarV2() {
             >
               Blog
             </Link>
-            */}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", width: "100%" }}>
               <span style={{ 

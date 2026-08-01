@@ -86,12 +86,15 @@ export interface CheckpointInfo {
 
 interface GenerationShowcaseProps {
   items: CheckpointInfo[];
+  /** The section's heading, rendered on the same row as the view controls. */
   title?: string;
+  titleId?: string;
 }
 
 export default function GenerationShowcase({
   items,
-  title = "Qué aprendió el crew (Simulación con Assets Reales)",
+  title,
+  titleId,
 }: GenerationShowcaseProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [viewMode, setViewMode] = useState<"grid" | "single">("grid");
@@ -100,15 +103,21 @@ export default function GenerationShowcase({
   return (
     <div className="blog-gen-showcase blog-bleed">
       <div className="blog-gen-showcase-header">
-        <div className="blog-gen-showcase-title-wrap">
-          <span className="blog-gen-showcase-dot" />
-          <h4 className="blog-gen-showcase-title">{title}</h4>
-        </div>
+        {title && (
+          <h3 id={titleId} className="blog-gen-showcase-title">
+            {title}
+          </h3>
+        )}
         <div className="blog-gen-controls">
-          <div className="blog-asset-switcher">
+          <div
+            className="blog-asset-switcher"
+            role="group"
+            aria-label="Modo de visualización"
+          >
             <button
               type="button"
               className={`blog-asset-tab ${viewMode === "grid" ? "is-active" : ""}`}
+              aria-pressed={viewMode === "grid"}
               onClick={() => setViewMode("grid")}
             >
               Vista Comparativa (3 Cols)
@@ -116,6 +125,7 @@ export default function GenerationShowcase({
             <button
               type="button"
               className={`blog-asset-tab ${viewMode === "single" ? "is-active" : ""}`}
+              aria-pressed={viewMode === "single"}
               onClick={() => setViewMode("single")}
             >
               Foco Detallado
@@ -126,6 +136,7 @@ export default function GenerationShowcase({
             className="blog-gen-play-btn"
             onClick={() => setIsPlaying(!isPlaying)}
             title={isPlaying ? "Pausar animación" : "Reproducir animación"}
+            aria-pressed={!isPlaying}
           >
             {isPlaying ? "⏸ Pausar" : "▶ Reanudar"}
           </button>
@@ -148,23 +159,30 @@ export default function GenerationShowcase({
         </div>
       )}
 
-      <div
-        className={`blog-gen-grid ${
-          viewMode === "grid" ? "blog-gen-grid--three" : "blog-gen-grid--single"
-        }`}
-      >
-        {items.map((item, idx) => {
-          if (viewMode === "single" && idx !== selectedIndex) return null;
-          return (
-            <CheckpointCard
-              key={idx}
-              item={item}
-              isPlaying={isPlaying}
-              isActive={selectedIndex === idx}
-              onSelect={() => setSelectedIndex(idx)}
-            />
-          );
-        })}
+      {/* The frame carries no padding of its own: the gutters between the
+          cards are the only spacing, so the outer two start and end at the
+          section's edges and every card is as tall as the row. */}
+      <div className="blog-gen-frame">
+        <div
+          className={`blog-gen-grid ${
+            viewMode === "grid"
+              ? "blog-gen-grid--three"
+              : "blog-gen-grid--single"
+          }`}
+        >
+          {items.map((item, idx) => {
+            if (viewMode === "single" && idx !== selectedIndex) return null;
+            return (
+              <CheckpointCard
+                key={idx}
+                item={item}
+                isPlaying={isPlaying}
+                isActive={selectedIndex === idx}
+                onSelect={() => setSelectedIndex(idx)}
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -188,9 +206,11 @@ function CheckpointCard({
    * exactly where they were.
    */
   const playingRef = useRef(isPlaying);
+  const animationControlRef = useRef<(playing: boolean) => void>(() => {});
 
   useEffect(() => {
     playingRef.current = isPlaying;
+    animationControlRef.current(isPlaying);
   }, [isPlaying]);
 
   useEffect(() => {
@@ -200,8 +220,15 @@ function CheckpointCard({
     if (!ctx) return;
 
     let animationFrameId = 0;
+    let isNearViewport = false;
+    let pageVisible = !document.hidden;
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let motionAllowed = !motionQuery.matches;
     let width = 320;
     let height = 240;
+    let queueFrame = () => {};
+    const shouldAnimate = () =>
+      playingRef.current && isNearViewport && pageVisible && motionAllowed;
     /**
      * Sprites are drawn at whole multiples of their source size — a pixel
      * sprite at 1.37× is a smear. One step up once the frame is tall enough
@@ -212,7 +239,9 @@ function CheckpointCard({
 
     const assets = loadAssets(() => {
       // A sprite that arrives after the first frames still has to appear.
-      if (!playingRef.current) draw(performance.now());
+      if (!isNearViewport) return;
+      if (shouldAnimate()) queueFrame();
+      else draw(performance.now());
     });
 
     /** Backing store in device pixels, drawing in CSS pixels. */
@@ -351,6 +380,7 @@ function CheckpointCard({
     };
 
     const draw = (time: number) => {
+      animationFrameId = 0;
       ctx.clearRect(0, 0, width, height);
       ctx.imageSmoothingEnabled = false;
 
@@ -535,14 +565,69 @@ function CheckpointCard({
 
       ctx.restore();
 
-      animationFrameId = requestAnimationFrame(draw);
+      queueFrame();
     };
 
-    animationFrameId = requestAnimationFrame(draw);
+    queueFrame = () => {
+      if (!animationFrameId && shouldAnimate()) {
+        animationFrameId = requestAnimationFrame(draw);
+      }
+    };
+
+    const stopFrame = () => {
+      if (!animationFrameId) return;
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = 0;
+    };
+
+    const renderRestingFrame = () => {
+      stopFrame();
+      if (isNearViewport) draw(performance.now());
+    };
+
+    animationControlRef.current = (playing) => {
+      playingRef.current = playing;
+      if (playing) queueFrame();
+      else renderRestingFrame();
+    };
+
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        isNearViewport = entry.isIntersecting;
+        if (!isNearViewport) {
+          stopFrame();
+          return;
+        }
+
+        if (shouldAnimate()) queueFrame();
+        else draw(performance.now());
+      },
+      { rootMargin: "160px 0px", threshold: 0 },
+    );
+
+    const onDocumentVisibility = () => {
+      pageVisible = !document.hidden;
+      if (pageVisible) queueFrame();
+      else stopFrame();
+    };
+
+    const onMotionPreference = () => {
+      motionAllowed = !motionQuery.matches;
+      if (motionAllowed) queueFrame();
+      else renderRestingFrame();
+    };
+
+    visibilityObserver.observe(canvas);
+    document.addEventListener("visibilitychange", onDocumentVisibility);
+    motionQuery.addEventListener("change", onMotionPreference);
 
     return () => {
       observer.disconnect();
-      cancelAnimationFrame(animationFrameId);
+      visibilityObserver.disconnect();
+      document.removeEventListener("visibilitychange", onDocumentVisibility);
+      motionQuery.removeEventListener("change", onMotionPreference);
+      animationControlRef.current = () => {};
+      stopFrame();
     };
   }, [item.behaviorType]);
 
@@ -554,9 +639,12 @@ function CheckpointCard({
       : "is-trained";
 
   return (
-    <div
+    <button
+      type="button"
       className={`blog-gen-card ${colorClass} ${isActive ? "is-selected" : ""}`}
       onClick={onSelect}
+      aria-pressed={isActive}
+      aria-label={`${item.checkpoint}: ${item.reward} monedas por episodio`}
     >
       <div className="blog-gen-card-header">
         <div className="blog-gen-card-title-group">
@@ -567,7 +655,12 @@ function CheckpointCard({
       </div>
 
       <div className="blog-gen-card-viewport">
-        <canvas ref={canvasRef} className="blog-gen-canvas" />
+        <canvas
+          ref={canvasRef}
+          className="blog-gen-canvas"
+          role="img"
+          aria-label={`Simulación visual: ${item.description}`}
+        />
         <div className="blog-gen-canvas-overlay">
           <span className="blog-gen-sim-status">
             {item.behaviorType === "untrained" && "⚠ Deriva sin control"}
@@ -580,6 +673,6 @@ function CheckpointCard({
       <div className="blog-gen-card-body">
         <p className="blog-gen-card-desc">{item.description}</p>
       </div>
-    </div>
+    </button>
   );
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import BlogNavbar from "@/components/blog/blog-navbar";
 import "./blog.css";
@@ -19,6 +19,13 @@ export const metadata: Metadata = {
     description:
       "Notes on architecture, design systems and the details that decide whether software feels solid.",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#111214",
 };
 
 export default function BlogLayout({

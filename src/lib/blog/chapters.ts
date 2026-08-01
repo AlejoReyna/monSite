@@ -34,16 +34,24 @@ export function getPostHeadings(blocks: Block[]): BlogHeading[] {
   const seen = new Map<string, number>();
 
   return blocks.flatMap((block, blockIndex) => {
-    if (block.kind !== "heading" && block.kind !== "subheading") return [];
+    // The showcase carries its own title so the view controls can share the
+    // heading's row — for the table of contents it counts as a subheading.
+    const text =
+      block.kind === "heading" || block.kind === "subheading"
+        ? block.text
+        : block.kind === "generationShowcase"
+        ? block.title
+        : undefined;
+    if (!text) return [];
 
-    const baseId = slugifyHeading(block.text) || `section-${blockIndex + 1}`;
+    const baseId = slugifyHeading(text) || `section-${blockIndex + 1}`;
     const occurrence = (seen.get(baseId) ?? 0) + 1;
     seen.set(baseId, occurrence);
 
     return [
       {
         id: occurrence === 1 ? baseId : `${baseId}-${occurrence}`,
-        text: block.text,
+        text,
         level: block.kind === "heading" ? 2 : 3,
         blockIndex,
       } satisfies BlogHeading,

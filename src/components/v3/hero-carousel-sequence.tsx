@@ -456,6 +456,24 @@ export default function HeroCarouselSequence() {
     return () => window.removeEventListener("sequence:navigate", onNavigate);
   }, [goToPanel]);
 
+  // Manejo de la URL hash (ej: /#contact): navega al panel correspondiente al cargar o cambiar el hash.
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace(/^#/, "");
+      if (hash === "contact") goToPanel(6);
+      else if (hash === "home") goToPanel(0);
+      else if (hash === "inverater") goToPanel(1);
+      else if (hash === "plebes") goToPanel(2);
+      else if (hash === "cafeteria") goToPanel(3);
+      else if (hash === "wedding") goToPanel(4);
+      else if (hash === "nonamedbot") goToPanel(5);
+    };
+
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, [goToPanel]);
+
   // ── Navegación por teclado (flechas, Página, Inicio/Fin, Espacio) ─────────
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
