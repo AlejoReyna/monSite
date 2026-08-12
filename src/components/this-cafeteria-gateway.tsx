@@ -1,66 +1,46 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import Image from "next/image";
+import type { CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import styles from "./this-cafeteria-gateway.module.css";
-import { useLanguage } from "@/components/lang-context";
-import type { Language } from "@/components/lang-context";
+
+/**
+ * The Artisanal Brew gateway, carrying the real hero.
+ *
+ * Ported from ThisCafeteria.Web — Components/Home/PixelHome.razor for the
+ * copy and headline extrusion, and Components/Layout/NavMenu.razor for the
+ * top section, including its own breakpoints. This used to be a screen
+ * recording of the hero behind a separate wordmark card; now it's the hero
+ * itself, so what shows up here tracks what's actually live.
+ *
+ * The deploy badge and tech-stack row are this portfolio's own addition —
+ * the real hero doesn't advertise its own stack — restyled in the hero's
+ * monospace/copper palette instead of the old card's serif/Inter look.
+ */
 
 const DEPLOYMENT_URL = "https://cafe.alexisreyna.dev";
-const DOCS_URL = "https://github.com/AlejoReyna/tcde";
+const REPO_URL = "https://github.com/AlejoReyna/tcde";
 
-const simpleIcon = (slug: string, color = "f8f5ea") =>
+const TITLE_LINES = ["ARTISANAL", "BREW"] as const;
+
+const STARS = Array.from({ length: 12 }, (_, index) => index + 1);
+
+const simpleIcon = (slug: string, color = "f4efe6") =>
   `https://cdn.simpleicons.org/${slug}/${color}`;
 
-const COPY: Record<Language, {
-  deployedOn: string;
-  deployChain: string;
-  deployNetwork: string;
-  deployAria: string;
-  wordmarkTop: string;
-  wordmarkBottom: string;
-  lead: string;
-  ctaPrimary: string;
-  ctaSecondary: string;
-  techAriaLabel: string;
-}> = {
-  en: {
-    deployedOn: "Deployed on",
-    deployChain: "Ethereum",
-    deployNetwork: "Sepolia",
-    deployAria: "Ethereum Sepolia",
-    wordmarkTop: "Artisanal",
-    wordmarkBottom: "Brew",
-    lead: "A cloud-ready ASP.NET commerce platform for specialty coffee — Blazor storefronts, Identity-protected orders, and Ethereum Sepolia payments, staking, and rewards.",
-    ctaPrimary: "View deployment",
-    ctaSecondary: "Docs",
-    techAriaLabel: "Artisanal Brew tech stack",
-  },
-  es: {
-    deployedOn: "Desplegado en",
-    deployChain: "Ethereum",
-    deployNetwork: "Sepolia",
-    deployAria: "Ethereum Sepolia",
-    wordmarkTop: "Artisanal",
-    wordmarkBottom: "Brew",
-    lead: "Una plataforma e-commerce en ASP.NET preparada para la nube y orientada al café de especialidad: interfaces de tienda con Blazor, pedidos asegurados mediante Identity, además de pagos, staking y recompensas en la red Ethereum Sepolia.",
-    ctaPrimary: "Ver despliegue",
-    ctaSecondary: "GitHub repo",
-    techAriaLabel: "Stack tecnológico de Artisanal Brew",
-  },
-  zh: {
-    deployedOn: "部署于",
-    deployChain: "以太坊",
-    deployNetwork: "Sepolia",
-    deployAria: "以太坊 Sepolia",
-    wordmarkTop: "Artisanal",
-    wordmarkBottom: "Brew",
-    lead: "一个面向精品咖啡、可云端部署的 ASP.NET 电商平台——Blazor 店面、受 Identity 保护的订单，以及以太坊 Sepolia 上的支付、质押和奖励。",
-    ctaPrimary: "查看部署",
-    ctaSecondary: "文档",
-    techAriaLabel: "Artisanal Brew 技术栈",
-  },
-};
+// The real deployment is multichain (see deployments/ in the repo: Ethereum
+// Sepolia, BSC testnet, Solana devnet), so the badge reveals all three in
+// turn — one every 1.5s — settling into a permanent row rather than
+// replacing one with the next.
+const NETWORKS = [
+  { chain: "ETH", name: "Sepolia", logo: "/eth_logo.png" },
+  { chain: "BSC", name: "Testnet", logo: simpleIcon("binance", "f0b90b") },
+  { chain: "Solana", name: "Devnet", logo: simpleIcon("solana", "9945FF") },
+] as const;
+
+const NETWORK_INTERVAL_MS = 1500;
 
 const techStack = [
   { label: ".NET", logo: simpleIcon("dotnet") },
@@ -78,21 +58,36 @@ const techStack = [
 ] as const;
 
 export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: boolean }) {
-  const { language } = useLanguage();
-  const copy = COPY[language];
-  const videoRef = useRef<HTMLVideoElement>(null);
+  let letterIndex = 0;
+
+  // `step` walks 0 → NETWORKS.length + 1, one tick every 1.5s. Network `i`
+  // is visible once step > i, and it's the one "announcing" its full name
+  // for exactly one tick (step === i + 1) before collapsing to an icon —
+  // including the last one, which gets its own extra tick to collapse in.
+  // A ref (not state) marks it done so a later isActive toggle can't
+  // restart the sequence and flicker icons that already settled in.
+  const [step, setStep] = useState(0);
+  const hasSettledRef = useRef(false);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (isActive) {
-      video.play().catch(() => {
-        // Autoplay may be blocked by the browser; the poster/overlay still shows.
-      });
-    } else {
-      video.pause();
-    }
+    if (!isActive || hasSettledRef.current) return;
+
+    const totalSteps = NETWORKS.length + 1;
+    let current = 0;
+    const id = setInterval(() => {
+      current += 1;
+      setStep(current);
+      if (current >= totalSteps) {
+        hasSettledRef.current = true;
+        clearInterval(id);
+      }
+    }, NETWORK_INTERVAL_MS);
+    return () => clearInterval(id);
   }, [isActive]);
+
+  // Once every network has announced and collapsed, the row settles under a
+  // single summary caption instead of staying blank.
+  const settled = step > NETWORKS.length;
 
   const container = {
     hidden: { opacity: 0 },
@@ -102,17 +97,17 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
     },
   };
 
+  const item = {
+    hidden: { opacity: 0, y: 18 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } },
+  };
+
   const badgeContainer = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
       transition: { staggerChildren: 0, delayChildren: 1.05 },
     },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 18 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } },
   };
 
   const logoGroup = {
@@ -146,23 +141,29 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
   return (
     <section className={styles.screen} aria-labelledby="this-cafeteria-title">
       <motion.div
-        className={styles.backgroundCol}
+        className={styles.scene}
         aria-hidden="true"
         initial={{ opacity: 0 }}
         animate={isActive ? { opacity: 1 } : { opacity: 0 }}
         transition={{ duration: 1, delay: 0.1 }}
       >
-        <video
-          ref={videoRef}
-          className={styles.backgroundVideo}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-        >
-          <source src="/bg_video.mp4" type="video/mp4" />
-        </video>
+        {STARS.map((n) => (
+          <span key={n} className={`${styles.star} ${styles[`star${n}`]}`} />
+        ))}
+        <Image className={styles.andromeda} src="/blog/artisanal-brew-assets/pl-andromeda.png" alt="" width={132} height={84} unoptimized />
+        <Image className={styles.planet} src="/blog/artisanal-brew-assets/pl-planet.png" alt="" width={32} height={32} unoptimized />
+        <Image className={styles.planetRinged} src="/blog/artisanal-brew-assets/pl-planet-ringed.png" alt="" width={40} height={32} unoptimized />
+        <Image className={`${styles.chain} ${styles.chainEth}`} src="/blog/artisanal-brew-assets/pl-chain-ethereum.png" alt="" width={48} height={48} unoptimized />
+        <Image className={`${styles.chain} ${styles.chainSol}`} src="/blog/artisanal-brew-assets/pl-chain-solana.png" alt="" width={48} height={48} unoptimized />
+        <Image className={`${styles.chain} ${styles.chainBnb}`} src="/blog/artisanal-brew-assets/pl-chain-bnb.png" alt="" width={48} height={48} unoptimized />
+        <Image className={`${styles.coin} ${styles.coinOne}`} src="/blog/artisanal-brew-assets/coffee-coin-pixel.png" alt="" width={32} height={32} unoptimized />
+        <Image className={`${styles.coin} ${styles.coinTwo}`} src="/blog/artisanal-brew-assets/coffee-coin-pixel.png" alt="" width={32} height={32} unoptimized />
+        <Image className={styles.mug} src="/blog/artisanal-brew-assets/pl-mug-coffee.png" alt="" width={24} height={24} unoptimized />
+
+        <span className={`${styles.crew} ${styles.crewOne}`} />
+        <span className={`${styles.crew} ${styles.crewTwo}`} />
+        <span className={`${styles.crew} ${styles.crewThree}`} />
+        <span className={`${styles.crew} ${styles.crewFour}`} />
       </motion.div>
 
       <motion.div
@@ -172,26 +173,71 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
         animate={isActive ? "show" : "hidden"}
       >
         <motion.span className={styles.deployLabel} variants={item}>
-          {copy.deployedOn}
+          Deployed on
         </motion.span>
-        <motion.div className={styles.deployNetwork} variants={item} aria-label={copy.deployAria}>
-          <img
-            className={styles.deployLogo}
-            src="/eth_logo.png"
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-          />
-          <span className={styles.deployNetworkText}>
-            <span className={styles.deployChain}>{copy.deployChain}</span>
-            <span className={styles.deployName}>{copy.deployNetwork}</span>
-          </span>
-        </motion.div>
+        <div
+          className={styles.deployNetworkRow}
+          aria-label={NETWORKS.map((n) => `${n.chain} ${n.name}`).join(", ")}
+        >
+          {NETWORKS.map((n, index) => {
+            const visible = step > index;
+            if (!visible) return null;
+            const announcing = step === index + 1;
+
+            return (
+              <motion.div
+                key={n.chain}
+                layout
+                className={styles.deployNetworkIcon}
+                initial={{ opacity: 0, y: 10, scale: 0.85 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] as const }}
+              >
+                <Image
+                  className={styles.deployLogo}
+                  src={n.logo}
+                  alt={`${n.chain} ${n.name}`}
+                  title={`${n.chain} ${n.name}`}
+                  width={27}
+                  height={27}
+                  loading="lazy"
+                  unoptimized
+                />
+                <AnimatePresence>
+                  {announcing && (
+                    <motion.span
+                      className={styles.deployNetworkLabel}
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: "auto" }}
+                      exit={{ opacity: 0, width: 0 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] as const }}
+                    >
+                      {n.chain} {n.name}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        <AnimatePresence>
+          {settled && (
+            <motion.span
+              className={styles.deploySummary}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as const }}
+            >
+              Three testnets
+            </motion.span>
+          )}
+        </AnimatePresence>
 
         <motion.ul
           className={`${styles.techRow} ${styles.techRowTop}`}
           variants={logoGroup}
-          aria-label={copy.techAriaLabel}
+          aria-label="Artisanal Brew tech stack"
         >
           {renderTechItems()}
         </motion.ul>
@@ -204,39 +250,44 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
         animate={isActive ? "show" : "hidden"}
       >
         <div className={styles.content}>
-          <motion.h2 id="this-cafeteria-title" className={styles.wordmark} variants={item}>
-            <span className={styles.wordmarkTop}>{copy.wordmarkTop}</span>
-            {" "}
-            <span className={styles.wordmarkBottom}>{copy.wordmarkBottom}</span>
+          <motion.h2 id="this-cafeteria-title" className={styles.title} variants={item} aria-label="Artisanal Brew">
+            {TITLE_LINES.map((line) => (
+              <span className={styles.line} key={line}>
+                {line.split(" ").map((word) => (
+                  <span className={styles.word} key={word}>
+                    {Array.from(word, (letter, index) => (
+                      <span
+                        className={styles.letter}
+                        key={index}
+                        style={{ "--i": letterIndex++ } as CSSProperties}
+                      >
+                        {letter}
+                      </span>
+                    ))}
+                  </span>
+                ))}
+              </span>
+            ))}
           </motion.h2>
 
-          <motion.p className={styles.lead} variants={item}>
-            {copy.lead}
+          <motion.p className={styles.lede} variants={item}>
+            Stake CAFE while it roasts, and watch a friendly pixel crew run
+            wallet-signed test missions on-chain.
           </motion.p>
 
-          <motion.div className={styles.actions} variants={item}>
-            <a
-              className={styles.ctaPrimary}
-              href={DEPLOYMENT_URL}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {copy.ctaPrimary}
+          <motion.div className={styles.ctas} variants={item}>
+            <a className={styles.cta} href={DEPLOYMENT_URL} target="_blank" rel="noreferrer">
+              Visit
             </a>
-            <a
-              className={styles.ctaSecondary}
-              href={DOCS_URL}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {copy.ctaSecondary}
+            <a className={`${styles.cta} ${styles.ctaGhost}`} href={REPO_URL} target="_blank" rel="noreferrer">
+              GitHub
             </a>
           </motion.div>
 
           <motion.ul
             className={`${styles.techRow} ${styles.techRowBottom}`}
             variants={logoGroup}
-            aria-label={copy.techAriaLabel}
+            aria-label="Artisanal Brew tech stack"
           >
             {renderTechItems()}
           </motion.ul>
