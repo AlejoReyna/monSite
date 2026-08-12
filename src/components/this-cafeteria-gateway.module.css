@@ -1,24 +1,23 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500&display=swap");
-
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTjYgEM86xRbPQ.woff2) format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
+/* ══════════════════════════════════════════════════════════════════════════
+   Artisanal Brew gateway — ported from the real hero: ThisCafeteria.Web's
+   Components/Home/PixelHome.razor(.css) for the copy and headline extrusion,
+   and Components/Layout/NavMenu.razor(.css) for the top section, including
+   its own breakpoints (nav folds to wordmark + burger at 760px, the CTA row
+   tightens at 700px). Self-contained rather than sharing blog.css, since this
+   panel renders on every page load, not just /blog.
+   ══════════════════════════════════════════════════════════════════════════ */
 
 .screen {
-  --cafeteria-ink: #f8f5ea;
-  --cafeteria-muted: rgba(248, 245, 234, 0.74);
-  --cafeteria-line: rgba(248, 245, 234, 0.18);
-  --cafeteria-accent: #f8f5ea;
-  --cafeteria-gold: #c9a15b;
-  --cafeteria-sepolia: #8fd8f2;
+  --ab-bg-deep: #100d0b;
+  --ab-ink: #f4efe6;
+  --ab-copper: #c89b6a;
+  --ab-amber: #e5c078;
+  --ab-nav-fg: #fbf9f4;
+  --ab-nav-fg-dim: rgba(251, 249, 244, 0.8);
+  --ab-nav-line: rgba(251, 249, 244, 0.14);
 
-  color: var(--cafeteria-ink);
-  background: #16110d;
+  background: var(--ab-bg-deep);
+  color: var(--ab-ink);
   display: block;
   height: 100%;
   isolation: isolate;
@@ -28,33 +27,327 @@
   position: relative;
 }
 
-.backgroundCol {
-  background: #16110d;
-  height: 100%;
+/* ── Sky: stars, planets, Andromeda, chain badges, coins, a mug ── */
+
+.scene {
+  background:
+    radial-gradient(ellipse 62% 52% at 18% 14%, rgba(200, 155, 106, 0.15), transparent 70%),
+    radial-gradient(ellipse 55% 48% at 82% 72%, rgba(143, 185, 155, 0.1), transparent 70%),
+    var(--ab-bg-deep);
   inset: 0;
-  min-height: 100dvh;
+  isolation: isolate;
   overflow: hidden;
   position: absolute;
-  width: 100%;
   z-index: 1;
 }
 
-.backgroundVideo {
-  height: 100%;
-  object-fit: cover;
+.scene img {
+  height: auto;
+  image-rendering: pixelated;
   position: absolute;
-  width: 100%;
 }
 
-.backgroundCol::after {
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.32) 42%, rgba(0, 0, 0, 0.82) 100%),
-    radial-gradient(circle at 40% 28%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.42) 100%);
+/* The copy is anchored bottom-left over this same scene; dim that corner so
+   scattered sprites don't fight the text for contrast, same trick the old
+   video hero used to keep its bottom-anchored copy readable. */
+.scene::after {
+  background: linear-gradient(
+    215deg,
+    rgba(16, 13, 11, 0.05) 0%,
+    rgba(16, 13, 11, 0.4) 42%,
+    rgba(16, 13, 11, 0.82) 100%
+  );
   content: "";
   inset: 0;
   pointer-events: none;
   position: absolute;
 }
+
+.star {
+  animation: heroStarTwinkle 2.8s steps(2, end) infinite alternate;
+  background: #a7a094;
+  height: 3px;
+  position: absolute;
+  width: 9px;
+}
+
+.star::after {
+  background: inherit;
+  content: "";
+  height: 9px;
+  left: 3px;
+  position: absolute;
+  top: -3px;
+  width: 3px;
+}
+
+.star1 { top: 12%; left: 8%; }
+.star2 { top: 28%; left: 25%; background: #8fb99b; animation-delay: -0.7s; }
+.star3 { top: 10%; left: 48%; animation-delay: -1.4s; }
+.star4 { top: 20%; right: 12%; background: #e5c078; animation-delay: -2.1s; }
+.star5 { top: 52%; left: 12%; animation-delay: -1.8s; }
+.star6 { top: 44%; left: 55%; background: #c89b6a; animation-delay: -0.4s; }
+.star7 { top: 62%; right: 8%; animation-delay: -1.1s; }
+.star8 { bottom: 15%; left: 18%; background: #8fb99b; animation-delay: -2.5s; }
+.star9 { bottom: 8%; left: 47%; animation-delay: -0.9s; }
+.star10 { bottom: 24%; right: 25%; background: #e5c078; animation-delay: -1.6s; }
+.star11 { top: 72%; left: 37%; animation-delay: -2.2s; }
+.star12 { top: 36%; right: 36%; background: #8fb99b; animation-delay: -1.2s; }
+
+@keyframes heroStarTwinkle {
+  from { opacity: 0.25; }
+  to { opacity: 1; }
+}
+
+.andromeda { right: 3%; bottom: 4%; width: clamp(8rem, 22vw, 13rem); opacity: 0.55; }
+.planet { top: 10%; left: 4%; width: clamp(3rem, 8vw, 4.5rem); }
+.planetRinged { top: 8%; right: 5%; width: clamp(4rem, 10vw, 6rem); opacity: 0.8; }
+
+.chain { width: clamp(2.3rem, 7vw, 3.5rem); filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.18)); }
+.chainEth { top: 45%; left: 6%; }
+.chainSol { bottom: 9%; left: 28%; }
+.chainBnb { top: 27%; right: 30%; }
+
+.coin { width: clamp(1.8rem, 5vw, 2.6rem); filter: drop-shadow(0 0 7px rgba(236, 178, 66, 0.5)); }
+.coinOne { top: 18%; left: 38%; }
+.coinTwo { bottom: 22%; right: 14%; }
+
+.mug { right: 38%; bottom: 10%; width: clamp(2rem, 6vw, 3rem); rotate: -4deg; }
+
+/* ── Robot crew: same sprite sheet, four independent flight paths ── */
+
+.crew {
+  animation:
+    heroCrewFrames 1s steps(1, end) infinite,
+    heroCrewFloat 2.5s ease-in-out infinite alternate;
+  aspect-ratio: 1;
+  background-image: url("/blog/artisanal-brew-assets/pl-robot-coincrew.png");
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: 500% 100%;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.42));
+  image-rendering: pixelated;
+  position: absolute;
+  width: clamp(3.5rem, 6vw, 5.5rem);
+  will-change: translate, background-position;
+  z-index: 1;
+}
+
+/* crewOne and crewThree are kept clear of the deploy badge (top-left) and
+   the bottom-left copy column, unlike the other two which scatter freely
+   since nothing sits under them there. */
+.crewOne { top: 38%; left: 16%; animation-delay: -0.2s, -1.1s; }
+.crewTwo { top: 22%; right: 14%; width: clamp(4rem, 7.5vw, 6.5rem); animation-delay: -0.65s, -2s; animation-duration: 0.9s, 2.9s; }
+.crewThree { top: 56%; left: 58%; animation-delay: -0.4s, -0.4s; animation-duration: 1.15s, 2.2s; }
+.crewFour { right: 12%; bottom: 9%; width: clamp(3rem, 5vw, 4.5rem); animation-delay: -0.85s, -1.7s; animation-duration: 0.8s, 3.1s; }
+
+@keyframes heroCrewFrames {
+  0%, 19% { background-position: 0% 0; }
+  20%, 39% { background-position: 25% 0; }
+  40%, 59% { background-position: 50% 0; }
+  60%, 79% { background-position: 75% 0; }
+  80%, 100% { background-position: 100% 0; }
+}
+
+@keyframes heroCrewFloat {
+  from { translate: 0 -7px; }
+  to { translate: 0 9px; }
+}
+
+/* ── Deploy badge + tech stack: this portfolio's own addition, restyled in
+   the hero's monospace/copper palette so it reads as part of the scene
+   instead of the old card's serif/Inter look. Anchored top-left, clear of
+   the fixed global nav; the copy below is anchored bottom-left, so the two
+   never compete for the same vertical space. ── */
+
+.deployBadge {
+  align-items: flex-start;
+  background: rgba(16, 13, 11, 0.55);
+  border: 1px solid var(--ab-nav-line);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  left: clamp(1.5rem, 6vw, 5rem);
+  margin-top: clamp(3rem, 8vh, 5rem);
+  max-width: min(19rem, 70vw);
+  padding: 0.65rem 0.8rem;
+  pointer-events: none;
+  position: absolute;
+  top: clamp(1.25rem, 4.5vh, 2.5rem);
+  z-index: 3;
+}
+
+.deployLabel {
+  color: var(--ab-nav-fg-dim);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Networks reveal one at a time (see the component's `step` state), each
+   announcing its full name for one tick before collapsing to just its icon
+   as the next one appears — settling into a permanent icon row. */
+.deployNetworkRow {
+  align-items: center;
+  display: flex;
+  gap: 0.7rem;
+  min-height: 1.9rem;
+}
+
+.deployNetworkIcon {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.deployLogo {
+  animation: deployLogoFloat 3s ease-in-out infinite;
+  display: block;
+  flex-shrink: 0;
+  height: 1.9rem;
+  object-fit: contain;
+  width: auto;
+}
+
+@keyframes deployLogoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.deployNetworkLabel {
+  color: var(--ab-ink);
+  display: inline-block;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Caption the icon row settles under once all three have announced. */
+.deploySummary {
+  color: var(--ab-nav-fg-dim);
+  display: block;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.techRow {
+  align-items: center;
+  border-top: 1px solid var(--ab-nav-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  list-style: none;
+  margin: 0;
+  padding-top: 0.6rem;
+  width: 100%;
+}
+
+/* Desktop: tech stack lives under the "Deployed on" badge (top-left). */
+.techRowTop {
+  display: flex;
+  justify-content: flex-start;
+  pointer-events: auto;
+}
+
+/* Mobile: tech stack moves under the CTAs, where there's room for it. */
+.techRowBottom {
+  display: none;
+  justify-content: center;
+  margin-top: clamp(1rem, 3vh, 1.5rem);
+}
+
+.techChip {
+  display: inline-flex;
+}
+
+.techLogo {
+  display: block;
+  height: 1.05rem;
+  object-fit: contain;
+  opacity: 0.78;
+  transition: opacity 160ms ease, transform 160ms ease;
+  width: auto;
+}
+
+.techLogoTint {
+  filter: brightness(0) saturate(0) invert(0.97);
+}
+
+.techChip:hover .techLogo {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .deployBadge {
+    left: 1.1rem;
+    margin-top: clamp(2rem, 6vh, 3.5rem);
+    max-width: none;
+  }
+
+  .techRowTop {
+    display: none;
+  }
+
+  .techRowBottom {
+    display: flex;
+  }
+
+  .foreground {
+    justify-content: flex-end;
+    padding: 2.25rem 1.5rem clamp(2.25rem, 6vh, 3rem);
+  }
+
+  .content {
+    gap: 1.1rem;
+    max-width: 100%;
+  }
+
+  .title {
+    font-size: clamp(2.1rem, 10.2vw, 3.6rem);
+  }
+
+  .lede {
+    font-size: 1rem;
+    line-height: 1.55;
+    max-width: 32rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .screen {
+    min-height: 100svh;
+  }
+
+  .scene {
+    min-height: 100svh;
+  }
+
+  .foreground {
+    min-height: 100svh;
+    padding: 2rem 1.35rem 2.25rem;
+  }
+
+  .lede {
+    font-size: 0.96rem;
+  }
+
+  .title {
+    font-size: clamp(1.9rem, 10.8vw, 2.8rem);
+  }
+}
+
+/* ── Copy: left-aligned, anchored to the bottom of the panel ── */
 
 .foreground {
   box-sizing: border-box;
@@ -72,320 +365,144 @@
 .content {
   display: grid;
   gap: clamp(0.9rem, 2.2vh, 1.5rem);
-  justify-items: end;
-  margin-left: auto;
-  max-width: 40rem;
-  text-align: right;
+  justify-items: start;
+  margin-right: auto;
+  max-width: 44rem;
+  text-align: left;
   width: 100%;
 }
 
-.deployBadge {
-  align-items: flex-start;
-  background: rgba(14, 11, 9, 0.38);
-  border: 1px solid rgba(248, 245, 234, 0.2);
-  border-radius: 0.9rem;
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  left: clamp(1.5rem, 6vw, 5rem);
-  margin-top: clamp(3rem, 8vh, 5rem);
-  max-width: min(20rem, 70vw);
-  padding: 0.65rem 0.8rem;
-  pointer-events: none;
-  position: absolute;
-  top: clamp(1.25rem, 4.5vh, 2.5rem);
-  z-index: 3;
-}
-
-.deployLabel {
-  color: var(--cafeteria-muted);
-  font-family: "Inter", var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: clamp(0.6rem, 1.1vw, 0.72rem);
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-shadow: 0 0.08rem 0.6rem rgba(0, 0, 0, 0.6);
-  text-transform: uppercase;
-}
-
-.deployNetwork {
-  align-items: center;
-  display: inline-flex;
-  gap: clamp(0.45rem, 1.2vw, 0.7rem);
-}
-
-.deployLogo {
-  animation: deployLogoFloat 3s ease-in-out infinite;
-  display: block;
-  height: clamp(2.35rem, 6vw, 3.5rem);
-  object-fit: contain;
-  width: auto;
-}
-
-@keyframes deployLogoFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .deployLogo {
-    animation: none;
-  }
-}
-
-.deployNetworkText {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.deployChain {
-  color: var(--cafeteria-muted);
-  font-family: "Inter", var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: clamp(0.68rem, 1.6vw, 0.92rem);
-  font-weight: 300;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  text-shadow: 0 0.08rem 0.6rem rgba(0, 0, 0, 0.6);
-}
-
-.deployName {
-  color: var(--cafeteria-ink);
-  font-family: "Inter", var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: clamp(1.1rem, 3.2vw, 1.85rem);
-  font-weight: 600;
-  letter-spacing: 0;
-  line-height: 1;
-  text-shadow:
-    0 0.08rem 0.65rem rgba(0, 0, 0, 0.65),
-    0 0 1rem color-mix(in srgb, var(--cafeteria-sepolia) 34%, transparent);
-}
-
-.wordmark {
-  align-items: baseline;
-  column-gap: 0.14em;
-  color: var(--cafeteria-ink);
-  display: flex;
-  flex-direction: row;
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(2.4rem, 7.8vw, 5.2rem);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 0.92;
-  margin: 0;
-  max-width: 100%;
-  text-align: right;
-  text-shadow: 0 0.15rem 1.4rem rgba(0, 0, 0, 0.45);
-  white-space: nowrap;
-}
-
-.wordmarkTop,
-.wordmarkBottom {
-  color: inherit;
-  font-size: inherit;
-}
-
-.lead {
-  color: var(--cafeteria-muted);
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(0.98rem, 1.5vw, 1.16rem);
+.title {
+  font-family: var(--font-press-start), "Courier New", ui-monospace, monospace;
+  font-size: clamp(1.9rem, 5.4vw, 3.6rem);
   font-weight: 400;
-  line-height: 1.55;
-  margin: 0 0 0 auto;
-  max-width: 34rem;
-  text-align: right;
-  text-shadow: 0 0.08rem 0.8rem rgba(0, 0, 0, 0.42);
-  text-wrap: pretty;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  margin: 0;
+  padding-right: 0.45em;
+  text-align: left;
 }
 
-.actions {
-  align-items: center;
+.line { display: block; }
+.line + .line { margin-top: 0.75em; }
+
+.word { display: inline-block; white-space: nowrap; }
+.word + .word { margin-left: 1.1em; }
+
+.letter {
+  animation: heroTitleBob 2.6s steps(4, end) infinite;
+  animation-delay: calc(var(--i) * 120ms);
+  color: #fffdf9;
+  display: inline-block;
+  text-shadow:
+    -2px -2px 0 #0b0806,
+    0 -2px 0 #0b0806,
+    2px -2px 0 #0b0806,
+    -2px 0 0 #0b0806,
+    -2px 2px 0 #0b0806,
+    2px 2px 0 #2a1c11,
+    4px 4px 0 #2a1c11,
+    6px 6px 0 #241810,
+    8px 8px 0 #1a110a,
+    10px 10px 0 #0b0806;
+  will-change: transform;
+}
+
+@keyframes heroTitleBob {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -0.22em, 0); }
+}
+
+.lede {
+  color: rgba(244, 239, 230, 0.85);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 34rem;
+  text-align: left;
+}
+
+.ctas {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.7rem 0.85rem;
-  justify-content: flex-end;
-  margin: clamp(0.15rem, 0.6vh, 0.5rem) 0 0;
+  gap: 1rem;
+  justify-content: flex-start;
+  margin-top: clamp(0.15rem, 0.6vh, 0.5rem);
 }
 
-.ctaPrimary,
-.ctaSecondary {
+.cta {
   align-items: center;
-  border-radius: 999px;
+  background: var(--ab-ink);
+  clip-path: polygon(
+    6px 0,
+    calc(100% - 6px) 0,
+    calc(100% - 6px) 3px,
+    100% 3px,
+    100% calc(100% - 6px),
+    calc(100% - 3px) calc(100% - 6px),
+    calc(100% - 3px) 100%,
+    6px 100%,
+    6px calc(100% - 3px),
+    0 calc(100% - 3px),
+    0 6px,
+    3px 6px,
+    3px 3px,
+    6px 3px
+  );
+  color: var(--ab-bg-deep);
   display: inline-flex;
-  font-family: var(--font-geist-sans), "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  filter: drop-shadow(5px 5px 0 var(--ab-copper));
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 0.72rem;
-  font-weight: 700;
-  gap: 0.45rem;
+  font-weight: 800;
   justify-content: center;
-  letter-spacing: 0.07em;
-  min-height: 2.4rem;
-  padding: 0.5rem 1.2rem;
+  letter-spacing: 0.12em;
+  min-height: 3.15rem;
+  padding-inline: 2.25rem;
   text-decoration: none;
   text-transform: uppercase;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
-}
-
-.ctaPrimary {
-  background: rgba(248, 245, 234, 0.94);
-  border: 1px solid rgba(248, 245, 234, 0.94);
-  color: #221b17;
-}
-
-.ctaPrimary:hover {
-  background: #ffffff;
-  border-color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.ctaSecondary {
-  background: rgba(248, 245, 234, 0.04);
-  border: 1px solid rgba(248, 245, 234, 0.4);
-  color: var(--cafeteria-ink);
-}
-
-.ctaSecondary:hover {
-  background: rgba(248, 245, 234, 0.12);
-  border-color: var(--cafeteria-ink);
-  transform: translateY(-1px);
-}
-
-.ctaPrimary span,
-.ctaSecondary span {
   transition: transform 160ms ease;
 }
 
-.ctaPrimary:hover span,
-.ctaSecondary:hover span {
-  transform: translateX(3px);
+.cta:hover {
+  transform: translateY(-1px);
 }
 
-.ctaPrimary:focus-visible,
-.ctaSecondary:focus-visible {
-  outline: 2px solid var(--cafeteria-accent);
+.ctaGhost {
+  background: var(--ab-amber);
+  filter: drop-shadow(7px 7px 0 var(--ab-copper));
+}
+
+.cta:focus-visible {
+  outline: 2px solid var(--ab-ink);
   outline-offset: 4px;
 }
 
-.techRow {
-  align-items: center;
-  border-top: 1px solid var(--cafeteria-line);
-  display: flex;
-  flex-wrap: nowrap;
-  gap: clamp(0.6rem, 2.6vw, 1.1rem);
-  justify-content: center;
-  list-style: none;
-  margin: clamp(0.4rem, 1.4vh, 0.9rem) 0 0;
-  padding: clamp(0.85rem, 2vh, 1.1rem) 0 0;
-  width: 100%;
-}
-
-/* Desktop: tech stack lives under the "Deployed on" badge (top-left). */
-.techRowTop {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  pointer-events: auto;
-}
-
-/* Mobile: tech stack moves back to the bottom of the content block. */
-.techRowBottom {
-  display: none;
-}
-
-.techChip {
-  display: inline-flex;
-}
-
-.techLogo {
-  display: block;
-  height: clamp(1rem, 2.9vw, 1.2rem);
-  object-fit: contain;
-  opacity: 0.8;
-  transition: opacity 160ms ease, transform 160ms ease;
-  width: auto;
-}
-
-.techLogoTint {
-  filter: brightness(0) saturate(0) invert(0.97);
-}
-
-.techChip:hover .techLogo {
-  opacity: 1;
-  transform: translateY(-2px);
-}
-
-@media (max-width: 768px) {
-  .foreground {
-    justify-content: flex-end;
-    padding: 2.25rem 1.5rem clamp(2.25rem, 6vh, 3rem);
+@media (max-width: 700px) {
+  .ctas {
+    flex-wrap: nowrap;
+    gap: 0.6rem;
   }
 
-  .content {
-    gap: 1.1rem;
-    max-width: 100%;
-  }
-
-  .wordmark {
-    font-size: clamp(2.3rem, 10.2vw, 4.35rem);
-  }
-
-  .lead {
-    font-size: 1rem;
-    line-height: 1.5;
-    max-width: 30rem;
-  }
-
-  .techRow {
-    gap: clamp(0.55rem, 2.6vw, 0.95rem);
-  }
-
-  .deployBadge {
-    left: 1.1rem;
-    margin-top: clamp(2rem, 6vh, 3.5rem);
-    max-width: none;
-  }
-
-  .techRowTop {
-    display: none;
-  }
-
-  .techRowBottom {
-    display: flex;
-  }
-}
-
-@media (max-width: 560px) {
-  .screen {
-    min-height: 100svh;
-  }
-
-  .backgroundCol {
-    min-height: 100svh;
-  }
-
-  .foreground {
-    min-height: 100svh;
-    padding: 2rem 1.35rem 2.25rem;
-  }
-
-  .lead {
-    font-size: 0.96rem;
-  }
-
-  .wordmark {
-    font-size: clamp(2.15rem, 10.8vw, 3.35rem);
+  .cta {
+    flex: 1 1 0;
+    font-size: 0.62rem;
+    min-height: 2.75rem;
+    min-width: 0;
+    padding-inline: 1rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ctaPrimary,
-  .ctaSecondary,
-  .ctaPrimary span,
-  .ctaSecondary span,
+  .crew,
+  .letter,
+  .star,
+  .deployLogo {
+    animation: none;
+  }
+
+  .cta,
   .techLogo {
     transition: none;
   }
