@@ -1,26 +1,445 @@
 @import "tailwindcss";
 
+/* Paleta sólida Game Boy (sin light-dark: así los bordes siempre pintan) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ff-ink: #1f2d2a;
+  --ff-paper: #fdf6d8;
+  --ff-paper-dim: #efe3ba;
+  --ff-line: #7fa88f;
+  --ff-accent: #d33f2e;
+  --ff-screen: #80caa1;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: #243c36;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+#forest-folio {
+  width: 100vw;
+  height: 100dvh;
+  margin: 0;
+  border: 0;
+  overflow: hidden;
+  background: var(--ff-screen);
+  display: flex;
+  flex-direction: column;
+  font-family: "Courier New", monospace;
+  color: var(--ff-ink);
+}
+
+#forest-folio * {
+  box-sizing: border-box;
+}
+
+/* --- HUD superior: barra crema real, no texto flotante --- */
+
+#forest-folio header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  gap: 12px;
+  background: var(--ff-paper);
+  border-bottom: 4px solid var(--ff-ink);
+  flex: 0 0 auto;
+}
+
+#forest-folio header span {
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+
+#forest-folio .hud-buttons {
+  display: flex;
+  gap: 6px;
+  letter-spacing: 0;
+}
+
+#forest-folio .hud-buttons button {
+  min-height: 32px;
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+#forest-folio .canvas-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  border-bottom: 4px solid var(--ff-ink);
+}
+
+/* --- Botones Game Boy: caja con sombra dura --- */
+
+#forest-folio button {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ff-ink);
+  background: var(--ff-paper);
+  border: 3px solid var(--ff-ink);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 var(--ff-ink);
+  min-height: 44px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+#forest-folio button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ff-ink);
+}
+
+#forest-folio canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  cursor: pointer;
+  touch-action: manipulation;
+  background: var(--ff-screen);
+}
+
+#forest-folio canvas:focus-visible {
+  outline: 3px dashed var(--ff-ink);
+  outline-offset: -3px;
+}
+
+#forest-folio nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 9px;
+  flex: 0 0 auto;
+}
+
+#forest-folio nav button[aria-pressed="true"] {
+  background: var(--ff-ink);
+  color: var(--ff-paper);
+}
+
+/* --- Caja de diálogo Pokémon: caja crema con pestaña de hablante --- */
+
+#forest-folio .dialog {
+  position: relative;
+  margin: 10px 10px 6px;
+  padding: 22px 16px 14px;
+  background: var(--ff-paper);
+  color: var(--ff-ink);
+  border: 4px solid var(--ff-ink);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 0 0 2px var(--ff-paper),
+    inset 0 0 0 4px var(--ff-line),
+    4px 4px 0 rgb(31 45 42 / 0.35);
+  min-height: 138px;
+  flex: 0 0 auto;
+}
+
+#forest-folio .dialog .speaker-tab {
+  position: absolute;
+  top: -15px;
+  left: 14px;
+  background: var(--ff-ink);
+  color: var(--ff-paper);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 4px 12px;
+  border: 2px solid var(--ff-paper);
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px var(--ff-ink);
+  white-space: nowrap;
+  max-width: calc(100% - 28px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#forest-folio .dialog .page-count {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: var(--ff-paper-dim);
+  border: 2px solid var(--ff-ink);
+  border-radius: 6px;
+  padding: 1px 7px;
+}
+
+#forest-folio .dialog-text {
+  min-height: 52px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+#forest-folio .dialog-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+#forest-folio .dialog-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#forest-folio .portrait {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 58px;
+  image-rendering: pixelated;
+  background: var(--ff-paper-dim);
+  border: 3px solid var(--ff-ink);
+  border-radius: 8px;
+}
+
+#forest-folio .portrait-big {
+  width: 64px;
+  height: 72px;
+}
+
+#forest-folio .title-sprites {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--ff-paper-dim);
+  border: 3px solid var(--ff-ink);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+#forest-folio .title-vs {
+  flex: 1 1 auto;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+#forest-folio .poke-arrow {
+  display: inline-block;
+  margin-left: 6px;
+  font-weight: 700;
+  animation: poke-blink 0.9s steps(2) infinite;
+}
+
+@keyframes poke-blink {
+  50% {
+    opacity: 0;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+#forest-folio h3 {
+  font-size: 13px;
+  letter-spacing: 1px;
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+
+#forest-folio p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+#forest-folio .enter {
+  display: inline-block;
+  margin-top: 10px;
+  min-height: 36px;
+  font-size: 12px;
+}
+
+#forest-folio footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 2px 12px 12px;
+  font-size: 11px;
+}
+
+#forest-folio .hint {
+  margin: 0 10px 10px;
+  padding: 6px 10px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  background: var(--ff-ink);
+  color: var(--ff-paper);
+  border-radius: 6px;
+  flex: 0 0 auto;
+}
+
+.trainer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.trainer-card {
+  max-width: 480px;
+  width: 100%;
+  background: var(--ff-paper);
+  color: var(--ff-ink);
+  border: 4px solid var(--ff-ink);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 0 0 2px var(--ff-paper),
+    inset 0 0 0 4px var(--ff-line),
+    6px 6px 0 rgb(0 0 0 / 0.35);
+  padding: 18px;
+}
+
+.trainer-card .role {
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.trainer-card ul {
+  margin: 12px 0;
+  padding-left: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.project-page {
+  font-family: "Courier New", monospace;
+  max-width: 680px;
+  margin: 24px auto;
+  border: 4px solid var(--ff-ink);
+  border-radius: 14px;
+  background: var(--ff-paper);
+  color: var(--ff-ink);
+  box-shadow:
+    inset 0 0 0 2px var(--ff-paper),
+    inset 0 0 0 4px var(--ff-line),
+    6px 6px 0 rgb(0 0 0 / 0.3);
+  padding: 18px;
+}
+
+.project-page a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 420px) {
+  #forest-folio nav button {
+    font-size: 11px;
+    padding: 4px 1px;
+  }
+  #forest-folio .dialog {
+    padding: 20px 12px 12px;
+  }
+}
+
+#forest-folio .dpad {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  opacity: 0.95;
+}
+
+#forest-folio .dpad-move {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+}
+
+#forest-folio .dpad-move > div {
+  display: flex;
+  gap: 4px;
+}
+
+#forest-folio .dpad-move button {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 14px;
+  background: var(--ff-ink);
+  color: var(--ff-paper);
+  border-color: var(--ff-ink);
+  box-shadow: 3px 3px 0 rgb(0 0 0 / 0.4);
+}
+
+#forest-folio .dpad-a {
+  min-width: 58px;
+  min-height: 58px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 16px;
+  background: var(--ff-accent);
+  color: #fff;
+  border-color: var(--ff-ink);
+}
+
+#forest-folio .title-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(20 40 32 / 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 60;
+}
+
+#forest-folio .title-card {
+  max-width: 520px;
+  width: 100%;
+  background: var(--ff-paper);
+  color: var(--ff-ink);
+  border: 4px solid var(--ff-ink);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 0 0 2px var(--ff-paper),
+    inset 0 0 0 4px var(--ff-line),
+    6px 6px 0 rgb(0 0 0 / 0.35);
+  padding: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+#forest-folio .title-card .kicker {
+  font-size: 11px;
+  letter-spacing: 3px;
+  font-weight: 700;
+}
+
+#forest-folio .title-card h2 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: 1px;
+}
+
+#forest-folio .title-card p {
+  font-size: 13px;
+}
+
+#forest-folio .title-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+}
+
+#forest-folio .title-card button.ghost {
+  background: var(--ff-paper-dim);
 }
