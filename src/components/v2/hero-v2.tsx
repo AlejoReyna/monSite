@@ -4,7 +4,6 @@ import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
 import ChatInterface from "@/components/chat-interface";
-import AliceFrameAnimation from "@/components/v2/alice-frame-animation";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
 
@@ -99,8 +98,6 @@ export default function HeroV2({
       className="relative min-h-screen overflow-hidden flex"
       style={{ backgroundColor: noBgImage ? "#08080a" : "var(--gic-night-sky)" }}
     >
-      <AliceFrameAnimation />
-
       {/* Page heading for screen readers */}
       <h1 className="sr-only">{HERO_TITLE[language]}</h1>
 
