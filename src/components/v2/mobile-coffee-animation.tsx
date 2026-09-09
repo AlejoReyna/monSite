@@ -34,7 +34,7 @@ export default function MobileCoffeeAnimation({ active }: { active: boolean }) {
     ref={imageRef}
     src={active && playing && !failed ? "/mobile/coffee.webp" : "/mobile/coffee-still.webp"}
     width={888}
-    height={1400}
+    height=1383
     alt=""
     decoding="async"
     draggable={false}
