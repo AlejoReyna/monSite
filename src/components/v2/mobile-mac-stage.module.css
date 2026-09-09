@@ -33,7 +33,9 @@
     height: 100%;
     object-fit: contain;
     object-position: center top;
-    transform: scale(1.75);
+    /* The layer spans the hero, but the actual pixels clear the 30px menu bar.
+       Translate after scaling so this clearance stays exactly 30px. */
+    transform: translateY(30px) scale(1.75);
     transform-origin: center top;
   }
 
