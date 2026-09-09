@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Folder, Globe, Terminal, Mail, Github, LayoutDashboard } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
@@ -20,6 +20,15 @@ type MobileView = "assistant" | "folders";
 function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { macMobile?: boolean; mobileView?: MobileView; onMobileViewChange?: (view: MobileView) => void }) {
   const { language } = useLanguage();
   const store = useDesktopStore();
+  const [desktopArtwork, setDesktopArtwork] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setDesktopArtwork(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
 
   const copy =
     language === "es"
@@ -31,7 +40,7 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
   return (
     <div data-mobile-view={mobileView} className={`${styles.mac} ${macMobile ? styles.macMobile : ""} ${store.focusMode.active || store.preferences.reducedMotion ? styles.macCalm : ""}`.trim()}>
       <div className={styles.wallpaper} aria-hidden="true" />
-      {!store.desktopHidden && (
+      {!store.desktopHidden && (!macMobile || desktopArtwork) && (
         <div className={styles.macGif} aria-hidden="true">
           <MacCoffeeDrawing />
         </div>

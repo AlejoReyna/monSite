@@ -9,3 +9,13 @@ The character selector, Alice animation, and thought dots were removed from the 
 Desktop layout and shared chat implementation remain unchanged; mobile view state is passed through the hero and desktop picker. Shared stylesheet changes are restricted to max-width: 1023px.
 
 Validation: targeted ESLint, TypeScript, and the production build passed; the local route returned HTTP 200. Physical-device keyboard behavior has not been tested.
+
+## Mobile animation performance follow-up
+
+The mobile character layer starts at `top: 0` inside the hero, within the stage at z-index 30. The menu bar remains above it at z-index 50 and the view switch at 34. The character keeps its 1.75× scale and aspect ratio.
+
+Mobile uses one native animated WebP image instead of the desktop SVG filter/clip-path renderer. The GIF is 17,020,818 bytes; the 888×1400 WebP is 1,731,786 bytes (89.8% smaller), with a 54,234-byte still frame. Pillow encoded it at quality 85 and grouped repeated source frames: 79 original frames become 35 encoded frames with the same 5,640ms visual timeline. Every source frame was compared at its timestamp against the decoded WebP; maximum mean per-channel error was 0.752/255 over the dark backdrop. Transparency is retained.
+
+The mobile renderer switches to the still frame when offscreen, in the Folders view, in a background tab, or when reduced motion is requested. Hidden desktop GIF renderers mount only at desktop widths to avoid a redundant 16MB mobile download. Desktop keeps its original artwork and rendering, mounting after the viewport breakpoint is known.
+
+Validation: production build, targeted ESLint, TypeScript, asset timeline/alpha/quality checks, and whitespace checks passed. Physical-device frame timing has not been measured; this reduces transfer and rendering work without inventing intermediate frames or claiming a higher source frame rate.

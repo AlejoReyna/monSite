@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import ChatInterface from "@/components/chat-interface";
-import MacCoffeeDrawing from "./mac-coffee-drawing";
+import MobileCoffeeAnimation from "./mobile-coffee-animation";
 import styles from "./mobile-mac-stage.module.css";
 
 type MobileMacStageProps = {
@@ -62,7 +62,7 @@ export default function MobileMacStage({
       "--keyboard-bottom": `${viewport.bottom}px`,
     } as CSSProperties}>
       <div className={styles.character} aria-hidden="true">
-        <MacCoffeeDrawing />
+        {active && <MobileCoffeeAnimation active={view === "assistant"} />}
       </div>
       <div
         className={styles.terminal}

@@ -17,8 +17,9 @@
   /* The historic mobile hero centered a single GIF behind a lower window. */
   .character {
     position: absolute;
-    /* Share the switcher row; its icons stay layered above the artwork. */
-    top: calc(30px + env(safe-area-inset-top, 0px));
+    /* Fill the top section behind the menu bar (z-index 50). */
+    top: 0;
+    z-index: 0;
     bottom: calc(66px + env(safe-area-inset-bottom, 0px));
     left: 0;
     right: 0;
@@ -27,12 +28,12 @@
     overflow: hidden;
   }
 
-  .character > svg {
+  .character > img {
     width: min(100%, 520px);
     height: 100%;
-    /* All 79 frames have at least 25 source pixels of headroom.
-       Keep the lift below that scaled inset so the hair never clips. */
-    transform: translateY(-8px) scale(1.75);
+    object-fit: contain;
+    object-position: center top;
+    transform: scale(1.75);
     transform-origin: center top;
   }
 
