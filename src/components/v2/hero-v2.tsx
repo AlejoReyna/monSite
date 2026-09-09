@@ -156,6 +156,7 @@ export default function HeroV2({
             style={{ opacity: gifOpacity, scale: gifScale }}
             aria-hidden
           >
+            {(isDesktop || noBgImage || desktopTheme !== "mac") && (
             <Image
               src="/16.gif"
               alt=""
@@ -165,6 +166,7 @@ export default function HeroV2({
               sizes="(min-width: 1400px) min(540px, 46vw), 0px"
               className="object-contain object-center"
             />
+            )}
           </motion.div>
 
           {/* ── Right column: layout placeholder (terminal floats here) ── */}
