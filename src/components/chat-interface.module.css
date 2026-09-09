@@ -177,3 +177,28 @@
 .mac .aiSend:disabled { opacity: .4; cursor: default; }
 .mac .inputRow { margin-top: auto; }
 .mac .inputRow input::placeholder { color: #b2b8c1; letter-spacing: normal; }
+
+
+.waitCard {
+  gap: 12px;
+}
+
+.waitBar {
+  margin-top: 8px;
+  height: 3px;
+  border-radius: 999px;
+  background: #ffffff14;
+  overflow: hidden;
+}
+
+.waitBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f97316, #fb923c, #fdba74);
+  transition: width 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waitBar > span { transition: none; }
+}

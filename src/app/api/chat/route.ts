@@ -34,7 +34,7 @@ function resolveProviderConfig(): ProviderConfig {
       apiKey: process.env.MOONSHOT_API_KEY ?? process.env.KIMI_API_KEY,
       baseURL: process.env.KIMI_BASE_URL ?? 'https://api.moonshot.ai/v1',
       model: process.env.KIMI_MODEL ?? 'kimi-k2.6',
-      maxTokens: 2500,
+      maxTokens: 900,
     };
   }
   return {
@@ -140,7 +140,7 @@ function serializeQuota(q: Quota) {
  * — breve, directo, tuteo, y con tus rutas de portfolio/contacto
  */
 const PORTFOLIO_CONTEXT = `
-PORTFOLIO PANELS (alexisreyna.dev):
+PORTFOLIO PANELS (alexisrs.dev):
 1. Hero — AI chat terminal (this conversation)
 2. This Cafetería — Blockchain agentic commerce platform (Solidity, .NET, React)
 3. Plebes — Social platform for community
@@ -177,6 +177,7 @@ const ERROR_MESSAGES: Record<Language, Record<string, string>> = {
     messagesRequired: 'Mensajes requeridos (array)',
     quotaExceeded: 'Has alcanzado el límite de {max} prompts en 2h 30m.',
     rateLimit: 'Rate limit alcanzado. Intenta más tarde.',
+    genericError: 'Falló la respuesta en vivo. Intenta de nuevo.',
     invalidApiKey: 'API key inválida',
     modelNotAvailable: 'Modelo no disponible para tu cuenta',
     internalError: 'Error interno del servidor',
@@ -188,6 +189,7 @@ const ERROR_MESSAGES: Record<Language, Record<string, string>> = {
     messagesRequired: 'Messages required (array)',
     quotaExceeded: 'You have reached the limit of {max} prompts in 2h 30m.',
     rateLimit: 'Rate limit reached. Try again later.',
+    genericError: 'Live response failed. Try again.',
     invalidApiKey: 'Invalid API key',
     modelNotAvailable: 'Model not available for your account',
     internalError: 'Internal server error',
@@ -199,6 +201,7 @@ const ERROR_MESSAGES: Record<Language, Record<string, string>> = {
     messagesRequired: '需要消息（数组）',
     quotaExceeded: '你已达到 {max} 条消息的 2 小时 30 分钟限制。',
     rateLimit: '已达到速率限制。请稍后再试。',
+    genericError: '实时回复失败。请重试。',
     invalidApiKey: 'API 密钥无效',
     modelNotAvailable: '你的账户无法使用该模型',
     internalError: '服务器内部错误',
@@ -234,7 +237,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 1) Parse body primero (necesario para evaluar bypass incluso si ya no hay cuota)
-  let body: { messages?: ChatMessage[]; userName?: string };
+  let body: { messages?: ChatMessage[]; userName?: string; stream?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -244,7 +247,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { messages, userName } = body ?? {};
+  const { messages, userName, stream: wantStream } = body ?? {};
   if (!Array.isArray(messages)) {
     return NextResponse.json(
       { error: localize('messagesRequired', 'es') },
@@ -325,6 +328,9 @@ export async function POST(req: NextRequest) {
     let text: string;
     let usage: unknown = null;
 
+    const accept = req.headers.get('accept') || '';
+    const streamRequested = wantStream === true || accept.includes('text/event-stream');
+
     if (config.provider === 'kimi') {
       // 5a) Kimi uses chat.completions (OpenAI-compatible)
       // Extract the hint from the last user message and promote it to the system role
@@ -334,7 +340,7 @@ export async function POST(req: NextRequest) {
         ? `${developerContent}\n\n${hintContent}`
         : developerContent;
 
-      const messages: OpenAI.ChatCompletionMessageParam[] = [
+      const kimiMessages: OpenAI.ChatCompletionMessageParam[] = [
         { role: 'system', content: systemContent },
         ...SHORT_HISTORY
           .filter(msg => msg.role !== 'system')
@@ -343,16 +349,84 @@ export async function POST(req: NextRequest) {
             content: stripHintBlock(msg.content),
           })),
       ];
-      const completion = await client.chat.completions.create({
+
+      // Disable K2.6 "thinking" for snappier portfolio chat, and stream tokens
+      // so mobile UX can show text as soon as the first chunk arrives.
+      const kimiParams = {
         model: config.model,
-        messages,
+        messages: kimiMessages,
         max_tokens: config.maxTokens,
         temperature: 1,
-      });
+        thinking: { type: 'disabled' as const },
+      };
+
+      if (streamRequested) {
+        const stream = await client.chat.completions.create({
+          ...kimiParams,
+          stream: true,
+        } as OpenAI.ChatCompletionCreateParamsStreaming);
+
+        if (!hasBypass) {
+          quota.remaining -= 1;
+        }
+
+        const encoder = new TextEncoder();
+        let assembled = '';
+        const readable = new ReadableStream({
+          async start(controller) {
+            const send = (payload: Record<string, unknown>) => {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+            };
+            try {
+              for await (const chunk of stream) {
+                const delta = chunk.choices[0]?.delta?.content || '';
+                if (delta) {
+                  assembled += delta;
+                  send({ type: 'delta', text: delta });
+                }
+              }
+              send({
+                type: 'done',
+                message: assembled || NO_CONTENT[lang],
+                model: config.model,
+                provider: config.provider,
+                quota: { remaining: quota.remaining, resetAt: quota.resetAt },
+              });
+            } catch (streamError) {
+              console.error('CHAT STREAM ERROR:', streamError);
+              send({ type: 'error', error: localize('genericError', lang) });
+            } finally {
+              controller.close();
+            }
+          },
+        });
+
+        const res = new NextResponse(readable, {
+          headers: {
+            'Content-Type': 'text/event-stream; charset=utf-8',
+            'Cache-Control': 'no-cache, no-transform',
+            Connection: 'keep-alive',
+          },
+        });
+        if (!hasBypass) {
+          res.cookies.set(QUOTA_COOKIE, serializeQuota(quota), {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: true,
+            path: '/',
+            maxAge: Math.floor(WINDOW_MS / 1000),
+          });
+        }
+        return res;
+      }
+
+      const completion = await client.chat.completions.create(
+        kimiParams as OpenAI.ChatCompletionCreateParamsNonStreaming,
+      );
       text = completion.choices[0]?.message?.content ?? NO_CONTENT[lang];
       usage = completion.usage ?? null;
     } else {
-      // 5b) OpenAI Responses API
+      // 5b) OpenAI Responses API (non-streaming JSON for now)
       const resp = await client.responses.create({
         model: config.model,
         input,
