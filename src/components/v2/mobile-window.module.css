@@ -1,0 +1,51 @@
+.mobileTitle { display: none; }
+
+/* Shared touch controls for Finder and Mail; desktop chrome stays intact. */
+@media (max-width: 1023px) {
+  .toolbar.toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 8px;
+    min-height: 60px;
+    padding: 8px 10px;
+  }
+
+  .toolbar.toolbar > strong {
+    position: static;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    transform: none;
+    color: #f3f3f4;
+    font: 600 15px/1.35 -apple-system, BlinkMacSystemFont, sans-serif;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .controls.controls {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    gap: 6px;
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .controls.controls button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    padding: 0;
+    border: 1px solid;
+    border-radius: 12px;
+    touch-action: manipulation;
+  }
+  .controls.controls button:nth-child(1) { color: #ffaaa4; background: #ff5f571c; border-color: #ff5f5755; }
+  .controls.controls button:nth-child(2) { color: #ffdb7a; background: #ffbd0018; border-color: #ffbd004d; }
+  .controls.controls button:nth-child(3) { color: #87e798; background: #28c84018; border-color: #28c8404d; }
+  .controls.controls button:active { filter: brightness(1.35); }
+  .controls.controls svg { width: 18px; height: 18px; opacity: 1; stroke-width: 2; }
+  .desktopTitle { display: none; }
+  .mobileTitle { display: inline; }
+}

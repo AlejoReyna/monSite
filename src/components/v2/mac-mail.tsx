@@ -6,6 +6,7 @@ import { ContactEmailForm } from "@/components/contact-gateway";
 import { useLanguage } from "@/components/lang-context";
 import { animateGenie } from "@/lib/desktop/genie";
 import styles from "./mac-mail.module.css";
+import mobileWindow from "./mobile-window.module.css";
 
 export default function MacMail({ open, onClose }: { open: boolean; onClose: () => void }) {
   const minimizedRef = useRef(false);
@@ -41,7 +42,7 @@ function MacMailWindow({ onClose, minimizedRef }: { onClose: () => void; minimiz
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) {
+    if (reducedMotion || window.matchMedia("(max-width: 1023px)").matches) {
       const revealImmediately = window.setTimeout(() => {
         setTypedCommand(copy.command);
         setEnterPressed(true);
@@ -93,13 +94,13 @@ function MacMailWindow({ onClose, minimizedRef }: { onClose: () => void; minimiz
   return (
     <div className={`${styles.surface} ${expanded ? styles.surfaceFullScreen : ""}`} onKeyDown={(event) => { event.stopPropagation(); if (event.key === "Escape") { event.preventDefault(); dismiss(); } }}>
       <section ref={windowRef} className={`${styles.window} ${expanded ? styles.expanded : ""}`} role="dialog" aria-modal="false" aria-labelledby="mac-mail-title">
-        <header className={styles.toolbar}>
-          <div className={styles.traffic}>
+        <header className={`${styles.toolbar} ${mobileWindow.toolbar}`}>
+          <div className={`${styles.traffic} ${mobileWindow.controls}`}>
             <button ref={closeRef} className={styles.close} onClick={dismiss} aria-label={copy.close}><X size={10} /></button>
             <button className={styles.minimize} onClick={minimize} aria-label={copy.minimize}><Minus size={10} /></button>
             <button className={styles.maximize} onClick={() => setExpanded((value) => !value)} aria-label={expanded ? copy.restore : copy.maximize} aria-pressed={expanded}>{expanded ? <Minimize2 size={9} /> : <Maximize2 size={9} />}</button>
           </div>
-          <strong id="mac-mail-title">{copy.title}</strong>
+          <strong id="mac-mail-title"><span className={mobileWindow.desktopTitle}>{copy.title}</span><span className={mobileWindow.mobileTitle}>{language === "es" ? "Mensaje" : language === "zh" ? "留言" : "Message"}</span></strong>
         </header>
         <div className={styles.body}>
           <p className={styles.command} aria-live="polite">

@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowUpRight, Maximize2, Minimize2, Minus, X } from "lucide-
 import { useLanguage } from "@/components/lang-context";
 import { animateGenie } from "@/lib/desktop/genie";
 import styles from "./mac-projects.module.css";
+import mobileWindow from "./mobile-window.module.css";
 
 const projects = [
   { id: "inverater", title: "Inverater", category: "Proptech", color: "#9aab78", image: null, mark: "inverater.", tags: ["Infrastructure", "Product engineering"], href: "https://www.inverater.com", description: { en: "Real-estate investing made accessible. My work spans infrastructure, hosting and product engineering, keeping the platform running while shipping its next chapter.", es: "Inversión inmobiliaria accesible. Mi trabajo abarca infraestructura, hosting e ingeniería de producto, manteniendo la plataforma mientras construyo su siguiente etapa.", zh: "让房地产投资更易参与。我的工作涵盖基础设施、托管和产品工程，维护平台运行并持续开发新功能。" } },
@@ -75,7 +76,7 @@ export default function MacProjects({
     onClose();
     document.getElementById("mac-projects-launcher")?.focus({ preventScroll: true });
   };
-  const folder = (item: typeof projects[number], desktop = false) => <button key={item.id} className={styles.folderButton} style={{ "--folder-color": item.color } as CSSProperties} onClick={event => { opener.current = event.currentTarget; setSelected(item.id); onOpen(); requestAnimationFrame(() => closeRef.current?.focus()); }} aria-label={`${copy.open}: ${item.title}`}>
+  const folder = (item: typeof projects[number], desktop = false) => <button key={item.id} data-project-id={item.id} className={styles.folderButton} style={{ "--folder-color": item.color } as CSSProperties} onClick={event => { opener.current = event.currentTarget; setSelected(item.id); onOpen(); requestAnimationFrame(() => closeRef.current?.focus()); }} aria-label={`${copy.open}: ${item.title}`}>
     <span className={styles.folderArt} aria-hidden="true"><span className={styles.folderBack} /><span className={styles.folderFront} /></span>
     <strong>{item.title}</strong>{!desktop && <small>{item.category}</small>}
   </button>;
@@ -83,10 +84,16 @@ export default function MacProjects({
   return <div className={`${styles.surface} ${open && expanded ? styles.surfaceFullScreen : ""}`} onKeyDown={event => { event.stopPropagation(); if (event.key === "Escape" && open) { event.preventDefault(); dismiss(); } }} onTouchStart={event => event.stopPropagation()} onTouchEnd={event => event.stopPropagation()}>
     {!open && <div className={styles.desktopFolders} inert={!desktopFoldersInteractive} aria-hidden={!desktopFoldersInteractive} aria-label={copy.title}>{projects.map(item => folder(item, true))}</div>}
     {open && <section ref={windowRef} className={`${styles.window} ${expanded ? styles.expanded : ""}`} role="region" aria-label={`Finder — ${copy.title}`}>
-      <header className={styles.toolbar}>
-        <div className={styles.traffic}><button ref={closeRef} className={styles.close} onClick={dismiss} aria-label={copy.close}><X size={10} /></button><button className={styles.minimize} onClick={minimize} aria-label={copy.minimize}><Minus size={10} /></button><button className={styles.maximize} onClick={() => setExpanded(value => !value)} aria-label={expanded ? copy.restore : copy.maximize} aria-pressed={expanded}>{expanded ? <Minimize2 size={9} /> : <Maximize2 size={9} />}</button></div>
-        {project && <div className={styles.navigation}><button className={styles.back} onClick={() => setSelected(null)} aria-label={copy.back}><ArrowLeft size={16} /></button></div>}
-        <strong>{project ? `${project.title} — Local` : `${copy.title} — Local`}</strong>
+      <header className={`${styles.toolbar} ${mobileWindow.toolbar}`}>
+        <div className={`${styles.traffic} ${mobileWindow.controls}`}><button ref={closeRef} className={styles.close} onClick={dismiss} aria-label={copy.close}><X size={10} /></button><button className={styles.minimize} onClick={minimize} aria-label={copy.minimize}><Minus size={10} /></button><button className={styles.maximize} onClick={() => setExpanded(value => !value)} aria-label={expanded ? copy.restore : copy.maximize} aria-pressed={expanded}>{expanded ? <Minimize2 size={9} /> : <Maximize2 size={9} />}</button></div>
+        {project && <div className={styles.navigation}><button className={styles.back} onClick={() => {
+          const projectId = selected;
+          setSelected(null);
+          if (window.matchMedia("(max-width: 1023px)").matches) {
+            requestAnimationFrame(() => windowRef.current?.querySelector<HTMLButtonElement>(`[data-project-id="${projectId}"]`)?.focus({ preventScroll: true }));
+          }
+        }} aria-label={copy.back}><ArrowLeft size={16} /><span className={styles.backLabel}>{copy.back}</span></button></div>}
+        <strong>{project ? project.title : copy.title}<span className={mobileWindow.desktopTitle}> — Local</span></strong>
       </header>
       <div className={styles.body}>
         <div className={styles.content} key={selected ?? "all"}>
