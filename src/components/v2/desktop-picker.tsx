@@ -40,14 +40,13 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
       {macMobile && (
         <div className={styles.mobileViewSwitcher} role="group" aria-label={language === "es" ? "Vista móvil" : language === "zh" ? "移动视图" : "Mobile view"}>
           {(["assistant", "folders"] as const).map(view => (
-            <button key={view} type="button" aria-pressed={(mobileView ?? "assistant") === view} onClick={() => {
+            <button key={view} type="button" aria-label={view === "assistant" ? (language === "es" ? "Terminal" : language === "zh" ? "终端" : "Terminal") : (language === "es" ? "Carpetas" : language === "zh" ? "文件夹" : "Folders")} title={view === "assistant" ? (language === "es" ? "Terminal" : language === "zh" ? "终端" : "Terminal") : (language === "es" ? "Carpetas" : language === "zh" ? "文件夹" : "Folders")} aria-pressed={(mobileView ?? "assistant") === view} onClick={() => {
               (document.activeElement as HTMLElement | null)?.blur();
               store.closeProjects();
               store.closeMail();
               onMobileViewChange?.(view);
             }}>
-              {view === "assistant" ? <Terminal size={16} /> : <Folder size={16} />}
-              {view === "assistant" ? (language === "es" ? "Terminal" : language === "zh" ? "终端" : "Terminal") : (language === "es" ? "Carpetas" : language === "zh" ? "文件夹" : "Folders")}
+              {view === "assistant" ? <Terminal size={19} aria-hidden="true" /> : <Folder size={19} aria-hidden="true" />}
             </button>
           ))}
         </div>
