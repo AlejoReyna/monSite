@@ -27,6 +27,18 @@ html.is-sequence-locked body {
   overscroll-behavior: none;
 }
 
+/* The desktop choice is an intentional entry screen. Keep the site chrome out
+   of it so the first thing visitors see is only the black background + popup. */
+body:has(#desktop-picker-welcome) .nav-v2-shell,
+body:has(#desktop-picker-welcome) .skip-to-main {
+  visibility: hidden;
+}
+
+body.desktop-picker-welcome-active .nav-v2-shell,
+body.desktop-picker-welcome-active .skip-to-main {
+  visibility: hidden;
+}
+
 /* Keep the document canvas in sync with the active panel. Safari 26 derives
    its top inset tint from the page canvas, while older Safari/Chrome use the
    theme-color meta tag updated by HeroCarouselSequence. */
@@ -155,4 +167,24 @@ body {
 
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
+}
+
+
+/* macOS desktop — Focus / Reduce Motion (portfolio chrome only) */
+html.mac-reduced-motion .badge-float,
+html.mac-focus-mode .badge-float {
+  animation: none !important;
+}
+html.mac-reduced-motion .macGifImage[data-loaded] .macCoffeeReveal,
+html.mac-focus-mode .macGifImage[data-loaded] .macCoffeeReveal {
+  animation: none !important;
+  transform: scaleY(1) !important;
+}
+html.mac-reduced-motion .macGifImage[data-loaded] .macCoffeeSilhouette,
+html.mac-focus-mode .macGifImage[data-loaded] .macCoffeeSilhouette {
+  animation: none !important;
+  opacity: 0 !important;
+}
+html.mac-focus-mode {
+  /* Optional UI sounds are suppressed in JS when Focus is active. */
 }

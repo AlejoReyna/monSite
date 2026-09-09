@@ -1,7 +1,8 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import type React from "react";
-import { Info } from "lucide-react";
+import { Info, X, Minus, Maximize2, Minimize2 } from "lucide-react";
+import styles from "./chat-interface.module.css";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
 import { useChat } from "@/hooks/useChat";
@@ -133,12 +134,40 @@ type ChatInterfaceProps = {
   terminalClassName?: string;
   /** `panel`: root element is the terminal (fills hero column). `card`: centered layout with inner terminal frame. */
   variant?: "card" | "panel";
+  theme?: "default" | "windows" | "mac" | "ubuntu";
+  onClose?: () => void;
+  onMinimize?: () => void;
+  onToggleMaximize?: () => void;
+  maximized?: boolean;
+  /** `window` (default) keeps desktop chrome; `mind-sheet` is the mobile bottom sheet body. */
+  presentation?: "window" | "mind-sheet";
+  /** Fires whenever the chat loading state changes (for thought-bubble pulse, etc.). */
+  onBusyChange?: (busy: boolean) => void;
+  /** Show projects / about / contact shortcut chips (mind-sheet). */
+  showQuickCommands?: boolean;
+  /** Optional portrait shown in mind-sheet chrome (parent may also render one). */
+  portraitSrc?: string | null;
+  /** Override the shell / sheet title. */
+  titleOverride?: string;
 };
+
+const QUICK_COMMANDS: { intent: Intent; en: string; es: string; zh: string }[] = [
+  { intent: "projects", en: "projects", es: "proyectos", zh: "项目" },
+  { intent: "about", en: "about", es: "sobre mí", zh: "关于" },
+  { intent: "contact", en: "contact", es: "contacto", zh: "联系" },
+];
 
 export default function ChatInterface({
   className,
   terminalClassName,
   variant = "card",
+  theme = "default",
+  onClose, onMinimize, onToggleMaximize, maximized = false,
+  presentation = "window",
+  onBusyChange,
+  showQuickCommands = false,
+  portraitSrc = null,
+  titleOverride,
 }: ChatInterfaceProps) {
   const { language: currentLang } = useLanguage();
   const labels = UI_LABELS[currentLang];
@@ -147,7 +176,7 @@ export default function ChatInterface({
   const [userName, setUserName] = useState("");
   const [showNamePrompt, setShowNamePrompt] = useState(false);
 
-  // Removed unused overlay state variables: showWelcome, setShowWelcome, welcomeOpacity, setWelcomeOpacity, 
+  // Removed unused overlay state variables: showWelcome, setShowWelcome, welcomeOpacity, setWelcomeOpacity,
   // showNameStep, setNameOpacity, showLangStep, langOpacity, showNameInput, nameInputOpacity, setNameInput
 
   // Chat
@@ -184,6 +213,10 @@ export default function ChatInterface({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSuggestions(getRandomSuggestions(ENHANCED_SUGGESTIONS, 5));
   }, []);
+
+  useEffect(() => {
+    onBusyChange?.(isLoading);
+  }, [isLoading, onBusyChange]);
 
   // Messages end ref para autoscroll
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -303,10 +336,37 @@ export default function ChatInterface({
   }, [isLoading, sorted, labels.processing]);
 
   const isPanel = variant === "panel";
+  const themed = theme !== "default";
+  const prompt = theme === "windows" ? "C:\\ALEXIS>" : theme === "mac" ? <><span>➜</span><span className={styles.directory}>~</span></> : theme === "ubuntu" ? "alexis@ubuntu:~$" : ">";
+  const isMindSheet = presentation === "mind-sheet";
+  const shellTitle = titleOverride
+    ?? (isMindSheet
+      ? "alexis / mind"
+      : theme === "windows"
+        ? "MS-DOS Prompt"
+        : theme === "mac"
+          ? "📁 alexis — alexis@Mac — -zsh — 80×24"
+          : "alexis@ubuntu: ~");
+  void portraitSrc;
+  const session = theme === "windows" ? "Microsoft Windows 95 [Version 4.00.950]" : theme === "mac" ? "" : "alexis@ubuntu:~$ ./portfolio";
+  const windowLabels = currentLang === "es" ? ["Cerrar terminal", "Minimizar al Dock", "Maximizar terminal", "Restaurar tamaño"] : currentLang === "zh" ? ["关闭终端", "最小化到程序坞", "最大化终端", "恢复大小"] : ["Close terminal", "Minimize to Dock", "Maximize terminal", "Restore window size"];
+  const [sessionStarted] = useState(() => new Date());
+  const shellClass = themed ? `${styles.shell} ${styles[theme]}` : "";
 
-  const rootClassName = isPanel
+  const rootClassName = isMindSheet
+    ? [
+        styles.mindSheet,
+        "pointer-events-auto relative z-10 flex flex-col w-full overflow-hidden min-h-0 h-full",
+        shellClass,
+        terminalClassName,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")
+    : isPanel
     ? [
         "pointer-events-auto relative z-10 flex flex-col w-full rounded-lg border border-gray-500/35 bg-black/30 backdrop-blur-md shadow-2xl shadow-black/35 overflow-hidden min-h-0",
+        shellClass,
         terminalClassName,
         className,
       ]
@@ -320,6 +380,7 @@ export default function ChatInterface({
         .join(" ");
 
   const innerShellClassName = [
+    shellClass,
     "pointer-events-auto w-full rounded-lg border border-gray-500/35 bg-black/30 backdrop-blur-md shadow-2xl shadow-black/35 overflow-hidden max-h-[35vh] lg:h-auto flex flex-col",
     terminalClassName,
   ]
@@ -330,23 +391,37 @@ export default function ChatInterface({
     isPanel ? body : <div className={innerShellClassName}>{body}</div>;
 
   return (
-    <div ref={rootRef} className={rootClassName}>
+    <div ref={rootRef} className={rootClassName} data-terminal-theme={theme} data-mind-sheet={isMindSheet ? "true" : undefined} data-presentation={presentation}>
       {/* Live region for assistant messages and loading state */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         {liveAnnouncement}
       </div>
       {terminalFrame(
         <>
-          {/* Terminal header */}
+          {themed && !isMindSheet && (
+            <div className={styles.titlebar} data-drag-handle="" onDoubleClick={theme === "mac" ? onToggleMaximize : undefined}>
+              {theme === "mac" && <span className={styles.trafficLights} onPointerDown={event => event.stopPropagation()} onDoubleClick={event => event.stopPropagation()}>
+                <button type="button" onClick={onClose} aria-label={windowLabels[0]} title={windowLabels[0]}><X size={9} /></button>
+                <button type="button" onClick={onMinimize} aria-label={windowLabels[1]} title={windowLabels[1]}><Minus size={9} /></button>
+                <button type="button" onClick={onToggleMaximize} aria-label={windowLabels[maximized ? 3 : 2]} title={windowLabels[maximized ? 3 : 2]} aria-pressed={maximized}>{maximized ? <Minimize2 size={9} /> : <Maximize2 size={9} />}</button>
+              </span>}
+              {theme === "windows" && <span className={styles.dosIcon} aria-hidden="true">C:\</span>}
+              <span className={styles.title}>{shellTitle}</span>
+              {theme !== "mac" && <span className={styles.windowControls} aria-hidden="true"><i>−</i><i>□</i><i>×</i></span>}
+
+            </div>
+          )}
+          {/* Links and chat information for the alternate terminal themes. */}
           <div
-            className={`flex items-center px-4 py-3 bg-black/40 border-b border-gray-500/35 shrink-0 ${isPanel ? "cursor-default" : "cursor-move"}`}
-            {...(!isPanel ? { "data-drag-handle": "" } : {})}
+            className={`${theme === "mac" || isMindSheet ? styles.hide : ""} ${themed ? styles.toolbar : ""} flex items-center px-4 py-3 bg-black/40 border-b border-gray-500/35 shrink-0 ${isPanel ? "cursor-default" : "cursor-move"}`}
+            {...(!isPanel && !isMindSheet ? { "data-drag-handle": "" } : {})}
           >
-            <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-2 ${themed ? styles.hide : ""}`}>
               <div className="w-3 h-3 rounded-full bg-red-500 border border-red-600" />
               <div className="w-3 h-3 rounded-full bg-yellow-500 border border-yellow-600" />
               <div className="w-3 h-3 rounded-full bg-green-500 border border-green-600" />
             </div>
+            {themed && <span className={styles.toolbarLabel}>{theme === "windows" ? "COMMAND.COM" : theme === "mac" ? "⌘  ~ / portfolio" : "Terminal · ~/portfolio"}</span>}
             <div className="flex items-center gap-3 ml-auto">
               <a
                 href="https://github.com/AlejoReyna"
@@ -395,12 +470,13 @@ export default function ChatInterface({
           </div>
 
         {/* Contenido — min-h-0 + scroll interno para que el texto de portada/comandos no quede cortado */}
-        <div className="p-2 lg:p-4 flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className={`${themed ? styles.content : ""} p-2 lg:p-4 flex-1 flex flex-col min-h-0 overflow-hidden`}>
           <div className="flex-1 min-h-0 flex flex-col gap-4 mb-4 overflow-y-auto">
+            {themed && !isMindSheet && <div className={styles.session}>{theme === "mac" ? <span suppressHydrationWarning>Last login: {sessionStarted.toDateString().slice(0, 10)} {sessionStarted.toTimeString().slice(0, 8)} on ttys000</span> : <>{session}<br /><span>{theme === "windows" ? "C:\\ALEXIS> ALEXIS.EXE" : "# Alexis Reyna · portfolio"}</span></>}</div>}
             {/* Portada */}
-            {!showChat && (
+            {theme !== "mac" && !showChat && (
               <div className="shrink-0 font-mono text-[14px] lg:text-[16px] xl:text-[17px] leading-6">
-                <span className="text-gray-200">&gt;</span>
+                <span className={themed ? styles.prompt : "text-gray-200"}>{themed ? prompt : ">"}</span>
                 <span className="text-gray-400 ml-2">Alexis-K2.6</span>
                 <span className="text-gray-100 ml-2">
                   {displayed || text}
@@ -427,8 +503,8 @@ export default function ChatInterface({
                       // Usuario - estilo comando de terminal con wrap correcto
                       <div className="mb-2">
                         <div className="text-[14px] lg:text-[16px] xl:text-[17px]">
-                          <span className="text-gray-200">&gt;</span>
-                          <span className="text-gray-400 ml-2">Alexis-K2.6</span>
+                          <span className={themed ? styles.prompt : "text-gray-200"}>{themed ? prompt : ">"}</span>
+                          {theme !== "mac" && <span className="text-gray-400 ml-2">Alexis-K2.6</span>}
                           <span className="text-gray-100 ml-2">{content}</span>
                         </div>
                         <div className="text-[14px] text-gray-500 mt-1">
@@ -438,7 +514,7 @@ export default function ChatInterface({
                     ) : (
                       // Respuesta del sistema
                       <div className="mb-2">
-                        <div className="text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 text-[14px] lg:text-[16px] xl:text-[17px] leading-6">
+                        <div className={`${themed ? styles.response : ""} text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 text-[14px] lg:text-[16px] xl:text-[17px] leading-6`}>
                           {content}
                         </div>
                         <div className="text-[14px] text-gray-500 mt-1">
@@ -451,7 +527,7 @@ export default function ChatInterface({
               })}
               {isLoading && (
                 <div className="font-mono text-[14px] lg:text-[16px] xl:text-[17px] animate-fadeIn">
-                  <div className="text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 flex items-center gap-3">
+                  <div className={`${themed ? styles.response : ""} text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 flex items-center gap-3`}>
                     <LoadingSpinner />
                     <span>{labels.processing}</span>
                   </div>
@@ -465,8 +541,8 @@ export default function ChatInterface({
             {error && (
               <div className="bg-black/30 border-l-4 border-red-500 text-red-100 p-4 rounded font-mono text-[14px] lg:text-[16px] xl:text-[17px] animate-fadeIn shrink-0">
                 <div className="flex items-center text-[14px] mb-2">
-                  <span className="text-gray-200">&gt;</span>
-                  <span className="text-gray-400 ml-2">Alexis-K2.6</span>
+                  <span className={themed ? styles.prompt : "text-gray-200"}>{themed ? prompt : ">"}</span>
+                  {theme !== "mac" && <span className="text-gray-400 ml-2">Alexis-K2.6</span>}
                   <span className="text-red-300 ml-2">error</span>
                 </div>
                 <div className="ml-6">
@@ -481,7 +557,7 @@ export default function ChatInterface({
             )}
 
             {/* Sugerencias antes de iniciar chat */}
-            {!showNamePrompt && !showChat && sorted.length === 0 && (
+            {theme !== "mac" && !showNamePrompt && !showChat && sorted.length === 0 && (
               <div className="space-y-2 shrink-0">
               <div className="text-xs text-gray-400 font-mono mb-3">{labels.commands}</div>
               <div className="flex flex-wrap gap-2">
@@ -505,16 +581,37 @@ export default function ChatInterface({
             )}
           </div>
 
+          {/* Quick commands — mobile mind-sheet shortcuts */}
+          {showQuickCommands && (
+            <div className={styles.quickCommands} role="group" aria-label={labels.commands}>
+              {QUICK_COMMANDS.map((cmd) => {
+                const label = cmd[currentLang];
+                return (
+                  <button
+                    key={cmd.intent}
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => handleSuggestionClick(label, cmd.intent)}
+                    className={styles.quickCommand}
+                  >
+                    ./{cmd.en}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* Input - siempre al final */}
-          <div className="border-t border-gray-500/30 pt-3 shrink-0">
-            <label htmlFor="chat-input" className="sr-only">
+          <div className={`${themed ? styles.inputRow : ""} border-t border-gray-500/30 pt-3 shrink-0`}>
+            <label htmlFor={isMindSheet ? "mind-sheet-chat-input" : "chat-input"} className="sr-only">
               {labels.placeholder}
             </label>
             <div className="flex items-center font-mono text-[14px] lg:text-[16px] xl:text-[17px]">
-              <span className="text-gray-200 ml-2">&gt;</span>
+              <span className={themed ? styles.prompt : "text-gray-200 ml-2"}>{prompt}</span>
 
               <input
-                id="chat-input"
+                id={isMindSheet ? "mind-sheet-chat-input" : "chat-input"}
+                data-empty={inputValue.length === 0}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -524,10 +621,11 @@ export default function ChatInterface({
                     handleSendMessage();
                   }
                 }}
-                placeholder={labels.placeholder}
-                className="flex-1 bg-transparent text-gray-100 placeholder-gray-400 font-mono text-[14px] lg:text-[16px] xl:text-[17px] focus:outline-none disabled:opacity-50 caret-gray-300 ml-2"
+                placeholder={theme === "mac" && !isMindSheet ? "" : labels.placeholder}
+                className="min-w-0 flex-1 bg-transparent text-gray-100 placeholder-gray-400 font-mono text-[14px] lg:text-[16px] xl:text-[17px] focus:outline-none disabled:opacity-50 caret-gray-300 ml-2"
                 disabled={isLoading}
                 maxLength={500}
+                autoFocus={false}
               />
 
               {isLoading && (

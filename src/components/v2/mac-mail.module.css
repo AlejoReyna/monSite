@@ -1,0 +1,33 @@
+.surface { position: absolute; inset: 30px 0 88px; z-index: 37; pointer-events: none; color: #f3f3f4; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; }
+.surfaceFullScreen { position: fixed; inset: 0; z-index: 100; }
+.window { pointer-events: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(580px, calc(100% - 42px)); height: min(472.5px, calc(100% - 18px)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #606060; border-radius: 16px; background: rgb(30 30 30 / 88%); box-shadow: 0 18px 45px #0006, inset 0 0 0 1px #ffffff06; font-family: Menlo, Monaco, "Courier New", monospace; animation: appear .2s ease-out; }
+.expanded { top: 0; left: 0; width: 100%; height: 100%; border-radius: 0; transform: none; }
+.toolbar { position: relative; min-height: 31px; flex-shrink: 0; display: flex; align-items: center; gap: 14px; padding: 0 9px; border-bottom: 1px solid #ffffff08; background: #202020; color: #999; user-select: none; }
+.traffic { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+.traffic button { width: 14px; height: 14px; padding: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+.traffic svg { opacity: 0; stroke-width: 3; }
+.traffic:hover svg, .traffic button:focus-visible svg { opacity: 1; }
+.close { color: #65130e; background: #ff5f57; border: 1px solid #df4744; }
+.minimize { color: #795600; background: #ffbd00; border: 1px solid #dda000; }
+.maximize { color: #075d12; background: #28c840; border: 1px solid #1eac32; }
+.toolbar > strong { flex: 1; min-width: 0; overflow: hidden; color: #999; font: 600 13px/1 -apple-system, BlinkMacSystemFont, sans-serif; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.body { --px-font: Menlo, Monaco, "Courier New", monospace; --contact-ink: #f4f4f4; --contact-soft: #999; --contact-muted: #999; --contact-line: #606060; --contact-accent: #35cf40; flex: 1; min-height: 0; overflow: auto; padding: 12px 14px 14px; background: rgb(30 30 30 / 88%); font-family: var(--px-font); overscroll-behavior: contain; }
+.command { margin: 0; color: #d7d9dc; font: 400 12px/1.65 var(--px-font); }
+.command span { color: #35cf40; }
+.command b { color: #4cc7c9; font-weight: 500; }
+.command i { display: inline-block; width: 7px; height: 1.05em; margin-left: 2px; vertical-align: -.16em; background: #d7d9dc; animation: cursorBlink .85s steps(1) infinite; }
+.body > form { width: 100%; gap: 15px; padding: 18px 0 0; background: transparent; animation: formReveal .32s ease-out both; }
+.body label { color: #aeb3bb; font-size: 11px; font-weight: 500; letter-spacing: .04em; text-transform: none; }
+.body label span { color: #35cf40; }
+.body input, .body textarea { color: #f4f4f4; font: 400 12px/1.5 var(--px-font); letter-spacing: .035em; caret-color: #bbb; }
+.body input::placeholder, .body textarea::placeholder { color: #555b64; }
+.body input:focus, .body textarea:focus { border-bottom-color: #35cf40; box-shadow: 0 1px 0 #35cf4033; }
+.body textarea { min-height: 92px; resize: none; }
+.body button[type="submit"] { min-height: 42px; border: 1px solid #3c4148; border-radius: 4px; background: #14171a; box-shadow: 3px 3px 0 #000; color: #dfe3e6; font: 600 12px/1 var(--px-font); letter-spacing: .08em; text-transform: none; }
+.body button[type="submit"]:hover:not(:disabled) { border-color: #35cf40; background: #18201b; color: #6ee978; }
+.surface :focus-visible { outline: 2px solid #5ca8f7; outline-offset: 3px; }
+@keyframes appear { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
+@keyframes cursorBlink { 50% { opacity: 0; } }
+@keyframes formReveal { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 610px) { .surface { inset: 30px 0 78px; }.window { width: calc(100% - 24px); }.window.expanded { width: 100%; height: 100%; }.toolbar { gap: 10px; }.traffic { gap: 6px; }.toolbar > strong { font-size: 11px; }.body { padding: 10px; }.command { font-size: 10px; } }
+@media (prefers-reduced-motion: reduce) { .window, .body > form, .command i { animation: none; } }

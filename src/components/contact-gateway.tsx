@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Github, Linkedin, Mail } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
@@ -141,67 +141,6 @@ const titleLines: Record<Language, string[]> = {
 export default function ContactGateway({ isActive = false }: { isActive?: boolean }) {
   const { language } = useLanguage();
 
-  const [form, setForm] = useState<FormState>(INITIAL_FORM);
-  const [status, setStatus] = useState<FormStatus>("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-
-  const setField =
-    (field: keyof FormState) =>
-    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value =
-        field === "message" ? e.target.value.slice(0, MESSAGE_MAX) : e.target.value;
-      setForm((prev) => ({ ...prev, [field]: value }));
-      if (status === "error") setStatus("idle");
-    };
-
-  const isValid =
-    form.name.trim().length > 0 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()) &&
-    form.message.trim().length > 0;
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!isValid || status === "loading") return;
-    setStatus("loading");
-    setErrorMsg("");
-
-    try {
-      const res = await fetch(WEB3FORMS_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
-          subject: `New message from alexisreyna.dev — ${form.name.trim()}`,
-          from_name: "alexisreyna.dev",
-          name: form.name.trim(),
-          email: form.email.trim(),
-          message: form.message.trim(),
-          botcheck: form.botcheck,
-        }),
-      });
-
-      const data: { success?: boolean; message?: string } = await res
-        .json()
-        .catch(() => ({}));
-
-      if (!res.ok || !data.success) {
-        throw new Error(
-          data.message ?? t('failedToSend', language)
-        );
-      }
-
-      setStatus("success");
-      setForm(INITIAL_FORM);
-    } catch (err) {
-      setStatus("error");
-      setErrorMsg(
-        err instanceof Error
-          ? err.message
-          : t('somethingWentWrong', language)
-      );
-    }
-  };
-
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -266,129 +205,7 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
             <span className={styles.terminalTitle}>contact — mail</span>
           </div>
 
-          <form className={styles.form} onSubmit={handleSubmit} noValidate>
-            {/* Honeypot anti-spam de Web3Forms — oculto para humanos */}
-            <input
-              type="checkbox"
-              name="botcheck"
-              className={styles.botcheck}
-              tabIndex={-1}
-              autoComplete="off"
-              checked={form.botcheck === "on"}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, botcheck: e.target.checked ? "on" : "" }))
-              }
-              aria-hidden="true"
-            />
-
-            <div className={styles.field}>
-              <label className={styles.fieldLabel} htmlFor="contact-gw-name">
-                <span className={styles.prompt}>&gt;</span> {t('labelName', language)}
-              </label>
-              <input
-                id="contact-gw-name"
-                className={styles.input}
-                placeholder={t('yourName', language)}
-                value={form.name}
-                onChange={setField("name")}
-                autoComplete="name"
-                required
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.fieldLabel} htmlFor="contact-gw-email">
-                <span className={styles.prompt}>&gt;</span> {t('labelEmail', language)}
-              </label>
-              <input
-                id="contact-gw-email"
-                className={styles.input}
-                type="email"
-                placeholder={
-                  language === "es"
-                    ? "tu@correo.com"
-                    : language === "zh"
-                      ? "your@email.com"
-                      : "you@email.com"
-                }
-                value={form.email}
-                onChange={setField("email")}
-                autoComplete="email"
-                required
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.fieldLabel} htmlFor="contact-gw-message">
-                <span className={styles.prompt}>&gt;</span> {t('labelMessage', language)}
-              </label>
-              <textarea
-                id="contact-gw-message"
-                className={`${styles.input} ${styles.textarea}`}
-                placeholder={t('placeholderMessage', language)}
-                value={form.message}
-                onChange={setField("message")}
-                rows={4}
-                required
-              />
-              <span className={styles.counter} aria-live="polite">
-                {form.message.length}/{MESSAGE_MAX}
-              </span>
-            </div>
-
-            <AnimatePresence mode="wait">
-              {status === "success" ? (
-                <motion.p
-                  key="success"
-                  className={styles.success}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  role="status"
-                >
-                  <span className={styles.prompt}>&gt;</span>{" "}
-                  {t('messageSent', language)}
-                </motion.p>
-              ) : (
-                <motion.button
-                  key="submit"
-                  type="submit"
-                  className={styles.submit}
-                  disabled={!isValid || status === "loading"}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  {status === "loading"
-                    ? language === "es"
-                      ? "Enviando..."
-                      : language === "zh"
-                        ? "发送中..."
-                        : "Sending..."
-                    : language === "es"
-                      ? "Enviar mensaje →"
-                      : language === "zh"
-                        ? "发送消息 →"
-                        : "Send message →"}
-                </motion.button>
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-              {status === "error" && errorMsg && (
-                <motion.p
-                  key="error"
-                  className={styles.error}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  role="alert"
-                >
-                  <span className={styles.prompt}>&gt;</span> ✗ {errorMsg}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </form>
+          <ContactEmailForm />
         </motion.div>
 
         <motion.div
@@ -411,5 +228,96 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
         </motion.div>
       </motion.div>
     </section>
+  );
+}
+
+export function ContactEmailForm({ onSent }: { onSent?: () => void } = {}) {
+  const { language } = useLanguage();
+  const id = useId();
+  const sentTimerRef = useRef<number | null>(null);
+  const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [status, setStatus] = useState<FormStatus>("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const nameId = `${id}-name`;
+  const emailId = `${id}-email`;
+  const messageId = `${id}-message`;
+
+  useEffect(() => () => {
+    if (sentTimerRef.current) window.clearTimeout(sentTimerRef.current);
+  }, []);
+
+  const setField =
+    (field: keyof FormState) =>
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = field === "message" ? e.target.value.slice(0, MESSAGE_MAX) : e.target.value;
+      setForm((prev) => ({ ...prev, [field]: value }));
+      if (status === "error") setStatus("idle");
+    };
+
+  const isValid =
+    form.name.trim().length > 0 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()) &&
+    form.message.trim().length > 0;
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!isValid || status === "loading") return;
+    setStatus("loading");
+    setErrorMsg("");
+
+    try {
+      const res = await fetch(WEB3FORMS_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: `New message from alexisrs.dev — ${form.name.trim()}`,
+          from_name: "alexisrs.dev",
+          name: form.name.trim(),
+          email: form.email.trim(),
+          message: form.message.trim(),
+          botcheck: form.botcheck,
+        }),
+      });
+      const data: { success?: boolean; message?: string } = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message ?? t("failedToSend", language));
+      setStatus("success");
+      setForm(INITIAL_FORM);
+      if (onSent) sentTimerRef.current = window.setTimeout(onSent, 850);
+    } catch (err) {
+      setStatus("error");
+      setErrorMsg(err instanceof Error ? err.message : t("somethingWentWrong", language));
+    }
+  };
+
+  return (
+    <form className={styles.form} onSubmit={handleSubmit} noValidate>
+      <input type="checkbox" name="botcheck" className={styles.botcheck} tabIndex={-1} autoComplete="off" checked={form.botcheck === "on"} onChange={(e) => setForm((prev) => ({ ...prev, botcheck: e.target.checked ? "on" : "" }))} aria-hidden="true" />
+      <div className={styles.field}>
+        <label className={styles.fieldLabel} htmlFor={nameId}><span className={styles.prompt}>&gt;</span> {t("labelName", language)}</label>
+        <input id={nameId} className={styles.input} placeholder={t("yourName", language)} value={form.name} onChange={setField("name")} autoComplete="name" required />
+      </div>
+      <div className={styles.field}>
+        <label className={styles.fieldLabel} htmlFor={emailId}><span className={styles.prompt}>&gt;</span> {t("labelEmail", language)}</label>
+        <input id={emailId} className={styles.input} type="email" placeholder={language === "es" ? "tu@correo.com" : "you@email.com"} value={form.email} onChange={setField("email")} autoComplete="email" required />
+      </div>
+      <div className={styles.field}>
+        <label className={styles.fieldLabel} htmlFor={messageId}><span className={styles.prompt}>&gt;</span> {t("labelMessage", language)}</label>
+        <textarea id={messageId} className={`${styles.input} ${styles.textarea}`} placeholder={t("placeholderMessage", language)} value={form.message} onChange={setField("message")} rows={4} required />
+        <span className={styles.counter} aria-live="polite">{form.message.length}/{MESSAGE_MAX}</span>
+      </div>
+      <AnimatePresence mode="wait">
+        {status === "success" ? (
+          <motion.p key="success" className={styles.success} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} role="status"><span className={styles.prompt}>&gt;</span> {t("messageSent", language)}</motion.p>
+        ) : (
+          <motion.button key="submit" type="submit" className={styles.submit} disabled={!isValid || status === "loading"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            {status === "loading" ? (language === "es" ? "Enviando..." : language === "zh" ? "发送中..." : "Sending...") : language === "es" ? "Enviar mensaje →" : language === "zh" ? "发送消息 →" : "Send message →"}
+          </motion.button>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {status === "error" && errorMsg && <motion.p key="error" className={styles.error} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} role="alert"><span className={styles.prompt}>&gt;</span> ✗ {errorMsg}</motion.p>}
+      </AnimatePresence>
+    </form>
   );
 }
