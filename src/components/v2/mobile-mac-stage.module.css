@@ -30,7 +30,8 @@
   .character > svg {
     width: min(100%, 520px);
     height: 100%;
-    transform: scale(1.75);
+    /* Offset the transparent headroom in the GIF, not just its container. */
+    transform: translateY(-32px) scale(1.75);
     transform-origin: center top;
   }
 
