@@ -17,7 +17,8 @@
   /* The historic mobile hero centered a single GIF behind a lower window. */
   .character {
     position: absolute;
-    top: max(90px, 10svh);
+    /* Share the switcher row; its icons stay layered above the artwork. */
+    top: calc(30px + env(safe-area-inset-top, 0px));
     bottom: calc(66px + env(safe-area-inset-bottom, 0px));
     left: 0;
     right: 0;
