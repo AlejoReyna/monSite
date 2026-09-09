@@ -30,8 +30,9 @@
   .character > svg {
     width: min(100%, 520px);
     height: 100%;
-    /* Offset the transparent headroom in the GIF, not just its container. */
-    transform: translateY(-32px) scale(1.75);
+    /* All 79 frames have at least 25 source pixels of headroom.
+       Keep the lift below that scaled inset so the hair never clips. */
+    transform: translateY(-8px) scale(1.75);
     transform-origin: center top;
   }
 
