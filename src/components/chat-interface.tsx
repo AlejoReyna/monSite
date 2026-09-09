@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import type React from "react";
-import { Info, X, Minus, Maximize2, Minimize2 } from "lucide-react";
+import { Info, X, Minus, Maximize2, Minimize2, Sparkles, ArrowUp } from "lucide-react";
 import styles from "./chat-interface.module.css";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
@@ -78,6 +78,12 @@ const UI_LABELS: Record<Language, {
     rateLimit: "已达到速率限制。请稍后再试……",
   },
 };
+
+const AI_COPY = {
+  en: { title: "Alexis · AI assistant", heading: "Chat with Alexis’s AI assistant", intro: "Ask about his projects, skills, or working together. No commands needed.", placeholder: "Ask the AI assistant…", send: "Send message", examples: "Try a question", projects: "Projects", skills: "Skills", contact: "Work together", projectQuestion: "What projects has Alexis built?", skillsQuestion: "What are Alexis’s technical skills?", contactQuestion: "How can I work with Alexis?" },
+  es: { title: "Alexis · Asistente IA", heading: "Habla con el asistente IA de Alexis", intro: "Pregunta por sus proyectos, habilidades o cómo trabajar juntos. No necesitas comandos.", placeholder: "Pregúntale al asistente IA…", send: "Enviar mensaje", examples: "Prueba una pregunta", projects: "Proyectos", skills: "Habilidades", contact: "Colaborar", projectQuestion: "¿Qué proyectos ha creado Alexis?", skillsQuestion: "¿Cuáles son las habilidades técnicas de Alexis?", contactQuestion: "¿Cómo puedo trabajar con Alexis?" },
+  zh: { title: "Alexis · AI 助手", heading: "与 Alexis 的 AI 助手聊天", intro: "了解他的项目、技能或合作方式。无需输入命令。", placeholder: "向 AI 助手提问…", send: "发送消息", examples: "试着问一问", projects: "项目", skills: "技能", contact: "合作", projectQuestion: "Alexis 做过哪些项目？", skillsQuestion: "Alexis 有哪些技术技能？", contactQuestion: "如何与 Alexis 合作？" },
+} satisfies Record<Language, Record<string, string>>;
 
 const GREETINGS: Record<Language, string[]> = {
   en: [
@@ -171,6 +177,7 @@ export default function ChatInterface({
 }: ChatInterfaceProps) {
   const { language: currentLang } = useLanguage();
   const labels = UI_LABELS[currentLang];
+  const aiCopy = AI_COPY[currentLang];
 
   /* ========= Estado base ========= */
   const [userName, setUserName] = useState("");
@@ -345,12 +352,11 @@ export default function ChatInterface({
       : theme === "windows"
         ? "MS-DOS Prompt"
         : theme === "mac"
-          ? "📁 alexis — alexis@Mac — -zsh — 80×24"
+          ? aiCopy.title
           : "alexis@ubuntu: ~");
   void portraitSrc;
   const session = theme === "windows" ? "Microsoft Windows 95 [Version 4.00.950]" : theme === "mac" ? "" : "alexis@ubuntu:~$ ./portfolio";
   const windowLabels = currentLang === "es" ? ["Cerrar terminal", "Minimizar al Dock", "Maximizar terminal", "Restaurar tamaño"] : currentLang === "zh" ? ["关闭终端", "最小化到程序坞", "最大化终端", "恢复大小"] : ["Close terminal", "Minimize to Dock", "Maximize terminal", "Restore window size"];
-  const [sessionStarted] = useState(() => new Date());
   const shellClass = themed ? `${styles.shell} ${styles[theme]}` : "";
 
   const rootClassName = isMindSheet
@@ -472,7 +478,22 @@ export default function ChatInterface({
         {/* Contenido — min-h-0 + scroll interno para que el texto de portada/comandos no quede cortado */}
         <div className={`${themed ? styles.content : ""} p-2 lg:p-4 flex-1 flex flex-col min-h-0 overflow-hidden`}>
           <div className="flex-1 min-h-0 flex flex-col gap-4 mb-4 overflow-y-auto">
-            {themed && !isMindSheet && <div className={styles.session}>{theme === "mac" ? <span suppressHydrationWarning>Last login: {sessionStarted.toDateString().slice(0, 10)} {sessionStarted.toTimeString().slice(0, 8)} on ttys000</span> : <>{session}<br /><span>{theme === "windows" ? "C:\\ALEXIS> ALEXIS.EXE" : "# Alexis Reyna · portfolio"}</span></>}</div>}
+            {themed && theme !== "mac" && !isMindSheet && <div className={styles.session}>{session}<br /><span>{theme === "windows" ? "C:\\ALEXIS> ALEXIS.EXE" : "# Alexis Reyna · portfolio"}</span></div>}
+            {theme === "mac" && sorted.length === 0 && !showChat && (
+              <section className={styles.aiWelcome} aria-label={aiCopy.heading}>
+                <h2><Sparkles size={18} aria-hidden="true" />{aiCopy.heading}</h2>
+                <p>{aiCopy.intro}</p>
+                <div className={styles.aiExamples} role="group" aria-label={aiCopy.examples}>
+                  {([
+                    [aiCopy.projects, aiCopy.projectQuestion, "projects"],
+                    [aiCopy.skills, aiCopy.skillsQuestion, "tech"],
+                    [aiCopy.contact, aiCopy.contactQuestion, "contact"],
+                  ] as const).map(([label, question, intent]) => (
+                    <button key={intent} type="button" disabled={isLoading} onClick={() => handleSuggestionClick(question, intent)}>{label}</button>
+                  ))}
+                </div>
+              </section>
+            )}
             {/* Portada */}
             {theme !== "mac" && !showChat && (
               <div className="shrink-0 font-mono text-[14px] lg:text-[16px] xl:text-[17px] leading-6">
@@ -604,7 +625,7 @@ export default function ChatInterface({
           {/* Input - siempre al final */}
           <div className={`${themed ? styles.inputRow : ""} border-t border-gray-500/30 pt-3 shrink-0`}>
             <label htmlFor={isMindSheet ? "mind-sheet-chat-input" : "chat-input"} className="sr-only">
-              {labels.placeholder}
+              {theme === "mac" ? aiCopy.placeholder : labels.placeholder}
             </label>
             <div className="flex items-center font-mono text-[14px] lg:text-[16px] xl:text-[17px]">
               <span className={themed ? styles.prompt : "text-gray-200 ml-2"}>{prompt}</span>
@@ -621,13 +642,18 @@ export default function ChatInterface({
                     handleSendMessage();
                   }
                 }}
-                placeholder={theme === "mac" && !isMindSheet ? "" : labels.placeholder}
+                placeholder={theme === "mac" ? aiCopy.placeholder : labels.placeholder}
                 className="min-w-0 flex-1 bg-transparent text-gray-100 placeholder-gray-400 font-mono text-[14px] lg:text-[16px] xl:text-[17px] focus:outline-none disabled:opacity-50 caret-gray-300 ml-2"
                 disabled={isLoading}
                 maxLength={500}
                 autoFocus={false}
               />
 
+              {theme === "mac" && (
+                <button className={styles.aiSend} type="button" aria-label={aiCopy.send} title={aiCopy.send} disabled={isLoading || !inputValue.trim()} onClick={handleSendMessage}>
+                  <ArrowUp size={18} aria-hidden="true" />
+                </button>
+              )}
               {isLoading && (
                 <div className="ml-2">
                   <LoadingSpinner />

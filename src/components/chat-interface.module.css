@@ -98,7 +98,7 @@
   .toolbar.toolbar { padding-block: 5px; }
 }
 
-.mac input[data-empty="true"]:not(:focus) { background: linear-gradient(#aaa, #aaa) left center / 7px 13px no-repeat; }
+
 .mac input:focus-visible { outline: none; }
 
 /* ── Mobile mind-sheet presentation ── */
@@ -164,3 +164,16 @@
 .mindSheet .quickCommand {
   color: #c8efcb;
 }
+
+/* Explicit AI onboarding for the macOS terminal on phones and desktop. */
+.mac .aiWelcome { padding: 8px 3px 12px; flex-shrink: 0; }
+.mac .aiWelcome h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 7px; font: 600 15px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #f4f4f4; }
+.mac .aiWelcome h2 svg { flex-shrink: 0; color: #78dd8a; }
+.mac .aiWelcome p { margin: 0; max-width: 52ch; font: 400 13px/1.5 Menlo, Monaco, monospace; color: #bfc4cc; }
+.mac .aiExamples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.mac .aiExamples button { min-height: 44px; padding: 7px 11px; border: 1px solid #ffffff26; border-radius: 9px; background: #ffffff08; color: #d8f3dd; font: 500 13px/1.3 -apple-system, BlinkMacSystemFont, sans-serif; cursor: pointer; }
+.mac .aiExamples button:hover:not(:disabled) { background: #35cf401a; border-color: #78dd8a; }
+.mac .aiSend.aiSend { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; margin-left: 8px; padding: 0; border: 1px solid #78dd8a55; border-radius: 10px; background: #35cf4020; color: #9beaab; cursor: pointer; }
+.mac .aiSend:disabled { opacity: .4; cursor: default; }
+.mac .inputRow { margin-top: auto; }
+.mac .inputRow input::placeholder { color: #b2b8c1; letter-spacing: normal; }
