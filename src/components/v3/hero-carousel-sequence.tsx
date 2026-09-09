@@ -44,7 +44,7 @@ const THEME_COLOR_META_ID = "site-theme-color";
 // mediante el único <meta name="theme-color"> declarado en el layout y el
 // color de fondo que queda detrás de la barra de estado en modo standalone.
 const PANEL_THEME_COLORS: Record<SequencePanel, string> = {
-  0: "#2f1e2f", // Hero
+  0: "#0e131a", // Current macOS mobile desktop background
   1: "#ff8448", // Inverater classic hero
   2: "#662953", // Plebes — hsl(319 43% 28%) as a Safari-safe solid color
   3: "#16110d", // Artisanal Brew (This Cafetería) — matches the panel's own background
@@ -366,6 +366,7 @@ export default function HeroCarouselSequence() {
 
   const handleWheel = useCallback(
     (event: globalThis.WheelEvent) => {
+      if ((event.target as HTMLElement | null)?.closest('[data-desktop="mac"]')) return;
       const interactiveTarget = (event.target as HTMLElement | null)?.closest(
         "input, textarea, select"
       );
@@ -414,6 +415,10 @@ export default function HeroCarouselSequence() {
   }, [handleWheel]);
 
   const handleTouchStart = useCallback((event: TouchEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement | null)?.closest('[data-desktop="mac"]')) {
+      touchStartYRef.current = null;
+      return;
+    }
     touchStartYRef.current = event.touches[0]?.clientY ?? null;
     touchScrollableRef.current = getScrollablePanel(event.target);
   }, []);
@@ -478,6 +483,7 @@ export default function HeroCarouselSequence() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
+      if (activePanelRef.current === 0 && containerRef.current?.querySelector('[data-desktop="mac"]')) return;
       if (
         target?.closest("input, textarea, select, [contenteditable='true']")
       ) {
@@ -569,7 +575,6 @@ export default function HeroCarouselSequence() {
           <HeroV2
             embedInScrollSequence
             embedContentOpacity={heroForegroundOpacity}
-            disableBgVignette
           />
         </motion.div>
 

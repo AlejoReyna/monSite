@@ -1,0 +1,60 @@
+.desktop {
+  position: absolute;
+  inset: 0;
+  background: #008080;
+  color: #fff;
+  font-family: Tahoma, "MS Sans Serif", Arial, sans-serif;
+}
+.desktop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .12;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' opacity='.6' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
+}
+.topBar { position: absolute; inset: 0 0 auto; z-index: 40; display: flex; align-items: center; justify-content: space-between; height: 31px; padding: 0 9px; background: #c0c0c0; border-bottom: 2px solid #808080; box-shadow: inset 0 1px #fff; color: #111; font-size: 12px; }
+.topBar button { display: flex; align-items: center; gap: 5px; height: 23px; padding: 2px 7px; border: 0; background: #c0c0c0; color: #111; box-shadow: inset 1px 1px #fff, inset -1px -1px #000, inset 2px 2px #dfdfdf, inset -2px -2px #808080; cursor: pointer; font: inherit; }
+.topBar button:active { box-shadow: inset 1px 1px #000, inset -1px -1px #fff, inset 2px 2px #808080; }
+.topBar button:focus-visible { outline: 1px dotted #000; outline-offset: -5px; }
+.wallpaper { position: absolute; left: 50%; top: 47%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; width: 330px; }
+.flag { display: inline-grid; grid-template-columns: repeat(2, 1fr); gap: 7px; width: 150px; height: 138px; padding: 10px; background: #111; transform: skew(-13deg) rotate(8deg); box-shadow: -13px 8px 0 -5px #111; }
+.flag i:nth-child(1) { background: #f54c24; }
+.flag i:nth-child(2) { background: #57a332; }
+.flag i:nth-child(3) { background: #389be7; }
+.flag i:nth-child(4) { background: #ffdc37; }
+.microsoft { align-self: flex-start; font-size: 24px; line-height: 1; margin-top: 28px; }
+.wordmark { font-size: 57px; font-weight: 800; color: #090909; letter-spacing: -4px; line-height: 1; }
+.wordmark > span { font-weight: 400; color: white; letter-spacing: -3px; margin-left: 5px; }
+.shortcuts { position: absolute; top: 88px; left: 15px; display: grid; gap: 10px; z-index: 21; }
+.shortcut { width: 76px; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 3px; border: 1px solid transparent; background: transparent; color: white; text-align: center; font-size: 11px; line-height: 1.25; cursor: pointer; text-decoration: none; text-shadow: 1px 1px #004040; }
+.shortcut:hover { background: #ffffff14; }
+.shortcut:focus-visible { outline: 1px dotted #fff; background: #000080; }
+.taskbar { position: absolute; bottom: 0; left: 0; right: 0; z-index: 40; display: flex; gap: 5px; align-items: center; height: calc(36px + env(safe-area-inset-bottom, 0px)); padding: 3px 4px calc(3px + env(safe-area-inset-bottom, 0px)); background: #c0c0c0; border-top: 2px solid #fff; box-shadow: 0 -1px #808080; color: #111; font-size: 12px; }
+.start, .projectTask, .activeTask { display: flex; align-items: center; gap: 6px; height: 27px; padding: 2px 8px; background: #c0c0c0; color: #111; box-shadow: inset 1px 1px #fff, inset -1px -1px #000, inset 2px 2px #dfdfdf, inset -2px -2px #808080; border: 0; white-space: nowrap; }
+.start, .projectTask { cursor: pointer; }
+.start { font-weight: 700; font-size: 14px; }
+.start .flag { width: 18px; height: 17px; padding: 2px; gap: 2px; box-shadow: none; margin-right: 2px; }
+.divider { height: 26px; width: 2px; background: #808080; border-right: 1px solid white; margin: 0 3px; }
+.activeTask, .projectTask { width: 170px; overflow: hidden; }
+.activeTask, .pressed, .start:active, .projectTask:active { box-shadow: inset 1px 1px #000, inset -1px -1px #fff, inset 2px 2px #808080; background: #d4d4d4; }
+.activeTask { font-weight: bold; }
+.taskbar svg { width: 20px; height: 20px; flex-shrink: 0; }
+.tray { margin-left: auto; min-width: 90px; height: 26px; display: flex; align-items: center; justify-content: center; gap: 9px; padding: 0 8px; box-shadow: inset 1px 1px #808080, inset -1px -1px white; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.startArea { position: relative; }
+.startMenu { position: absolute; bottom: 31px; left: 0; width: 242px; padding: 3px; display: flex; background: #c0c0c0; box-shadow: inset 1px 1px #fff, inset -1px -1px #000, inset -2px -2px #808080, 2px 2px #0006; }
+.menuBrand { background: #808080; color: #c0c0c0; writing-mode: vertical-rl; transform: rotate(180deg); padding: 10px 5px; font-size: 23px; font-weight: bold; }
+.menuBrand b { color: white; font-weight: normal; }
+.menuLinks { flex: 1; }
+.menuLinks a, .menuLinks button { display: flex; align-items: center; gap: 12px; padding: 12px 10px; width: 100%; color: #111; background: transparent; border: 0; text-decoration: none; cursor: pointer; text-align: left; font: inherit; }
+.menuLinks a:hover, .menuLinks button:hover, .menuLinks a:focus-visible, .menuLinks button:focus-visible { background: #000080; color: white; outline: none; }
+.taskbar button:focus-visible { outline: 1px dotted #000; outline-offset: -5px; }
+@media (max-width: 767px) {
+  .shortcuts { top: 80px; left: 8px; gap: 13px; }
+  .shortcut { width: 65px; font-size: 10px; }
+  .wallpaper { top: 34%; left: 60%; transform: translate(-50%, -50%) scale(.66); }
+  .projectTask { display: none; }
+  .activeTask { width: auto; flex: 1; min-width: 0; }
+  .activeTask span { overflow: hidden; text-overflow: ellipsis; }
+  .tray { min-width: 76px; padding: 0 5px; }
+}

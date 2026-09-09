@@ -2,13 +2,15 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useDragControls, type MotionValue } from "framer-motion";
+import DesktopPicker, { type DesktopTheme } from "./desktop-picker";
+import MobileMacStage from "./mobile-mac-stage";
 import ChatInterface from "@/components/chat-interface";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
 
 /* ═══════════════════════════════════════════
-   Hero V2 — Night Sky / GIC style
+   Hero V2 — Windows 95 desktop
    ═══════════════════════════════════════════ */
 
 const SCROLL_PROMPT: Record<Language, string> = {
@@ -37,25 +39,38 @@ type HeroV2Props = {
    * a uniform background throughout.
    */
   noBgImage?: boolean;
-  /** Keeps the BG image, but removes the dark translucent vignette layer. */
-  disableBgVignette?: boolean;
 };
 
 export default function HeroV2({
   embedInScrollSequence,
   embedContentOpacity,
   noBgImage = false,
-  disableBgVignette = false,
 }: HeroV2Props) {
   const { language } = useLanguage();
   const heroRef = useRef<HTMLElement>(null);
+  // macOS is the public/default experience. The alternate desktop renderers
+  // remain available in DesktopPicker for future use, but are no longer part
+  // of the visitor flow.
+  const [desktopTheme, setDesktopTheme] = useState<DesktopTheme>("mac");
+  const [macTerminalOpen, setMacTerminalOpen] = useState(true);
+  const [terminalExpanded, setTerminalExpanded] = useState(false);
+  const terminalDrag = useDragControls();
+  const hideTerminal = () => {
+    setMacTerminalOpen(false);
+    requestAnimationFrame(() => document.getElementById("mac-terminal-launcher")?.focus({ preventScroll: true }));
+  };
   // Remonta la terminal al cruzar el breakpoint lg: el offset de drag de
   // framer-motion vive como transform inline y sobrevive al cambio de CSS
   // (bottom/center móvil ↔ top/right desktop), dejando el panel descuadrado.
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileView, setMobileView] = useState<"assistant" | "folders">("assistant");
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
-    const update = () => setIsDesktop(mq.matches);
+    const update = () => {
+      setIsDesktop(mq.matches);
+      setIsMobile(!mq.matches);
+    };
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
@@ -67,7 +82,6 @@ export default function HeroV2({
   });
   const smooth = useSpring(scrollYProgress, { stiffness: 80, damping: 22, mass: 0.5 });
   const embed = !!embedInScrollSequence;
-  const bgY = useTransform(smooth, [0, 1], embed ? ["0%", "0%"] : ["0%", "22%"]);
   const contentY = useTransform(smooth, [0, 1], embed ? ["0px", "0px"] : ["0px", "55px"]);
   const baseContentOpacity = useTransform(smooth, [0, 0.65], embed ? [1, 1] : [1, 0]);
   const baseGifOpacity = useTransform(smooth, [0, 0.55], embed ? [1, 1] : [1, 0]);
@@ -94,43 +108,36 @@ export default function HeroV2({
   return (
     <section
       id="home"
+      data-desktop={noBgImage ? undefined : desktopTheme}
       ref={heroRef}
-      className="relative min-h-screen overflow-hidden flex"
-      style={{ backgroundColor: noBgImage ? "#08080a" : "var(--gic-night-sky)" }}
+      className="relative min-h-[100svh] overflow-hidden flex"
+      style={{ backgroundColor: noBgImage ? "#08080a" : "#008080" }}
     >
       {/* Page heading for screen readers */}
       <h1 className="sr-only">{HERO_TITLE[language]}</h1>
 
-      {/* ── Background image + parallax ── */}
       {!noBgImage && (
-        <motion.div
-          className="absolute inset-0 z-0 scale-[1.02] md:scale-110"
-          style={{ y: bgY }}
-        >
-          <Image
-            src="/racoons_linux.webp"
-            alt=""
-            fill
-            priority
-            className="object-cover object-[center_18%] md:object-center"
-            style={{ opacity: 0.28, mixBlendMode: "luminosity" }}
-          />
-          {/* Multi-layer vignette */}
-          {!disableBgVignette && (
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(to bottom, rgba(31,31,41,0.55) 0%, rgba(31,31,41,0.3) 40%, rgba(31,31,41,0.85) 100%)",
-              }}
-            />
-          )}
-        </motion.div>
+        <DesktopPicker
+          theme={desktopTheme}
+          onChange={setDesktopTheme}
+          onTerminal={() => setMacTerminalOpen((value) => !value)}
+          terminalOpen={macTerminalOpen}
+          onTerminalOpenChange={(open) => {
+            setMacTerminalOpen(open);
+            if (open && isMobile) setMobileView("assistant");
+          }}
+          mobileView={isMobile ? mobileView : undefined}
+          onMobileViewChange={(view) => {
+            setMobileView(view);
+            if (view === "assistant") setMacTerminalOpen(true);
+          }}
+          macMobileStage={desktopTheme === "mac"}
+        />
       )}
 
       {/* ── Main content ── */}
       <motion.div
-        className="relative z-10 w-full h-screen px-6 md:px-10 lg:px-16 flex flex-col"
+        className={`relative z-10 pointer-events-none w-full h-[100svh] px-6 md:px-10 lg:px-16 flex flex-col ${!noBgImage && (desktopTheme === "mac" || desktopTheme === "ubuntu") ? "invisible" : ""}`}
         style={{
           y: contentY,
           opacity: contentOpacity,
@@ -166,7 +173,7 @@ export default function HeroV2({
 
         {/* ── Credly badge ── */}
         <motion.div
-          className="absolute z-20 right-3 top-[14%] w-[72px] md:right-6 md:w-[80px] lg:left-2 lg:right-auto lg:top-[38%] lg:w-[90px] origin-top-right lg:origin-top-left"
+          className="absolute z-20 pointer-events-auto right-3 top-[14%] w-[72px] md:right-6 md:w-[80px] lg:left-2 lg:right-auto lg:top-[38%] lg:w-[90px] origin-top-right lg:origin-top-left"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
@@ -255,7 +262,18 @@ export default function HeroV2({
 
       {/* ── Draggable terminal ── */}
       <style>{`
-        .comic-terminal, .comic-terminal * { font-family: var(--font-space-mono, ui-monospace, monospace) !important; }
+        #work[data-active-panel="0"]:has(#home[data-desktop="mac"]) { touch-action: pan-y !important; }
+        body:has(#work[data-active-panel="0"] #home[data-desktop="mac"]) .nav-v2-shell,
+        body:has(#work[data-active-panel="0"] #home[data-desktop="ubuntu"]) .nav-v2-shell { visibility: hidden; }
+        #home[data-desktop="mac"] .comic-terminal { left: auto; right: 6%; top: 20%; bottom: auto; translate: none; transform: none; width: min(580px, 88vw); }
+        #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] { inset: 40px 12px 90px; width: auto; transform: none !important; }
+        #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] > div { height: 100%; }
+        #home[data-desktop="mac"] .comic-terminal[hidden] { display: none; }
+        @media (max-width: 1023px) {
+          #home[data-desktop="mac"] .comic-terminal { display: none !important; }
+        }
+        #home[data-desktop="ubuntu"] .comic-terminal { left: 6%; right: auto; top: 20%; bottom: auto; translate: none; transform: none; width: min(500px, 88vw); }
+        #home[data-desktop="mac"] .hero-artist-credit, #home[data-desktop="ubuntu"] .hero-artist-credit { display: none; }
         @keyframes badgeFloat {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-8px); }
@@ -267,9 +285,31 @@ export default function HeroV2({
           .badge-float { animation: none; }
         }
       `}</style>
+      {/* Mobile mac: character stage + mind-sheet (desktop floating terminal stays lg+) */}
+      {/* MobileMacStage self-hides at lg+ via CSS; keep mounted for SSR parity */}
+      {!noBgImage && desktopTheme === "mac" && (
+        <MobileMacStage
+          view={mobileView}
+          theme="mac"
+          open={macTerminalOpen}
+          onOpenChange={(open) => {
+            setMacTerminalOpen(open);
+            if (!open) setTerminalExpanded(false);
+          }}
+        />
+      )}
+
+      {/* Floating comic-terminal — hidden on mobile mac via CSS; remount key still resets drag on breakpoint */}
       <motion.div
         key={isDesktop ? "terminal-lg" : "terminal-sm"}
-        drag
+        hidden={!noBgImage && desktopTheme === "mac" && !macTerminalOpen}
+        data-expanded={terminalExpanded && desktopTheme === "mac"}
+        drag={!terminalExpanded}
+        dragControls={terminalDrag}
+        dragListener={false}
+        onPointerDown={event => {
+          if ((event.target as HTMLElement).closest("[data-drag-handle]") && !(event.target as HTMLElement).closest("button")) terminalDrag.start(event);
+        }}
         dragMomentum={false}
         dragConstraints={heroRef}
         dragElastic={0}
@@ -288,7 +328,11 @@ export default function HeroV2({
           Artist: @jayivee._
         </a>
         <div className="w-full h-[min(425.25px,40.5vh)] lg:h-[min(472.5px,52.5vh)]">
-          <ChatInterface variant="panel" className="!w-full !h-full max-w-none" />
+          {/* On mobile mac the mind-sheet owns chat — skip a second useChat instance */}
+          {/* Default-on for SSR/desktop; unmount only after we know we are mobile mac */}
+          {(!(isMobile && desktopTheme === "mac") || noBgImage) && (
+            <ChatInterface onClose={() => { setTerminalExpanded(false); hideTerminal(); }} onMinimize={hideTerminal} onToggleMaximize={() => setTerminalExpanded(value => !value)} maximized={terminalExpanded} theme={noBgImage ? "default" : desktopTheme} variant="panel" className="!w-full !h-full max-w-none" />
+          )}
         </div>
       </motion.div>
 
@@ -297,7 +341,7 @@ export default function HeroV2({
         href="https://www.instagram.com/jayivee._/"
         target="_blank"
         rel="noopener noreferrer"
-        className="hidden md:block absolute bottom-3 right-3 z-50 text-[0.65rem] tracking-wider text-white/40 hover:text-white/80 transition-colors pointer-events-auto"
+        className="hero-artist-credit hidden md:block absolute bottom-11 right-3 z-50 text-[0.65rem] tracking-wider text-white/40 hover:text-white/80 transition-colors pointer-events-auto"
         style={{ fontFamily: "ui-monospace, monospace" }}
       >
         Artist: @jayivee._
