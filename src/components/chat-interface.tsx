@@ -22,6 +22,31 @@ function LoadingSpinner() {
   );
 }
 
+
+function waitStatusLabel(lang: Language, waitMs: number, streaming: boolean): string {
+  if (streaming) {
+    return lang === "es" ? "Escribiendo…" : lang === "zh" ? "正在输入…" : "Writing…";
+  }
+  const sec = waitMs / 1000;
+  if (lang === "es") {
+    if (sec < 1.5) return "Pensando…";
+    if (sec < 4) return "Armando la respuesta…";
+    if (sec < 8) return "Kimi sigue pensando — ya casi…";
+    return "Sigue en camino (modelos grandes tardan un poco)…";
+  }
+  if (lang === "zh") {
+    if (sec < 1.5) return "思考中…";
+    if (sec < 4) return "正在组织回答…";
+    if (sec < 8) return "Kimi 还在想 — 快好了…";
+    return "仍在生成（大模型会慢一点）…";
+  }
+  if (sec < 1.5) return "Thinking…";
+  if (sec < 4) return "Crafting a reply…";
+  if (sec < 8) return "Kimi is still cooking — almost…";
+  return "Still working (big models take a beat)…";
+}
+
+
 // Removed unused imports: alexisData, getRandomMusicArtist, getRandomTech
 // Debug imports
 import {
@@ -187,7 +212,7 @@ export default function ChatInterface({
   // showNameStep, setNameOpacity, showLangStep, langOpacity, showNameInput, nameInputOpacity, setNameInput
 
   // Chat
-  const { messages, isLoading, error, sendMessage, isRateLimit } = useChat(userName);
+  const { messages, isLoading, isStreaming, waitMs, error, sendMessage, isRateLimit } = useChat(userName);
   const [showChat, setShowChat] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -222,8 +247,8 @@ export default function ChatInterface({
   }, []);
 
   useEffect(() => {
-    onBusyChange?.(isLoading);
-  }, [isLoading, onBusyChange]);
+    onBusyChange?.(isLoading || isStreaming);
+  }, [isLoading, isStreaming, onBusyChange]);
 
   // Messages end ref para autoscroll
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -537,6 +562,9 @@ export default function ChatInterface({
                       <div className="mb-2">
                         <div className={`${themed ? styles.response : ""} text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 text-[14px] lg:text-[16px] xl:text-[17px] leading-6`}>
                           {content}
+                          {m.pending && (
+                            <span className="ml-1 inline-block h-4 w-0.5 align-[-0.15em] bg-orange-300 animate-pulse" aria-hidden="true" />
+                          )}
                         </div>
                         <div className="text-[14px] text-gray-500 mt-1">
                           {m.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -546,11 +574,19 @@ export default function ChatInterface({
                   </div>
                 );
               })}
-              {isLoading && (
+              {isLoading && !isStreaming && (
                 <div className="font-mono text-[14px] lg:text-[16px] xl:text-[17px] animate-fadeIn">
-                  <div className={`${themed ? styles.response : ""} text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 flex items-center gap-3`}>
+                  <div className={`${themed ? styles.response : ""} ${styles.waitCard ?? ""} text-gray-100 bg-black/10 rounded p-3 border-l-4 border-orange-500 flex items-center gap-3`}>
                     <LoadingSpinner />
-                    <span>{labels.processing}</span>
+                    <div className="min-w-0 flex-1">
+                      <div>{waitStatusLabel(currentLang, waitMs, false)}</div>
+                      <div className="text-[11px] text-gray-500 mt-1 tabular-nums" aria-hidden="true">
+                        {(waitMs / 1000).toFixed(1)}s
+                      </div>
+                      <div className={styles.waitBar ?? ""} aria-hidden="true">
+                        <span style={{ width: `${Math.min(92, 12 + waitMs / 80)}%` }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
