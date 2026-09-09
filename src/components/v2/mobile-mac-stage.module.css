@@ -17,8 +17,8 @@
   /* The historic mobile hero centered a single GIF behind a lower window. */
   .character {
     position: absolute;
-    top: max(110px, 13svh);
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    top: max(90px, 10svh);
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
     left: 0;
     right: 0;
     display: flex;
@@ -37,7 +37,7 @@
     position: absolute;
     left: max(10px, env(safe-area-inset-left, 0px));
     right: max(10px, env(safe-area-inset-right, 0px));
-    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
     height: 35svh;
     max-width: 640px;
     margin-inline: auto;

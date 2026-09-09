@@ -111,9 +111,9 @@
     bottom: max(10px, env(safe-area-inset-bottom, 0px));
     z-index: 28;
     gap: 8px;
-    padding: 8px;
-    border-radius: 16px;
-    /* Slightly smaller hit targets still ≥ 44px via padding around icons */
+    padding: 3px 6px;
+    border-radius: 14px;
+    /* Compact chrome retains 44px tap targets. */
   }
 
   .macMobile .dock button,
@@ -154,8 +154,8 @@
     left: max(12px, env(safe-area-inset-left, 0px));
     z-index: 34;
     display: flex;
-    gap: 3px;
-    padding: 4px;
+    gap: 2px;
+    padding: 2px;
     border: 1px solid #ffffff26;
     border-radius: 14px;
     background: #1c1f25e6;
@@ -164,9 +164,10 @@
   .mobileViewSwitcher button {
     display: flex;
     align-items: center;
-    gap: 7px;
+    justify-content: center;
+    width: 44px;
     min-height: 44px;
-    padding: 0 12px;
+    padding: 0;
     border: 0;
     border-radius: 10px;
     color: #b7bbc5;
