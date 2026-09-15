@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import type React from "react";
-import { Info, X, Minus, Maximize2, Minimize2, Sparkles, ArrowUp } from "lucide-react";
+import { Info, X, Minus, Maximize2, Minimize2, ArrowUp } from "lucide-react";
 import styles from "./chat-interface.module.css";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
@@ -129,6 +129,37 @@ const GREETINGS: Record<Language, string[]> = {
     "你好！Alexis 在此。我把咖啡变成代码，这个 AI 知道我的大部分招数。",
     "嘿，我是 Alexis。我让像素在屏幕上跳舞，由 AI 魔法驱动。",
   ],
+};
+
+/* ========= Boot greeter (mac theme) ========= */
+const BOOT_GREETING: Record<Language, string> = {
+  en: "Hi! This is Alexis Reyna's project portfolio. What would you like to explore first?",
+  es: "¡Hola! Este es el portfolio de proyectos de Alexis Reyna. ¿Qué te gustaría explorar primero?",
+  zh: "你好！这里是 Alexis Reyna 的项目作品集。你想先看看什么？",
+};
+
+type BootOptionKey = "projects" | "about" | "contact" | "assistant";
+const BOOT_MENU_ORDER: BootOptionKey[] = ["projects", "about", "contact", "assistant"];
+
+const BOOT_MENU: Record<Language, Record<BootOptionKey, { label: string; slug: string }>> = {
+  en: {
+    projects: { label: "Projects", slug: "projects" },
+    about: { label: "About me", slug: "about" },
+    contact: { label: "Contact", slug: "contact" },
+    assistant: { label: "Use Alexis AI Assistant", slug: "ai_assistant" },
+  },
+  es: {
+    projects: { label: "Proyectos", slug: "proyectos" },
+    about: { label: "Sobre mí", slug: "sobre_mi" },
+    contact: { label: "Contacto", slug: "contacto" },
+    assistant: { label: "Usar el Asistente IA de Alexis", slug: "asistente_ia" },
+  },
+  zh: {
+    projects: { label: "项目", slug: "projects" },
+    about: { label: "关于我", slug: "about" },
+    contact: { label: "联系", slug: "contact" },
+    assistant: { label: "使用 Alexis 的 AI 助手", slug: "ai_assistant" },
+  },
 };
 
 /* ========= Utils ========= */
@@ -296,6 +327,22 @@ export default function ChatInterface({
     if (!showChat) setShowChat(true);
   };
 
+  const handleBootOption = (key: BootOptionKey) => {
+    if (key === "projects") {
+      window.dispatchEvent(new CustomEvent("sequence:navigate", { detail: "inverater" }));
+      return;
+    }
+    if (key === "contact") {
+      window.dispatchEvent(new CustomEvent("sequence:navigate", { detail: "contact" }));
+      return;
+    }
+    if (key === "assistant") {
+      setGreeterDismissed(true);
+      return;
+    }
+    handleSuggestionClick(BOOT_MENU[currentLang].about.label, "about");
+  };
+
   /* ========= Intro text (portada) ========= */
   const [displayed, setDisplayed] = useState("");
   const [typewriterComplete, setTypewriterComplete] = useState(false);
@@ -303,6 +350,7 @@ export default function ChatInterface({
   const [showInput, setShowInput] = useState(false);
   const [showInfoTip, setShowInfoTip] = useState(false);
   const [greetingIndex, setGreetingIndex] = useState(0);
+  const [greeterDismissed, setGreeterDismissed] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -310,9 +358,12 @@ export default function ChatInterface({
   }, [currentLang]);
 
   const baseGreeting = GREETINGS[currentLang][greetingIndex];
-  const text = userName
-    ? `${baseGreeting} ${labels.howAreYouNamed(userName)}`
-    : `${baseGreeting} ${labels.howAreYou}`;
+  const text =
+    theme === "mac"
+      ? BOOT_GREETING[currentLang]
+      : userName
+        ? `${baseGreeting} ${labels.howAreYouNamed(userName)}`
+        : `${baseGreeting} ${labels.howAreYou}`;
 
   useEffect(() => {
     if (!showChat) {
@@ -504,17 +555,32 @@ export default function ChatInterface({
         <div className={`${themed ? styles.content : ""} p-2 lg:p-4 flex-1 flex flex-col min-h-0 overflow-hidden`}>
           <div className="flex-1 min-h-0 flex flex-col gap-4 mb-4 overflow-y-auto">
             {themed && theme !== "mac" && !isMindSheet && <div className={styles.session}>{session}<br /><span>{theme === "windows" ? "C:\\ALEXIS> ALEXIS.EXE" : "# Alexis Reyna · portfolio"}</span></div>}
-            {theme === "mac" && sorted.length === 0 && !showChat && (
+            {theme === "mac" && sorted.length === 0 && !showChat && !greeterDismissed && (
               <section className={styles.aiWelcome} aria-label={aiCopy.heading}>
-                <h2><Sparkles size={18} aria-hidden="true" />{aiCopy.heading}</h2>
-                <p>{aiCopy.intro}</p>
+                <div className="font-mono text-[14px] lg:text-[16px] xl:text-[17px] leading-6">
+                  <span className={styles.prompt}>{prompt}</span>
+                  <span className="ml-2 text-gray-100">
+                    {displayed || text}
+                    {displayed.length < text.length && (
+                      <span className="ml-1 inline-block h-4 w-0.5 align-[-0.15em] bg-gray-300 animate-pulse" />
+                    )}
+                  </span>
+                </div>
                 <div className={styles.aiExamples} role="group" aria-label={aiCopy.examples}>
-                  {([
-                    [aiCopy.projects, aiCopy.projectQuestion, "projects"],
-                    [aiCopy.skills, aiCopy.skillsQuestion, "tech"],
-                    [aiCopy.contact, aiCopy.contactQuestion, "contact"],
-                  ] as const).map(([label, question, intent]) => (
-                    <button key={intent} type="button" disabled={isLoading} onClick={() => handleSuggestionClick(question, intent)}>{label}</button>
+                  {BOOT_MENU_ORDER.map((key, index) => (
+                    <button
+                      key={key}
+                      type="button"
+                      disabled={isLoading}
+                      aria-label={BOOT_MENU[currentLang][key].label}
+                      onClick={() => handleBootOption(key)}
+                      className={`transition-all duration-300 ${
+                        typewriterComplete ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-2"
+                      }`}
+                      style={{ transitionDelay: `${index * 100}ms` }}
+                    >
+                      ./{BOOT_MENU[currentLang][key].slug}
+                    </button>
                   ))}
                 </div>
               </section>
