@@ -2,18 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Folder, Globe, Terminal, Mail, Github, LayoutDashboard } from "lucide-react";
+import { Folder, Globe, Terminal, Mail, Github } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
 import { DesktopStoreProvider, useDesktopStore } from "@/lib/desktop/desktop-store";
 import { MacMenuBar } from "./mac-menu-bar";
 import MacProjects from "./mac-projects";
 import MacMail from "./mac-mail";
 import MacCoffeeDrawing from "./mac-coffee-drawing";
-import WindowsDesktop from "./windows-desktop";
-import UbuntuDesktop from "./ubuntu-desktop";
 import styles from "./desktop-picker.module.css";
-
-export type DesktopTheme = "windows" | "mac" | "ubuntu";
 
 type MobileView = "assistant" | "folders";
 
@@ -38,10 +34,11 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
         : { projects: "Projects", contact: "Contact" };
 
   return (
-    <div data-mobile-view={mobileView} className={`${styles.mac} ${macMobile ? styles.macMobile : ""} ${store.focusMode.active || store.preferences.reducedMotion ? styles.macCalm : ""}`.trim()}>
-      <div className={styles.wallpaper} aria-hidden="true" />
+    // data-desktop-root / data-desktop-background: where desktop icon drags and the desktop context menu live.
+    <div data-desktop-root="" data-mobile-view={mobileView} className={`${styles.mac} ${macMobile ? styles.macMobile : ""} ${store.focusMode.active || store.preferences.reducedMotion ? styles.macCalm : ""}`.trim()}>
+      <div className={styles.wallpaper} data-desktop-background="" aria-hidden="true" />
       {!store.desktopHidden && (!macMobile || desktopArtwork) && (
-        <div className={styles.macGif} aria-hidden="true">
+        <div className={styles.macGif} data-desktop-background="" aria-hidden="true">
           <MacCoffeeDrawing />
         </div>
       )}
@@ -122,18 +119,12 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
 }
 
 export default function DesktopPicker({
-  theme,
-  onChange,
-  onTerminal,
   terminalOpen,
   onTerminalOpenChange,
   macMobileStage = false,
   mobileView,
   onMobileViewChange,
 }: {
-  theme: DesktopTheme;
-  onChange: (theme: DesktopTheme) => void;
-  onTerminal: () => void;
   terminalOpen?: boolean;
   onTerminalOpenChange?: (open: boolean) => void;
   /** When true (mobile mac + stage active), hide desktop macGif and clear dock for the sheet. */
@@ -141,108 +132,9 @@ export default function DesktopPicker({
   mobileView?: MobileView;
   onMobileViewChange?: (view: MobileView) => void;
 }) {
-  const { language } = useLanguage();
-  // macOS is the sole public view. Keep the picker and alternate renderers in
-  // this component so they can be restored later without recreating them.
-  const isPickerOpen = false;
-
-  useEffect(() => {
-    document.body.classList.toggle("desktop-picker-welcome-active", isPickerOpen);
-    return () => document.body.classList.remove("desktop-picker-welcome-active");
-  }, [isPickerOpen]);
-
-  const copy =
-    language === "es"
-      ? {
-          title: "¿Cuál es tu escritorio?",
-          detail: "Elige cómo quieres explorar mi portafolio. Puedes cambiar cuando quieras.",
-          change: "Cambiar vista",
-          close: "Cerrar",
-          classic: "Un clásico de 1995",
-          modern: "Un espacio más minimalista",
-          ubuntu: "El original, con energía Ubuntu",
-        }
-      : language === "zh"
-        ? {
-            title: "选择你的桌面",
-            detail: "选择浏览作品集的方式，随时可以切换。",
-            change: "切换视图",
-            close: "关闭",
-            classic: "1995 年的经典",
-            modern: "简约的工作空间",
-            ubuntu: "原始 Ubuntu 风格",
-          }
-        : {
-            title: "Choose your desktop",
-            detail: "Pick a home for exploring my portfolio. You can switch anytime.",
-            change: "Change view",
-            close: "Close",
-            classic: "A 1995 classic",
-            modern: "A quieter workspace",
-            ubuntu: "The original Ubuntu energy",
-          };
-
-  const choose = (value: DesktopTheme) => {
-    onChange(value);
-  };
-  // Intentionally a no-op while macOS is the only exposed experience.
-  const openPicker = () => {};
-
   return (
-    <>
-      {isPickerOpen && (
-        <div
-          id="desktop-picker-welcome"
-          className={styles.startup}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="desktop-picker-title"
-          aria-describedby="desktop-picker-description"
-        >
-          <div className={styles.startupDialog}>
-            <button className={styles.close} aria-label={copy.close}>
-              ×
-            </button>
-            <span className={styles.eyebrow}>ALEXIS REYNA / PORTFOLIO</span>
-            <h2 id="desktop-picker-title">{copy.title}</h2>
-            <p id="desktop-picker-description">{copy.detail}</p>
-            <div className={styles.options}>
-              <button onClick={() => choose("windows")} aria-pressed={theme === "windows"}>
-                <span className={styles.winPreview}>
-                  <span>▦</span>
-                  <i>Start</i>
-                </span>
-                <strong>Windows 95</strong>
-                <small>{copy.classic}</small>
-              </button>
-              <button onClick={() => choose("mac")} aria-pressed={theme === "mac"}>
-                <span className={styles.macPreview}>
-                  <i />
-                </span>
-                <strong>macOS</strong>
-                <small>{copy.modern}</small>
-              </button>
-              <button onClick={() => choose("ubuntu")} aria-pressed={theme === "ubuntu"}>
-                <span className={styles.ubuntuPreview}>
-                  <LayoutDashboard size={30} />
-                  <i />
-                </span>
-                <strong>Ubuntu</strong>
-                <small>{copy.ubuntu}</small>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {theme === "windows" ? (
-        <WindowsDesktop onChangeView={openPicker} changeLabel={copy.change} />
-      ) : theme === "ubuntu" ? (
-        <UbuntuDesktop onChangeView={openPicker} onTerminal={onTerminal} changeLabel={copy.change} />
-      ) : (
-        <DesktopStoreProvider terminalOpen={terminalOpen} onTerminalChange={onTerminalOpenChange}>
-          <MacDesktop macMobile={macMobileStage} mobileView={mobileView} onMobileViewChange={onMobileViewChange} />
-        </DesktopStoreProvider>
-      )}
-    </>
+    <DesktopStoreProvider terminalOpen={terminalOpen} onTerminalChange={onTerminalOpenChange}>
+      <MacDesktop macMobile={macMobileStage} mobileView={mobileView} onMobileViewChange={onMobileViewChange} />
+    </DesktopStoreProvider>
   );
 }

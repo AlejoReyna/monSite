@@ -150,6 +150,14 @@
   opacity: 0.55;
 }
 
+/* Non-interactive group heading inside a dropdown, e.g. "Sort By". */
+.menuLabel {
+  padding: 5px 10px 3px;
+  color: #a1a1aa;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .check {
   color: #7dd3fc;
   font-size: 12px;
@@ -501,6 +509,12 @@
   .overflowBtn { display: flex !important; }
   .clockBtn { display: none !important; }
   .bar { padding: 0 8px; gap: 2px; }
+}
+
+/* Mobile has no menu bar: the view switcher and Dock row start at the top edge.
+   To restore it, delete this rule and move the mobile Dock row, art and windows down 30px. */
+@media (max-width: 1023px) {
+  .bar { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

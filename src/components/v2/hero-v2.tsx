@@ -3,15 +3,11 @@
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring, useDragControls, type MotionValue } from "framer-motion";
-import DesktopPicker, { type DesktopTheme } from "./desktop-picker";
+import DesktopPicker from "./desktop-picker";
 import MobileMacStage from "./mobile-mac-stage";
 import ChatInterface from "@/components/chat-interface";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
-
-/* ═══════════════════════════════════════════
-   Hero V2 — Windows 95 desktop
-   ═══════════════════════════════════════════ */
 
 const SCROLL_PROMPT: Record<Language, string> = {
   en: "scroll down to see my projects!",
@@ -48,10 +44,6 @@ export default function HeroV2({
 }: HeroV2Props) {
   const { language } = useLanguage();
   const heroRef = useRef<HTMLElement>(null);
-  // macOS is the public/default experience. The alternate desktop renderers
-  // remain available in DesktopPicker for future use, but are no longer part
-  // of the visitor flow.
-  const [desktopTheme, setDesktopTheme] = useState<DesktopTheme>("mac");
   const [macTerminalOpen, setMacTerminalOpen] = useState(true);
   const [terminalExpanded, setTerminalExpanded] = useState(false);
   const terminalDrag = useDragControls();
@@ -108,7 +100,7 @@ export default function HeroV2({
   return (
     <section
       id="home"
-      data-desktop={noBgImage ? undefined : desktopTheme}
+      data-desktop={noBgImage ? undefined : "mac"}
       ref={heroRef}
       className="relative min-h-[100svh] overflow-hidden flex"
       style={{ backgroundColor: noBgImage ? "#08080a" : "#008080" }}
@@ -118,9 +110,6 @@ export default function HeroV2({
 
       {!noBgImage && (
         <DesktopPicker
-          theme={desktopTheme}
-          onChange={setDesktopTheme}
-          onTerminal={() => setMacTerminalOpen((value) => !value)}
           terminalOpen={macTerminalOpen}
           onTerminalOpenChange={(open) => {
             setMacTerminalOpen(open);
@@ -131,13 +120,13 @@ export default function HeroV2({
             setMobileView(view);
             if (view === "assistant") setMacTerminalOpen(true);
           }}
-          macMobileStage={desktopTheme === "mac"}
+          macMobileStage
         />
       )}
 
       {/* ── Main content ── */}
       <motion.div
-        className={`relative z-10 pointer-events-none w-full h-[100svh] px-6 md:px-10 lg:px-16 flex flex-col ${!noBgImage && (desktopTheme === "mac" || desktopTheme === "ubuntu") ? "invisible" : ""}`}
+        className={`relative z-10 pointer-events-none w-full h-[100svh] px-6 md:px-10 lg:px-16 flex flex-col ${!noBgImage ? "invisible" : ""}`}
         style={{
           y: contentY,
           opacity: contentOpacity,
@@ -156,9 +145,9 @@ export default function HeroV2({
             style={{ opacity: gifOpacity, scale: gifScale }}
             aria-hidden
           >
-            {(isDesktop || noBgImage || desktopTheme !== "mac") && (
+            {noBgImage && (
             <Image
-              src="/16.gif"
+              src="/coffee-desktop.webp"
               alt=""
               fill
               priority
@@ -265,8 +254,7 @@ export default function HeroV2({
       {/* ── Draggable terminal ── */}
       <style>{`
         #work[data-active-panel="0"]:has(#home[data-desktop="mac"]) { touch-action: pan-y !important; }
-        body:has(#work[data-active-panel="0"] #home[data-desktop="mac"]) .nav-v2-shell,
-        body:has(#work[data-active-panel="0"] #home[data-desktop="ubuntu"]) .nav-v2-shell { visibility: hidden; }
+        body:has(#work[data-active-panel="0"] #home[data-desktop="mac"]) .nav-v2-shell { visibility: hidden; }
         #home[data-desktop="mac"] .comic-terminal { left: auto; right: 6%; top: 20%; bottom: auto; translate: none; transform: none; width: min(580px, 88vw); }
         #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] { inset: 40px 12px 90px; width: auto; transform: none !important; }
         #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] > div { height: 100%; }
@@ -274,8 +262,7 @@ export default function HeroV2({
         @media (max-width: 1023px) {
           #home[data-desktop="mac"] .comic-terminal { display: none !important; }
         }
-        #home[data-desktop="ubuntu"] .comic-terminal { left: 6%; right: auto; top: 20%; bottom: auto; translate: none; transform: none; width: min(500px, 88vw); }
-        #home[data-desktop="mac"] .hero-artist-credit, #home[data-desktop="ubuntu"] .hero-artist-credit { display: none; }
+        #home[data-desktop="mac"] .hero-artist-credit { display: none; }
         @keyframes badgeFloat {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-8px); }
@@ -289,7 +276,7 @@ export default function HeroV2({
       `}</style>
       {/* Mobile mac: character stage + mind-sheet (desktop floating terminal stays lg+) */}
       {/* MobileMacStage self-hides at lg+ via CSS; keep mounted for SSR parity */}
-      {!noBgImage && desktopTheme === "mac" && (
+      {!noBgImage && (
         <MobileMacStage
           view={mobileView}
           theme="mac"
@@ -304,8 +291,8 @@ export default function HeroV2({
       {/* Floating comic-terminal — hidden on mobile mac via CSS; remount key still resets drag on breakpoint */}
       <motion.div
         key={isDesktop ? "terminal-lg" : "terminal-sm"}
-        hidden={!noBgImage && desktopTheme === "mac" && !macTerminalOpen}
-        data-expanded={terminalExpanded && desktopTheme === "mac"}
+        hidden={!noBgImage && !macTerminalOpen}
+        data-expanded={terminalExpanded}
         drag={!terminalExpanded}
         dragControls={terminalDrag}
         dragListener={false}
@@ -332,8 +319,8 @@ export default function HeroV2({
         <div className="w-full h-[min(425.25px,40.5vh)] lg:h-[min(472.5px,52.5vh)]">
           {/* On mobile mac the mind-sheet owns chat — skip a second useChat instance */}
           {/* Default-on for SSR/desktop; unmount only after we know we are mobile mac */}
-          {(!(isMobile && desktopTheme === "mac") || noBgImage) && (
-            <ChatInterface onClose={() => { setTerminalExpanded(false); hideTerminal(); }} onMinimize={hideTerminal} onToggleMaximize={() => setTerminalExpanded(value => !value)} maximized={terminalExpanded} theme={noBgImage ? "default" : desktopTheme} variant="panel" className="!w-full !h-full max-w-none" />
+          {(!isMobile || noBgImage) && (
+            <ChatInterface onClose={() => { setTerminalExpanded(false); hideTerminal(); }} onMinimize={hideTerminal} onToggleMaximize={() => setTerminalExpanded(value => !value)} maximized={terminalExpanded} theme={noBgImage ? "default" : "mac"} variant="panel" className="!w-full !h-full max-w-none" />
           )}
         </div>
       </motion.div>

@@ -51,7 +51,7 @@ export default function UbuntuDesktop({ onChangeView, onTerminal, changeLabel }:
 
       <div className={styles.character} aria-hidden="true">
         <Image
-          src="/16.gif"
+          src="/coffee-desktop.webp"
           alt=""
           fill
           priority

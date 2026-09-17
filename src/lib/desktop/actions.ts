@@ -44,7 +44,7 @@ export const ASSISTANT_TOOLS = [
         properties: {
           projectId: {
             type: "string",
-            description: "Project id or title (inverater, plebes, cafeteria, wedding, nonamedbot)",
+            description: "Project id or title (inverater, plebes, cafeteria, wedding, wedding-cindy, nonamedbot, monetta)",
           },
         },
         required: ["projectId"],

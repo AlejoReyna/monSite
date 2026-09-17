@@ -57,6 +57,18 @@ export const CURATED_PROJECTS: CuratedProject[] = [
     },
   },
   {
+    id: "wedding-cindy",
+    title: "Cindy & Jorge",
+    category: "Wedding / Interactive",
+    tags: ["Next.js", "3D Gallery", "Google Maps", "Framer Motion"],
+    href: "/weddings/cindy",
+    summary: {
+      en: "Immersive wedding invitation with animated storytelling, a 3D gallery, itinerary, maps and RSVP.",
+      es: "Invitación de boda inmersiva con narrativa animada, galería 3D, itinerario, mapas y RSVP.",
+      zh: "沉浸式婚礼邀请函，含动画叙事、3D 相册、日程、地图与 RSVP。",
+    },
+  },
+  {
     id: "nonamedbot",
     title: "NoNamedBot",
     category: "AI / Trading agent",
@@ -66,6 +78,18 @@ export const CURATED_PROJECTS: CuratedProject[] = [
       en: "Autonomous BNB Chain trading agent built for BNB Hack.",
       es: "Agente autónomo de trading en BNB Chain para BNB Hack.",
       zh: "为 BNB Hack 构建的自主 BNB Chain 交易代理。",
+    },
+  },
+  {
+    id: "monetta",
+    title: "Monetta",
+    category: "E-commerce / Mobile app",
+    tags: ["Flutter", "Riverpod", "Shopify", "Firebase"],
+    href: "https://monetta.mx",
+    summary: {
+      en: "Native iOS and Android shopping app for monetta.mx, with a live Shopify catalog and on-device recommendations.",
+      es: "App nativa de compras para iOS y Android de monetta.mx, con catálogo en vivo de Shopify y recomendaciones en el dispositivo.",
+      zh: "monetta.mx 的 iOS 与 Android 原生购物应用，含 Shopify 实时商品目录与端侧推荐。",
     },
   },
 ];

@@ -29,13 +29,11 @@ html.is-sequence-locked body {
 
 /* The desktop choice is an intentional entry screen. Keep the site chrome out
    of it so the first thing visitors see is only the black background + popup. */
-body:has(#desktop-picker-welcome) .nav-v2-shell,
-body:has(#desktop-picker-welcome) .skip-to-main {
+body:has(#desktop-picker-welcome) .nav-v2-shell {
   visibility: hidden;
 }
 
-body.desktop-picker-welcome-active .nav-v2-shell,
-body.desktop-picker-welcome-active .skip-to-main {
+body.desktop-picker-welcome-active .nav-v2-shell {
   visibility: hidden;
 }
 
