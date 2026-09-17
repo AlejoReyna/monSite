@@ -222,7 +222,6 @@ export default function ChatInterface({
 
   /* ========= Estado base ========= */
   const [userName, setUserName] = useState("");
-  const [showNamePrompt, setShowNamePrompt] = useState(false);
 
   // Removed unused overlay state variables: showWelcome, setShowWelcome, welcomeOpacity, setWelcomeOpacity,
   // showNameStep, setNameOpacity, showLangStep, langOpacity, showNameInput, nameInputOpacity, setNameInput
@@ -237,6 +236,9 @@ export default function ChatInterface({
   const rootRef = useRef<HTMLDivElement>(null);
 
   /* ========= Load persisted ========= */
+  // Only the name is persisted; the transcript is not. `showChat` therefore stays
+  // false on a fresh load so the greeter renders — a returning visitor with a saved
+  // name must not land on an empty message list.
   useEffect(() => {
     try {
       const savedName =
@@ -244,15 +246,8 @@ export default function ChatInterface({
 
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (savedName) setUserName(savedName);
-
-      const needsSetup = !savedName;
-      setShowNamePrompt(needsSetup);
-
-      if (!needsSetup) {
-        setShowChat(true);
-      }
     } catch {
-      setShowNamePrompt(true);
+      /* private mode / blocked storage: greet as an anonymous visitor */
     }
   }, []);
 
@@ -286,7 +281,6 @@ export default function ChatInterface({
       try {
         localStorage.setItem("userName", autoName);
       } catch {}
-      setShowNamePrompt(false);
       setShowChat(true);
     }
     const intent = deriveIntent(raw, currentLang);
@@ -304,7 +298,6 @@ export default function ChatInterface({
       try {
         localStorage.setItem("userName", autoName);
       } catch {}
-      setShowNamePrompt(false);
       setShowChat(true);
     }
     const payload = buildHint(intent, currentLang) + "\n" + text;
@@ -372,18 +365,18 @@ export default function ChatInterface({
   }, [text, showChat]);
 
   useEffect(() => {
-    if (!showNamePrompt && typewriterComplete && !showChat && visibleButtons < suggestions.length) {
+    if (typewriterComplete && !showChat && visibleButtons < suggestions.length) {
       const timer = setTimeout(() => setVisibleButtons((p) => p + 1), 200);
       return () => clearTimeout(timer);
     }
-  }, [typewriterComplete, visibleButtons, showChat, showNamePrompt, suggestions.length]);
+  }, [typewriterComplete, visibleButtons, showChat, suggestions.length]);
 
   useEffect(() => {
-    if (!showNamePrompt && typewriterComplete && !showChat && visibleButtons === suggestions.length && !showInput) {
+    if (typewriterComplete && !showChat && visibleButtons === suggestions.length && !showInput) {
       const timer = setTimeout(() => setShowInput(true), 300);
       return () => clearTimeout(timer);
     }
-  }, [typewriterComplete, visibleButtons, showChat, showNamePrompt, showInput, suggestions.length]);
+  }, [typewriterComplete, visibleButtons, showChat, showInput, suggestions.length]);
 
   /* ========= UI normal del chat ========= */
   const sorted = [...messages].sort((a, b) => +a.timestamp - +b.timestamp);
@@ -591,7 +584,7 @@ export default function ChatInterface({
                 <span className="text-gray-400 ml-2">Alexis-K2.6</span>
                 <span className="text-gray-100 ml-2">
                   {displayed || text}
-                  {!showNamePrompt && displayed.length < text.length && (
+                  {displayed.length < text.length && (
                     <span className="ml-1 inline-block h-4 w-0.5 align-[-0.15em] bg-gray-300 animate-pulse" />
                   )}
                 </span>
@@ -679,7 +672,7 @@ export default function ChatInterface({
             )}
 
             {/* Sugerencias antes de iniciar chat */}
-            {theme !== "mac" && !showNamePrompt && !showChat && sorted.length === 0 && (
+            {theme !== "mac" && !showChat && sorted.length === 0 && (
               <div className="space-y-2 shrink-0">
               <div className="text-xs text-gray-400 font-mono mb-3">{labels.commands}</div>
               <div className="flex flex-wrap gap-2">
