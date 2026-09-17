@@ -12,12 +12,25 @@ const projects = [
   { id: "plebes", title: "Plebes DAO", category: "Community / Web3", color: "#ac9ee2", image: "/plebes_bg.png", mark: "PLEBES", tags: ["ICP", "Motoko", "Figma", "UI/UX"], href: "https://plebes.xyz", description: { en: "Community-driven DAO on Internet Computer. Full design, branding and user experience built from scratch.", es: "DAO impulsada por la comunidad en Internet Computer. Diseño completo, branding y experiencia de usuario desde cero.", zh: "基于 Internet Computer 的社区驱动型 DAO。从零开始完成设计、品牌与用户体验。" } },
   { id: "cafeteria", title: "Artisanal Brew", category: "Coffee / Web3", color: "#d0a17b", image: "/blog/artisanal-brew-assets/layer-0.webp", mark: "ARTISANAL BREW", tags: ["Blazor", ".NET", "Solidity", "PostgreSQL"], href: "https://cafe.alexisrs.dev", description: { en: "A pixel-art coffee experience with multichain integrations across Ethereum, BNB Chain and Solana. Built with Blazor and .NET.", es: "Una experiencia de café con pixel art e integraciones en Ethereum, BNB Chain y Solana. Construida con Blazor y .NET.", zh: "像素艺术咖啡体验，集成 Ethereum、BNB Chain 和 Solana。使用 Blazor 与 .NET 构建。" } },
   { id: "wedding", title: "Andrea & Aldo", category: "Wedding / Interactive", color: "#d5a4b2", image: "/andrea_hero.jpeg", mark: "A & A", tags: ["Next.js", "Google Maps", "Framer Motion"], href: "/weddings/andrea", description: { en: "An interactive wedding invitation with an RSVP flow, schedule and maps. A personal digital keepsake for a shared celebration.", es: "Invitación de boda interactiva con RSVP, itinerario y mapas. Un recuerdo digital personal para una celebración compartida.", zh: "互动婚礼邀请函，包含 RSVP、日程与地图。为共同庆祝留下专属数字纪念。" } },
+  { id: "wedding-cindy", title: "Cindy & Jorge", category: "Wedding / Interactive", color: "#c9b7a4", image: "/cindy_hero.jpg", mark: "C & J", tags: ["Next.js", "3D Gallery", "Google Maps", "Framer Motion"], href: "/weddings/cindy", description: { en: "An immersive wedding invitation with animated storytelling, a 3D gallery, itinerary, maps and RSVP experience.", es: "Invitación de boda inmersiva con narrativa animada, galería 3D, itinerario, mapas y experiencia RSVP.", zh: "沉浸式婚礼邀请函，包含动画叙事、3D 相册、日程、地图与 RSVP 体验。" } },
   { id: "nonamedbot", title: "NoNamedBot", category: "AI / Trading agent", color: "#86b8ad", image: null, mark: ">_ NoNamedBot", tags: ["Python", "pandas", "TWAK", "Next.js"], href: "https://github.com/AlejoReyna/no-named-yet-bot", description: { en: "An autonomous BNB Chain trading agent built for BNB Hack. Python scores tokens with regime-aware guardrails; TWAK executes self-custody swaps.", es: "Agente autónomo de trading en BNB Chain para BNB Hack. Python evalúa tokens con controles de riesgo y TWAK ejecuta swaps de autocustodia.", zh: "为 BNB Hack 构建的自主 BNB Chain 交易代理。Python 在风险防护下评估代币，TWAK 执行自托管交换。" } },
 ];
 
 // Monetta ships as an app, so the desktop shows its App Store icon and Finder an App Store-style page.
-// Inverater keeps its folder detail page but uses its brand mark as the desktop/Finder icon.
-const INVERATER_ICON = "/inverater/icon.png";
+// Projects keep their folder detail pages but can use brand icons on desktop/Finder.
+const INVERATER_ICON = "/inverater/icon-clean.png";
+const PLEBES_ICON = "/plebes-icon-clean.png";
+// Transparent 5-frame hero sprite (320x64); object-fit cover crops to the middle robot frame.
+const ARTISANAL_ICON = "/blog/artisanal-brew-robot.png";
+const ANDREA_ICON = "/weddings/andrea/assets/logos/IMG_0340.PNG";
+const CINDY_ICON = "/weddings/cindy/cindy-jorge-monogram.png";
+const NONAMEDBOT_ICON = "/bnb_logo.webp";
+const AWS_BADGE = {
+  href: "https://www.credly.com/badges/a58ebe0a-da77-4ffe-8499-3d46b84b2059",
+  icon: "/credly-badge.png",
+  label: "AWS Certified AI Practitioner",
+  title: "AWS AI",
+};
 const MONETTA = {
   id: "monetta",
   title: "Monetta",
@@ -265,18 +278,40 @@ export default function MacProjects({
   </button>;
 
   // Desktop icons keep their own layer so opening Finder never unmounts them.
-  // Inverater shows its brand mark instead of the generic folder.
-  const desktopArt = (id: string) => id === "inverater"
-    ? <span className={styles.appArt} aria-hidden="true"><Image src={INVERATER_ICON} alt="" width={96} height={96} /></span>
-    : <span className={styles.folderArt} aria-hidden="true"><span className={styles.folderBack} /><span className={styles.folderFront} /></span>;
-  const finderArt = (id: string) => id === "inverater"
-    ? <span className={styles.appArt} aria-hidden="true"><Image src={INVERATER_ICON} alt="" width={96} height={96} /></span>
-    : <PixelArt layers={FOLDER} scale={4} className={styles.pixelIcon} />;
+  // Project-specific artwork replaces the generic folder on both desktop and Finder.
+  const brandIcon = (id: string) =>
+    id === "inverater" ? INVERATER_ICON
+      : id === "plebes" ? PLEBES_ICON
+        : id === "cafeteria" ? ARTISANAL_ICON
+          : id === "wedding" ? ANDREA_ICON
+            : id === "wedding-cindy" ? CINDY_ICON
+              : id === "nonamedbot" ? NONAMEDBOT_ICON
+                : null;
+  const brandArt = (id: string, icon: string) =>
+    <span className={`${styles.appArt} ${styles.transparentArt} ${id === "plebes" ? styles.pixelArtAsset : id === "cafeteria" ? styles.artisanalArt : id === "nonamedbot" ? styles.bscArt : id === "wedding-cindy" ? styles.cindyArt : ""}`} aria-hidden="true">
+      <Image src={icon} alt="" width={96} height={96} />
+    </span>;
+  const desktopArt = (id: string) => {
+    const icon = brandIcon(id);
+    return icon
+      ? brandArt(id, icon)
+      : <span className={styles.folderArt} aria-hidden="true"><span className={styles.folderBack} /><span className={styles.folderFront} /></span>;
+  };
+  const finderArt = (id: string) => {
+    const icon = brandIcon(id);
+    return icon
+      ? brandArt(id, icon)
+      : <PixelArt layers={FOLDER} scale={4} className={styles.pixelIcon} />;
+  };
   return <>
     <div className={styles.desktopSurface} onKeyDown={isolate} onTouchStart={isolate} onTouchEnd={isolate}>
       <div className={styles.desktopFolders} inert={!desktopFoldersInteractive} aria-hidden={!desktopFoldersInteractive} aria-label={copy.title}>
         {projects.map(item => launcher(item.id, item.title, desktopArt(item.id)))}
         {launcher(MONETTA.id, MONETTA.title, <span className={styles.appArt} aria-hidden="true"><Image src={MONETTA.icon} alt="" width={96} height={96} /></span>)}
+        <a href={AWS_BADGE.href} target="_blank" rel="noopener noreferrer" className={styles.folderButton} aria-label={AWS_BADGE.label}>
+          <span className={`${styles.appArt} ${styles.badgeArt}`} aria-hidden="true"><Image src={AWS_BADGE.icon} alt="" width={96} height={96} /></span>
+          <strong>{AWS_BADGE.title}</strong>
+        </a>
       </div>
     </div>
     {open && <div className={`${styles.surface} ${expanded ? styles.surfaceFullScreen : ""}`} onKeyDown={event => { event.stopPropagation(); if (event.key === "Escape") { event.preventDefault(); dismiss(); } }} onTouchStart={isolate} onTouchEnd={isolate}>

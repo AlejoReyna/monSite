@@ -57,6 +57,18 @@ export const CURATED_PROJECTS: CuratedProject[] = [
     },
   },
   {
+    id: "wedding-cindy",
+    title: "Cindy & Jorge",
+    category: "Wedding / Interactive",
+    tags: ["Next.js", "3D Gallery", "Google Maps", "Framer Motion"],
+    href: "/weddings/cindy",
+    summary: {
+      en: "Immersive wedding invitation with animated storytelling, a 3D gallery, itinerary, maps and RSVP.",
+      es: "Invitación de boda inmersiva con narrativa animada, galería 3D, itinerario, mapas y RSVP.",
+      zh: "沉浸式婚礼邀请函，含动画叙事、3D 相册、日程、地图与 RSVP。",
+    },
+  },
+  {
     id: "nonamedbot",
     title: "NoNamedBot",
     category: "AI / Trading agent",

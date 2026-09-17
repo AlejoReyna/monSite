@@ -30,39 +30,42 @@ export default function MacCoffeeDrawing() {
 
   return (
     <>
-      <svg
-        className={styles.macGifImage}
-        viewBox="0 0 1268 2000"
-        preserveAspectRatio="xMidYMin meet"
-        width="100%"
-        height="100%"
-        aria-hidden="true"
-        focusable="false"
-        data-loaded={loaded}
-      >
-        <defs>
-          <image
-            id={artworkId}
-            href="/coffee-desktop.webp"
-            width="1268"
-            height="2000"
+      {/* Clips the artwork's 1.4x scale; hovering it is what reveals the caption below. */}
+      <div className={styles.macGifArt}>
+        <svg
+          className={styles.macGifImage}
+          viewBox="0 0 1268 2000"
+          preserveAspectRatio="xMidYMin meet"
+          width="100%"
+          height="100%"
+          aria-hidden="true"
+          focusable="false"
+          data-loaded={loaded}
+        >
+          <defs>
+            <image
+              id={artworkId}
+              href="/coffee-desktop.webp"
+              width="1268"
+              height="2000"
+            />
+            {/* Preserve the artwork's transparency while turning every opaque pixel white. */}
+            <filter id={silhouetteId} colorInterpolationFilters="sRGB">
+              <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0" />
+            </filter>
+            <clipPath id={revealId} clipPathUnits="userSpaceOnUse">
+              <rect className={styles.macCoffeeReveal} width="1268" height="2000" />
+            </clipPath>
+          </defs>
+          <use
+            className={styles.macCoffeeSilhouette}
+            href={`#${artworkId}`}
+            filter={`url(#${silhouetteId})`}
           />
-          {/* Preserve the artwork's transparency while turning every opaque pixel white. */}
-          <filter id={silhouetteId} colorInterpolationFilters="sRGB">
-            <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0" />
-          </filter>
-          <clipPath id={revealId} clipPathUnits="userSpaceOnUse">
-            <rect className={styles.macCoffeeReveal} width="1268" height="2000" />
-          </clipPath>
-        </defs>
-        <use
-          className={styles.macCoffeeSilhouette}
-          href={`#${artworkId}`}
-          filter={`url(#${silhouetteId})`}
-        />
-        <use href={`#${artworkId}`} clipPath={`url(#${revealId})`} />
-      </svg>
-      {/* Easter egg. Lives outside the SVG so the artwork's 1.4x scale can't push it offscreen. */}
+          <use href={`#${artworkId}`} clipPath={`url(#${revealId})`} />
+        </svg>
+      </div>
+      {/* Easter egg, positioned to the right of the artwork. Not clipped by macGifArt's overflow. */}
       <p className={styles.macCoffeeCaption}>{CAPTION[language]}</p>
     </>
   );
