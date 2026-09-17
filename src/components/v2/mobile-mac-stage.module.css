@@ -17,8 +17,8 @@
   /* The historic mobile hero centered a single GIF behind a lower window. */
   .character {
     position: absolute;
-    /* Start 6px below the Dock row (10–60px) and run behind the translucent terminal. */
-    top: calc(66px + env(safe-area-inset-top, 0px));
+    /* The hair tucks 14px under the Dock row (10–60px, stacked above this stage); the rest runs behind the translucent terminal. */
+    top: calc(46px + env(safe-area-inset-top, 0px));
     z-index: 0;
     bottom: 0;
     left: 0;
@@ -35,6 +35,12 @@
     object-position: center top;
     transform: scale(1.4);
     transform-origin: center top;
+  }
+
+  /* md: the top row has room between the view switch and the Dock, so the hair starts level with
+     their top edge. The artwork is height-bound here, so the taller box also enlarges it. */
+  @media (min-width: 768px) {
+    .character { top: calc(10px + env(safe-area-inset-top, 0px)); }
   }
 
   .terminal {

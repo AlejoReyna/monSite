@@ -119,7 +119,8 @@
     bottom: auto;
     left: auto;
     transform: none;
-    z-index: 28;
+    /* Above the mobile stage (30), whose character reaches up behind this row; below windows and the view switch. */
+    z-index: 31;
     gap: 6px;
     padding: 5px;
     border-radius: 14px;

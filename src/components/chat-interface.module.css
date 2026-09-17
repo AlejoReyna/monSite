@@ -177,6 +177,12 @@
 .bootCheck { position: relative; flex-shrink: 0; width: 13px; height: 13px; border: 1px solid currentColor; border-radius: 3px; opacity: .7; }
 .bootCheck::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: currentColor; opacity: 0; }
 [data-selected="true"] > .bootCheck, [data-selected="true"] > .bootCheck::after { opacity: 1; }
+/* Phones: a 2×2 grid. Long labels wrap, so the checkbox aligns with the first line instead of centering. */
+@media (max-width: 767px) {
+  .mac .aiExamples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 12px; }
+  .mac .aiExamples button { align-items: flex-start; padding-block: 7px; }
+  .mac .aiExamples .bootCheck { margin-top: 2px; }
+}
 .mac .aiSend.aiSend { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; margin-left: 8px; padding: 0; border: 1px solid #78dd8a55; border-radius: 10px; background: #35cf4020; color: #9beaab; cursor: pointer; }
 .mac .aiSend:disabled { opacity: .4; cursor: default; }
 .mac .inputRow { margin-top: auto; }
