@@ -26,7 +26,22 @@
 /* Brand-mark icons (Inverater, Plebes, Artisanal Brew) reuse the app slot inside the pixel Finder grid. */
 .grid .appArt { width: auto; height: auto; }.grid .appArt img { width: 56px; height: 56px; border-radius: 12px; }
 .grid .transparentArt img { width: 73px; height: 73px; border-radius: 0; }
-.desktopFolders { pointer-events: auto; position: absolute; top: 15px; right: 22px; bottom: 0; display: grid; grid-template-columns: repeat(2, 124px); align-content: start; gap: 14px 8px; overflow: auto; }.desktopFolders .folderButton { color: #fff; }.desktopFolders .folderButton strong { margin-top: 4px; text-shadow: 0 1px 5px #000d; }.desktopFolders .folderArt { width: 62px; height: 51px; }
+/* The layer spans the desktop but lets clicks through to the wallpaper; each icon is placed from
+   icon-layout.ts via --icon-right/--icon-top (see desktop-icons.tsx). */
+.desktopFolders { pointer-events: none; position: absolute; inset: 0; }.desktopFolders .folderButton { color: #fff; }.desktopFolders .folderButton strong { margin-top: 4px; text-shadow: 0 1px 5px #000d; }.desktopFolders .folderArt { width: 62px; height: 51px; }
+@media (min-width: 1024px) {
+  .desktopFolders .folderButton { position: absolute; top: var(--icon-top); right: var(--icon-right); width: 124px; height: 88px; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  .desktopFolders .folderButton img { -webkit-user-drag: none; }
+  /* Only Clean Up / Sort By glide; drops and page loads land instantly, as in Finder. */
+  .desktopFolders[data-animate] .folderButton { transition: top .3s cubic-bezier(.2, .8, .2, 1), right .3s cubic-bezier(.2, .8, .2, 1); }
+  /* Finder selection: a grey plate behind the artwork and an accent pill behind the name. */
+  .desktopFolders .folderButton[data-selected] { background: transparent; }
+  .desktopFolders .folderButton[data-selected] > span:first-child { border-radius: 6px; background: #0000004d; box-shadow: 0 0 0 3px #0000004d; }
+  .desktopFolders .folderButton[data-selected] strong { padding: 0 5px; border-radius: 4px; background: #0a64d6; text-shadow: none; }
+  /* Drag image: shares the desktop's coordinates but sits above windows and the Dock. */
+  .dragGhost { inset: 30px 0 88px; z-index: 45; will-change: transform; }
+  .dragGhost .folderButton { pointer-events: none; opacity: .6; }
+}
 
 /* Pixel Finder. Outlines are box-shadows offset along one axis, so the empty
    corner squares read as rounded pixel corners. Chrome uses 3px art pixels,
@@ -126,13 +141,16 @@
   /* Windows open below the Dock row. */
   .desktopSurface, .surface:not(.surfaceFullScreen) { inset: calc(66px + env(safe-area-inset-top, 0px)) 0 max(10px, env(safe-area-inset-bottom, 0px)); }
   .desktopFolders {
+    pointer-events: auto;
     display: grid;
     top: 28px;
     left: 16px;
     right: 16px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
     gap: 24px 16px;
     padding: 8px;
+    overflow: auto;
     transition: filter .2s ease, opacity .2s ease;
   }
   .desktopFolders .folderArt, .desktopFolders .appArt { width: 76px; height: 62px; }
@@ -143,4 +161,5 @@
   .desktopFolders .folderButton strong { font-size: 14px; margin-top: 10px; }
   .desktopFolders[inert] { filter: blur(5px); opacity: .45; pointer-events: none; }
 }
-@media (prefers-reduced-motion: reduce) { .desktopFolders { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .desktopFolders, .desktopFolders[data-animate] .folderButton { transition: none; } }
+:global(html.mac-reduced-motion) .desktopFolders .folderButton { transition: none; }

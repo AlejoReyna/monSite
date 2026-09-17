@@ -6,6 +6,7 @@ import { MoreHorizontal, Search } from "lucide-react";
 import { FaApple } from "react-icons/fa";
 import { useLanguage } from "@/components/lang-context";
 import { useDesktopStore } from "@/lib/desktop/desktop-store";
+import { ICON_ARRANGE_COPY, ICON_SORT_MODES, isAutoSorted, type DesktopIconCommand } from "@/lib/desktop/icon-layout";
 import { ASSISTANT_NAME, type MenuId } from "@/lib/desktop/types";
 import { AssistantControl } from "./assistant-panel";
 import { DateTimeControl } from "./datetime-popover";
@@ -181,6 +182,13 @@ export default function MacMenuBar() {
     store.tourOpen ||
     store.shortcutsOpen;
 
+  const icons = ICON_ARRANGE_COPY[language];
+  const iconsAutoSorted = isAutoSorted(store.iconLayout.sortBy);
+  const arrange = (command: DesktopIconCommand) => {
+    store.arrangeIcons(command);
+    store.setOpenMenu(null);
+  };
+
   const connectionLabel =
     store.connection === "checking"
       ? t.checking
@@ -238,6 +246,39 @@ export default function MacMenuBar() {
                 }}
               >
                 {t.closeActive}
+              </button>
+            </Menu>
+
+            {/* Desktop icon arrangement, mirroring Finder's View menu and the desktop context menu. */}
+            <Menu id="view" label={icons.view}>
+              <button type="button" role="menuitem" disabled={iconsAutoSorted} onClick={() => arrange({ type: "cleanUp" })}>
+                {icons.cleanUp}
+              </button>
+              <div className={styles.sep} />
+              <div className={styles.menuLabel}>{icons.cleanUpBy}</div>
+              <button type="button" role="menuitem" disabled={iconsAutoSorted} onClick={() => arrange({ type: "cleanUpBy", order: "name" })}>
+                {icons.name}
+              </button>
+              <button type="button" role="menuitem" disabled={iconsAutoSorted} onClick={() => arrange({ type: "cleanUpBy", order: "kind" })}>
+                {icons.kind}
+              </button>
+              <div className={styles.sep} />
+              <div className={styles.menuLabel}>{icons.sortBy}</div>
+              {ICON_SORT_MODES.map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={store.iconLayout.sortBy === mode}
+                  onClick={() => arrange({ type: "sortBy", mode })}
+                >
+                  <span>{icons[mode]}</span>
+                  {store.iconLayout.sortBy === mode && <span className={styles.check}>✓</span>}
+                </button>
+              ))}
+              <div className={styles.sep} />
+              <button type="button" role="menuitem" onClick={() => arrange({ type: "reset" })}>
+                {icons.restore}
               </button>
             </Menu>
 

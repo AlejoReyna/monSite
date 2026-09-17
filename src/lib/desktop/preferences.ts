@@ -1,6 +1,12 @@
 "use client";
 
 import {
+  DEFAULT_ICON_LAYOUT,
+  ICON_LAYOUT_STORAGE_KEY,
+  sanitizeIconLayout,
+  type DesktopIconLayout,
+} from "./icon-layout";
+import {
   DEFAULT_PREFS,
   PREFS_STORAGE_KEY,
   type AssistantVoiceId,
@@ -34,6 +40,26 @@ export function savePreferences(prefs: DesktopPreferences): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefs));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+// Icon arrangements last for the browser session: a new visit starts from the curated layout.
+export function loadIconLayout(): DesktopIconLayout {
+  if (typeof window === "undefined") return DEFAULT_ICON_LAYOUT;
+  try {
+    const raw = window.sessionStorage.getItem(ICON_LAYOUT_STORAGE_KEY);
+    return raw ? sanitizeIconLayout(JSON.parse(raw)) : DEFAULT_ICON_LAYOUT;
+  } catch {
+    return DEFAULT_ICON_LAYOUT;
+  }
+}
+
+export function saveIconLayout(layout: DesktopIconLayout): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(ICON_LAYOUT_STORAGE_KEY, JSON.stringify(layout));
   } catch {
     /* ignore quota / private mode */
   }

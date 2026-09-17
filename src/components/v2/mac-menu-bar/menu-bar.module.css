@@ -150,6 +150,14 @@
   opacity: 0.55;
 }
 
+/* Non-interactive group heading inside a dropdown, e.g. "Sort By". */
+.menuLabel {
+  padding: 5px 10px 3px;
+  color: #a1a1aa;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .check {
   color: #7dd3fc;
   font-size: 12px;

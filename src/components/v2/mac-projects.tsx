@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type 
 import { useLanguage } from "@/components/lang-context";
 import { PixelArt, PIXEL_ARROWS, PIXEL_TRAFFIC, pixelLayer } from "@/components/pixel-art";
 import { animateGenie } from "@/lib/desktop/genie";
+import DesktopIcons, { type DesktopIconItem } from "./desktop-icons";
 import styles from "./mac-projects.module.css";
 
 const projects = [
@@ -303,16 +304,15 @@ export default function MacProjects({
       ? brandArt(id, icon)
       : <PixelArt layers={FOLDER} scale={4} className={styles.pixelIcon} />;
   };
+  // Order here is the default desktop arrangement; kinds drive Clean Up By / Sort By Kind.
+  const desktopIcons: DesktopIconItem[] = [
+    ...projects.map(item => ({ id: item.id, title: item.title, kind: "folder" as const, ariaLabel: `${copy.open}: ${item.title}`, art: desktopArt(item.id), onOpen: (button: HTMLButtonElement) => openItem(item.id, button) })),
+    { id: MONETTA.id, title: MONETTA.title, kind: "application", ariaLabel: `${copy.open}: ${MONETTA.title}`, art: <span className={styles.appArt} aria-hidden="true"><Image src={MONETTA.icon} alt="" width={96} height={96} /></span>, onOpen: button => openItem(MONETTA.id, button) },
+    { id: "aws-ai", title: AWS_BADGE.title, kind: "web", ariaLabel: AWS_BADGE.label, href: AWS_BADGE.href, art: <span className={`${styles.appArt} ${styles.badgeArt}`} aria-hidden="true"><Image src={AWS_BADGE.icon} alt="" width={96} height={96} /></span> },
+  ];
   return <>
     <div className={styles.desktopSurface} onKeyDown={isolate} onTouchStart={isolate} onTouchEnd={isolate}>
-      <div className={styles.desktopFolders} inert={!desktopFoldersInteractive} aria-hidden={!desktopFoldersInteractive} aria-label={copy.title}>
-        {projects.map(item => launcher(item.id, item.title, desktopArt(item.id)))}
-        {launcher(MONETTA.id, MONETTA.title, <span className={styles.appArt} aria-hidden="true"><Image src={MONETTA.icon} alt="" width={96} height={96} /></span>)}
-        <a href={AWS_BADGE.href} target="_blank" rel="noopener noreferrer" className={styles.folderButton} aria-label={AWS_BADGE.label}>
-          <span className={`${styles.appArt} ${styles.badgeArt}`} aria-hidden="true"><Image src={AWS_BADGE.icon} alt="" width={96} height={96} /></span>
-          <strong>{AWS_BADGE.title}</strong>
-        </a>
-      </div>
+      <DesktopIcons items={desktopIcons} interactive={desktopFoldersInteractive} label={copy.title} className={styles.desktopFolders} iconClassName={styles.folderButton} ghostClassName={styles.dragGhost} />
     </div>
     {open && <div className={`${styles.surface} ${expanded ? styles.surfaceFullScreen : ""}`} onKeyDown={event => { event.stopPropagation(); if (event.key === "Escape") { event.preventDefault(); dismiss(); } }} onTouchStart={isolate} onTouchEnd={isolate}>
       <section ref={windowRef} className={`${styles.window} ${expanded ? styles.expanded : ""}`} role="region" aria-label={`Finder — ${copy.title}`}>

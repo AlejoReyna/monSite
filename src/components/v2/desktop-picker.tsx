@@ -34,10 +34,11 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
         : { projects: "Projects", contact: "Contact" };
 
   return (
-    <div data-mobile-view={mobileView} className={`${styles.mac} ${macMobile ? styles.macMobile : ""} ${store.focusMode.active || store.preferences.reducedMotion ? styles.macCalm : ""}`.trim()}>
-      <div className={styles.wallpaper} aria-hidden="true" />
+    // data-desktop-root / data-desktop-background: where desktop icon drags and the desktop context menu live.
+    <div data-desktop-root="" data-mobile-view={mobileView} className={`${styles.mac} ${macMobile ? styles.macMobile : ""} ${store.focusMode.active || store.preferences.reducedMotion ? styles.macCalm : ""}`.trim()}>
+      <div className={styles.wallpaper} data-desktop-background="" aria-hidden="true" />
       {!store.desktopHidden && (!macMobile || desktopArtwork) && (
-        <div className={styles.macGif} aria-hidden="true">
+        <div className={styles.macGif} data-desktop-background="" aria-hidden="true">
           <MacCoffeeDrawing />
         </div>
       )}

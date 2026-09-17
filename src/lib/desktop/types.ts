@@ -56,6 +56,7 @@ export type MenuId =
   | "apple"
   | "app"
   | "file"
+  | "view"
   | "go"
   | "window"
   | "help"

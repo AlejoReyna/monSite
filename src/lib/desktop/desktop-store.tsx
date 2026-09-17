@@ -15,9 +15,18 @@ import {
 import { useLanguage } from "@/components/lang-context";
 import { useNavigation } from "@/contexts/navigation-context";
 import {
+  applyIconCommand,
+  DEFAULT_ICON_LAYOUT,
+  type DesktopIconCommand,
+  type DesktopIconLayout,
+  type IconLayoutContext,
+} from "./icon-layout";
+import {
   applyFocusModeClass,
   applyMotionPreference,
+  loadIconLayout,
   loadPreferences,
+  saveIconLayout,
   savePreferences,
 } from "./preferences";
 import {
@@ -82,6 +91,13 @@ export type DesktopStoreValue = {
   navigateContact: () => void;
   navigateBlog: () => void;
   reduceEffects: () => void;
+  /** Saved desktop icon arrangement (see icon-layout.ts). */
+  iconLayout: DesktopIconLayout;
+  /** True after a Clean Up / Sort By command, so icons glide; drops and page loads stay instant. */
+  iconMotion: boolean;
+  arrangeIcons: (command: DesktopIconCommand) => void;
+  /** The icon layer reports its icons and size so menu commands can compute positions. */
+  registerIconContext: (context: IconLayoutContext) => void;
 };
 
 const DesktopStoreContext = createContext<DesktopStoreValue | null>(null);
@@ -109,7 +125,7 @@ export function DesktopStoreProvider({
   terminalOpen?: boolean;
   onTerminalChange?: (open: boolean) => void;
 }) {
-  const { setLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const { navigateToSection } = useNavigation();
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [mailOpen, setMailOpen] = useState(false);
@@ -312,6 +328,34 @@ export function DesktopStoreProvider({
     updatePreferences({ reducedMotion: true });
   }, [updatePreferences]);
 
+  // Starts from the default so server and first client render match; the saved
+  // layout is applied after hydration. The ref keeps commands off stale state.
+  const [iconLayout, setIconLayout] = useState<DesktopIconLayout>(DEFAULT_ICON_LAYOUT);
+  const [iconMotion, setIconMotion] = useState(false);
+  const iconLayoutRef = useRef(DEFAULT_ICON_LAYOUT);
+  const iconContext = useRef<IconLayoutContext>({ items: [], bounds: null });
+
+  useEffect(() => {
+    iconLayoutRef.current = loadIconLayout();
+    setIconLayout(iconLayoutRef.current);
+  }, []);
+
+  const arrangeIcons = useCallback(
+    (command: DesktopIconCommand) => {
+      const next = applyIconCommand(iconLayoutRef.current, command, iconContext.current, language);
+      setIconMotion(command.type !== "place");
+      if (next === iconLayoutRef.current) return;
+      iconLayoutRef.current = next;
+      setIconLayout(next);
+      saveIconLayout(next);
+    },
+    [language],
+  );
+
+  const registerIconContext = useCallback((context: IconLayoutContext) => {
+    iconContext.current = context;
+  }, []);
+
   const windows = useMemo<DesktopWindow[]>(() => {
     const list: DesktopWindow[] = [
       {
@@ -428,6 +472,10 @@ export function DesktopStoreProvider({
         window.location.assign("/blog");
       },
       reduceEffects,
+      iconLayout,
+      iconMotion,
+      arrangeIcons,
+      registerIconContext,
     }),
     [
       windows,
@@ -464,6 +512,10 @@ export function DesktopStoreProvider({
       shortcutsOpen,
       navigateToSection,
       reduceEffects,
+      iconLayout,
+      iconMotion,
+      arrangeIcons,
+      registerIconContext,
     ],
   );
 
