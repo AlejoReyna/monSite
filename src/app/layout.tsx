@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Bebas_Neue, Cormorant_Garamond, Space_Mono, Press_Start_2P } from "next/font/google";
+import { Geist, Geist_Mono, Bebas_Neue, Cormorant_Garamond, Space_Mono, Press_Start_2P, VT323 } from "next/font/google";
 import "./globals.css";
 import AppChrome from "@/components/app-chrome";
 
@@ -60,6 +60,16 @@ const pressStart = Press_Start_2P({
   subsets: ["latin"],
   variable: "--font-press-start",
   display: "swap",
+  preload: false,
+});
+
+/* ── Pixel body font — Finder project descriptions ── */
+const vt323 = VT323({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-vt323",
+  display: "swap",
+  preload: false,
 });
 
 const SITE_URL = "https://www.alexisreyna.dev";
@@ -115,7 +125,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${bebas.variable} ${cormorant.variable} ${spaceMono.variable} ${pressStart.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${bebas.variable} ${cormorant.variable} ${spaceMono.variable} ${pressStart.variable} ${vt323.variable} antialiased`}
         style={{
           backgroundColor: "var(--gic-off-white)",
           color: "var(--gic-dark-charcoal)",

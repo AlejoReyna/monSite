@@ -1,6 +1,7 @@
 .mac { position: absolute; inset: 0; background: #0f121a; color: #f4f4f5; font-family: Arial, Helvetica, sans-serif; }
 .macCalm .macGifImage[data-loaded] .macCoffeeReveal { animation: none; transform: scaleY(1); }
 .macCalm .macGifImage[data-loaded] .macCoffeeSilhouette { animation: none; opacity: 0; }
+.macCalm .macCoffeeCaption { transition: none; }
 .macCalm .dock button, .macCalm .dock a { transition: none; }
 .macCalm .dock button:hover, .macCalm .dock a:hover { transform: none; }
 .startup { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; overflow: auto; padding: 16px; background: #000; color: #fff; font-family: Arial, Helvetica, sans-serif; }
@@ -13,6 +14,9 @@
 .macCoffeeSilhouette { opacity: 0; }
 .macGifImage[data-loaded="true"] .macCoffeeReveal { animation: macCoffeeLoad 1.2s steps(36, end) .6s both; }
 .macGifImage[data-loaded="true"] .macCoffeeSilhouette { animation: macCoffeeSilhouetteAppear 1.6s linear .2s both; }
+/* The left 55% never reaches the artist's credit on the right leg. Fades in once the reveal ends (.6s + 1.2s). */
+.macCoffeeCaption { position: absolute; left: 1.5rem; right: 45%; bottom: 4.5rem; margin: 0; color: #fff; font: 15px/1.3 var(--gic-font-comic); text-wrap: balance; text-shadow: 0 1px 2px #000, 0 0 10px #000b; opacity: 0; transition: opacity .5s ease 1.8s; }
+.macGifImage[data-loaded="true"] + .macCoffeeCaption { opacity: 1; }
 @keyframes macCoffeeLoad { to { transform: scaleY(1); } }
 @keyframes macCoffeeSilhouetteAppear {
  0% { opacity: 0; }
@@ -22,6 +26,7 @@
 @media(prefers-reduced-motion: reduce) {
  .macGifImage[data-loaded] .macCoffeeReveal { animation: none; transform: scaleY(1); }
  .macGifImage[data-loaded] .macCoffeeSilhouette { animation: none; opacity: 0; }
+ .macCoffeeCaption { transition: none; }
 }
 .menuBar { position: absolute; inset: 0 0 auto; height: 30px; display: flex; align-items: center; gap: 20px; padding: 0 16px; background: #101218; color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: 14px; line-height: 1; letter-spacing: -.15px; z-index: 40; user-select: none; }
 .menuBar button, .menuBar a { color: inherit; background: none; border: 0; font: inherit; cursor: pointer; text-decoration: none; white-space: nowrap; }
@@ -107,25 +112,41 @@
   }
 
   .macMobile .dock {
-    /* Keep the terminal and dock clear of the device safe area. */
-    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    /* Share the top row with the view switcher; the terminal owns the bottom edge. */
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: auto;
+    left: auto;
+    transform: none;
     z-index: 28;
-    gap: 8px;
-    padding: 3px 6px;
+    gap: 6px;
+    padding: 5px;
     border-radius: 14px;
-    /* Compact chrome retains 44px tap targets. */
   }
 
+  /* 38px tiles fit beside the switcher on 360px screens; ::before keeps 44px tap targets. */
   .macMobile .dock button,
   .macMobile .dock a {
-    width: 44px;
-    height: 44px;
-    border-radius: 11px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .macMobile .dock button::before,
+  .macMobile .dock a::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
   }
 
   .macMobile .dock svg {
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .macMobile .separator {
+    height: 28px;
+    margin: 0;
   }
 
   .macMobile .dock button:hover,
@@ -141,7 +162,16 @@
   /* The desktop wallpaper includes Alice; mobile uses the plain mac backdrop. */
   .macMobile .wallpaper {
     background: #0e131a;
+    top: 0;
     bottom: 0;
+  }
+}
+
+/* Below 359px the full Dock would collide with the switcher, which already opens the terminal. */
+@media (max-width: 358px) {
+  .macMobile .dock .separator,
+  .macMobile .dock .terminal {
+    display: none;
   }
 }
 
@@ -150,7 +180,7 @@
 @media (max-width: 1023px) {
   .mobileViewSwitcher {
     position: absolute;
-    top: calc(40px + env(safe-area-inset-top, 0px));
+    top: calc(10px + env(safe-area-inset-top, 0px));
     left: max(12px, env(safe-area-inset-left, 0px));
     z-index: 34;
     display: flex;

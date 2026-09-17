@@ -105,9 +105,9 @@ const UI_LABELS: Record<Language, {
 };
 
 const AI_COPY = {
-  en: { title: "Alexis · AI assistant", heading: "Chat with Alexis’s AI assistant", intro: "Ask about his projects, skills, or working together. No commands needed.", placeholder: "Ask the AI assistant…", send: "Send message", examples: "Try a question", projects: "Projects", skills: "Skills", contact: "Work together", projectQuestion: "What projects has Alexis built?", skillsQuestion: "What are Alexis’s technical skills?", contactQuestion: "How can I work with Alexis?" },
-  es: { title: "Alexis · Asistente IA", heading: "Habla con el asistente IA de Alexis", intro: "Pregunta por sus proyectos, habilidades o cómo trabajar juntos. No necesitas comandos.", placeholder: "Pregúntale al asistente IA…", send: "Enviar mensaje", examples: "Prueba una pregunta", projects: "Proyectos", skills: "Habilidades", contact: "Colaborar", projectQuestion: "¿Qué proyectos ha creado Alexis?", skillsQuestion: "¿Cuáles son las habilidades técnicas de Alexis?", contactQuestion: "¿Cómo puedo trabajar con Alexis?" },
-  zh: { title: "Alexis · AI 助手", heading: "与 Alexis 的 AI 助手聊天", intro: "了解他的项目、技能或合作方式。无需输入命令。", placeholder: "向 AI 助手提问…", send: "发送消息", examples: "试着问一问", projects: "项目", skills: "技能", contact: "合作", projectQuestion: "Alexis 做过哪些项目？", skillsQuestion: "Alexis 有哪些技术技能？", contactQuestion: "如何与 Alexis 合作？" },
+  en: { heading: "Chat with Alexis’s AI assistant", intro: "Ask about his projects, skills, or working together. No commands needed.", placeholder: "Ask the AI assistant…", send: "Send message", examples: "Try a question", projects: "Projects", skills: "Skills", contact: "Work together", projectQuestion: "What projects has Alexis built?", skillsQuestion: "What are Alexis’s technical skills?", contactQuestion: "How can I work with Alexis?" },
+  es: { heading: "Habla con el asistente IA de Alexis", intro: "Pregunta por sus proyectos, habilidades o cómo trabajar juntos. No necesitas comandos.", placeholder: "Pregúntale al asistente IA…", send: "Enviar mensaje", examples: "Prueba una pregunta", projects: "Proyectos", skills: "Habilidades", contact: "Colaborar", projectQuestion: "¿Qué proyectos ha creado Alexis?", skillsQuestion: "¿Cuáles son las habilidades técnicas de Alexis?", contactQuestion: "¿Cómo puedo trabajar con Alexis?" },
+  zh: { heading: "与 Alexis 的 AI 助手聊天", intro: "了解他的项目、技能或合作方式。无需输入命令。", placeholder: "向 AI 助手提问…", send: "发送消息", examples: "试着问一问", projects: "项目", skills: "技能", contact: "合作", projectQuestion: "Alexis 做过哪些项目？", skillsQuestion: "Alexis 有哪些技术技能？", contactQuestion: "如何与 Alexis 合作？" },
 } satisfies Record<Language, Record<string, string>>;
 
 const GREETINGS: Record<Language, string[]> = {
@@ -141,25 +141,10 @@ const BOOT_GREETING: Record<Language, string> = {
 type BootOptionKey = "projects" | "about" | "contact" | "assistant";
 const BOOT_MENU_ORDER: BootOptionKey[] = ["projects", "about", "contact", "assistant"];
 
-const BOOT_MENU: Record<Language, Record<BootOptionKey, { label: string; slug: string }>> = {
-  en: {
-    projects: { label: "Projects", slug: "projects" },
-    about: { label: "About me", slug: "about" },
-    contact: { label: "Contact", slug: "contact" },
-    assistant: { label: "Use Alexis AI Assistant", slug: "ai_assistant" },
-  },
-  es: {
-    projects: { label: "Proyectos", slug: "proyectos" },
-    about: { label: "Sobre mí", slug: "sobre_mi" },
-    contact: { label: "Contacto", slug: "contacto" },
-    assistant: { label: "Usar el Asistente IA de Alexis", slug: "asistente_ia" },
-  },
-  zh: {
-    projects: { label: "项目", slug: "projects" },
-    about: { label: "关于我", slug: "about" },
-    contact: { label: "联系", slug: "contact" },
-    assistant: { label: "使用 Alexis 的 AI 助手", slug: "ai_assistant" },
-  },
+const BOOT_MENU: Record<Language, Record<BootOptionKey, string>> = {
+  en: { projects: "Projects", about: "About me", contact: "Contact", assistant: "Use Alexis AI Assistant" },
+  es: { projects: "Proyectos", about: "Sobre mí", contact: "Contacto", assistant: "Usar el Asistente IA de Alexis" },
+  zh: { projects: "项目", about: "关于我", contact: "联系", assistant: "使用 Alexis 的 AI 助手" },
 };
 
 /* ========= Utils ========= */
@@ -340,7 +325,7 @@ export default function ChatInterface({
       setGreeterDismissed(true);
       return;
     }
-    handleSuggestionClick(BOOT_MENU[currentLang].about.label, "about");
+    handleSuggestionClick(BOOT_MENU[currentLang].about, "about");
   };
 
   /* ========= Intro text (portada) ========= */
@@ -351,6 +336,8 @@ export default function ChatInterface({
   const [showInfoTip, setShowInfoTip] = useState(false);
   const [greetingIndex, setGreetingIndex] = useState(0);
   const [greeterDismissed, setGreeterDismissed] = useState(false);
+  // Highlighted boot option; hover, focus and arrow keys move it.
+  const [bootSelection, setBootSelection] = useState(0);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -427,9 +414,7 @@ export default function ChatInterface({
       ? "alexis / mind"
       : theme === "windows"
         ? "MS-DOS Prompt"
-        : theme === "mac"
-          ? aiCopy.title
-          : "alexis@ubuntu: ~");
+        : "alexis@ubuntu: ~");
   void portraitSrc;
   const session = theme === "windows" ? "Microsoft Windows 95 [Version 4.00.950]" : theme === "mac" ? "" : "alexis@ubuntu:~$ ./portfolio";
   const windowLabels = currentLang === "es" ? ["Cerrar terminal", "Minimizar al Dock", "Maximizar terminal", "Restaurar tamaño"] : currentLang === "zh" ? ["关闭终端", "最小化到程序坞", "最大化终端", "恢复大小"] : ["Close terminal", "Minimize to Dock", "Maximize terminal", "Restore window size"];
@@ -488,7 +473,7 @@ export default function ChatInterface({
                 <button type="button" onClick={onToggleMaximize} aria-label={windowLabels[maximized ? 3 : 2]} title={windowLabels[maximized ? 3 : 2]} aria-pressed={maximized}>{maximized ? <Minimize2 size={9} /> : <Maximize2 size={9} />}</button>
               </span>}
               {theme === "windows" && <span className={styles.dosIcon} aria-hidden="true">C:\</span>}
-              <span className={styles.title}>{shellTitle}</span>
+              {theme !== "mac" && <span className={styles.title}>{shellTitle}</span>}
               {theme !== "mac" && <span className={styles.windowControls} aria-hidden="true"><i>−</i><i>□</i><i>×</i></span>}
 
             </div>
@@ -566,20 +551,34 @@ export default function ChatInterface({
                     )}
                   </span>
                 </div>
-                <div className={styles.aiExamples} role="group" aria-label={aiCopy.examples}>
+                <div
+                  className={styles.aiExamples}
+                  role="group"
+                  aria-label={aiCopy.examples}
+                  onKeyDown={(event) => {
+                    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+                    event.preventDefault();
+                    const buttons = Array.from(event.currentTarget.querySelectorAll("button"));
+                    const from = buttons.indexOf(event.target as HTMLButtonElement);
+                    buttons[(from + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length]?.focus();
+                  }}
+                >
                   {BOOT_MENU_ORDER.map((key, index) => (
                     <button
                       key={key}
                       type="button"
                       disabled={isLoading}
-                      aria-label={BOOT_MENU[currentLang][key].label}
+                      data-selected={bootSelection === index}
+                      onMouseEnter={() => setBootSelection(index)}
+                      onFocus={() => setBootSelection(index)}
                       onClick={() => handleBootOption(key)}
-                      className={`transition-all duration-300 ${
+                      className={`flex items-center gap-3 transition-all duration-300 ${
                         typewriterComplete ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-2"
                       }`}
                       style={{ transitionDelay: `${index * 100}ms` }}
                     >
-                      ./{BOOT_MENU[currentLang][key].slug}
+                      <span className={styles.bootCheck} aria-hidden="true" />
+                      <span>{BOOT_MENU[currentLang][key]}</span>
                     </button>
                   ))}
                 </div>

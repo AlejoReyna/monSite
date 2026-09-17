@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLanguage } from "@/components/lang-context";
 import { useDesktopStore } from "@/lib/desktop/desktop-store";
 import styles from "./menu-bar.module.css";
@@ -10,22 +10,28 @@ function startOfMonth(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), 1);
 }
 
+// The clock is client-only: the null server snapshot keeps the server HTML and
+// the hydration render empty, then the visitor's local time fills in. Snapshots
+// are whole minutes, so the 1s check re-renders only when the minute changes.
+function subscribeToClock(onTick: () => void) {
+  const timer = window.setInterval(onTick, 1_000);
+  return () => window.clearInterval(timer);
+}
+const currentMinute = () => Math.floor(Date.now() / 60_000);
+const serverMinute = () => null;
+
 export function DateTimeControl() {
   const { language } = useLanguage();
   const { openMenu, setOpenMenu, preferences, updatePreferences } = useDesktopStore();
   const open = openMenu === "datetime";
-  const [now, setNow] = useState(() => new Date());
+  const minute = useSyncExternalStore<number | null>(subscribeToClock, currentMinute, serverMinute);
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const rootRef = useRef<HTMLDivElement>(null);
   useOutsideClick(open, () => setOpenMenu(null), rootRef);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 30_000);
-    return () => window.clearInterval(timer);
-  }, []);
-
+  const now = minute === null ? null : new Date(minute * 60_000);
   const locale = language === "es" ? "es-MX" : language === "zh" ? "zh-CN" : "en-GB";
-  const label = now.toLocaleString(locale, {
+  const label = now?.toLocaleString(locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -72,7 +78,7 @@ export function DateTimeControl() {
         aria-haspopup="dialog"
         onClick={() => setOpenMenu(open ? null : "datetime")}
       >
-        <time dateTime={now.toISOString()}>{label}</time>
+        {now && <time dateTime={now.toISOString()}>{label}</time>}
       </button>
       {open && (
         <div className={`${styles.popover} ${styles.menuRight}`} role="dialog" aria-label="Calendar">

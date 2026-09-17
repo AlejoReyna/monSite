@@ -1,7 +1,7 @@
 # Alexis Reyna — Portfolio
 
 - **Live:** https://www.alexisreyna.dev
-- **Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 · Framer Motion
+- **Stack:** Next.js 16 (App Router, Webpack for local development) · React 19 · TypeScript · Tailwind CSS v4 · Framer Motion
 
 A trilingual (EN/ES/ZH) portfolio built as a full-screen, swipe-driven "desktop." The home page is a sequence of panels you move through with the wheel or a swipe, each one a mini case study, plus a draggable AI chat terminal that answers questions about my work.
 
@@ -11,10 +11,17 @@ A trilingual (EN/ES/ZH) portfolio built as a full-screen, swipe-driven "desktop.
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000 (Turbopack)
+npm run dev -- --allow-server  # deliberate local startup; http://localhost:3000
 ```
 
 Other scripts: `npm run build` → `npm start`, and `npm run lint`.
+
+Local development uses Webpack with a 1536 MiB Node old-space limit and reduced
+compilation parallelism. The limit applies to JavaScript old space, not total
+RAM across native allocations and worker processes. Plain `npm run dev` exits
+without starting Next; automatic preview configurations are disabled because
+this 8 GB Mac has experienced system freezes. Agents must follow `AGENTS.md`
+and must not start servers or builds without explicit authorization.
 
 Path alias: `@/*` resolves to `src/*` (see `tsconfig.json`).
 
@@ -101,11 +108,12 @@ Language state lives in `src/components/lang-context.tsx` (`useLanguage()` → `
 - **Add/adjust a home panel:** edit the `PANELS` array and imports in `src/components/v3/hero-carousel-sequence.tsx`; each panel is its own `*-gateway.tsx` component with a colocated CSS module.
 - **Project data:** `src/components/v3/data/` and `src/components/data/`.
 - **Per-panel top-bar color:** `PANEL_THEME_COLORS` in `hero-carousel-sequence.tsx`.
-- **Hero art:** the animated GIF at `public/16.gif`.
+- **Hero art:** lossless animated WebP at `public/coffee-desktop.webp`; the original `public/16.gif` is retained as source material. Mobile uses its existing smaller assets in `public/mobile/`.
 
 ---
 
 ## Notes
 
-- The animated hero GIF is served `unoptimized`; an MP4/WebM would decode lighter if performance matters.
+- Desktop artwork is served `unoptimized` to preserve animation. The lossless WebP is 64.8% smaller than the source GIF (5,992,350 vs 17,020,818 bytes), with identical visible pixels, transparency and animation timing. This reduces download size; decoded memory and runtime performance have not been measured.
+- Recreate it with `gif2webp -m 4 public/16.gif -o public/coffee-desktop.webp` (lossless by default; no multithreading requested).
 - Panels use `100svh` and gesture handling tuned for mobile; test scroll-vs-advance behavior on a real device when changing panel heights.

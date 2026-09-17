@@ -503,6 +503,12 @@
   .bar { padding: 0 8px; gap: 2px; }
 }
 
+/* Mobile has no menu bar: the view switcher and Dock row start at the top edge.
+   To restore it, delete this rule and move the mobile Dock row, art and windows down 30px. */
+@media (max-width: 1023px) {
+  .bar { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .orbListening { animation: none; }
 }

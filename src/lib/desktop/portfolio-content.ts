@@ -68,6 +68,18 @@ export const CURATED_PROJECTS: CuratedProject[] = [
       zh: "为 BNB Hack 构建的自主 BNB Chain 交易代理。",
     },
   },
+  {
+    id: "monetta",
+    title: "Monetta",
+    category: "E-commerce / Mobile app",
+    tags: ["Flutter", "Riverpod", "Shopify", "Firebase"],
+    href: "https://monetta.mx",
+    summary: {
+      en: "Native iOS and Android shopping app for monetta.mx, with a live Shopify catalog and on-device recommendations.",
+      es: "App nativa de compras para iOS y Android de monetta.mx, con catálogo en vivo de Shopify y recomendaciones en el dispositivo.",
+      zh: "monetta.mx 的 iOS 与 Android 原生购物应用，含 Shopify 实时商品目录与端侧推荐。",
+    },
+  },
 ];
 
 export const ABOUT_PORTFOLIO = {

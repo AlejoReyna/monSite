@@ -17,11 +17,6 @@ export const translations = {
     es: "Inicio",
     zh: "首页",
   },
-  skipToMainContent: {
-    en: "Skip to main content",
-    es: "Saltar al contenido principal",
-    zh: "跳转到主要内容",
-  },
 
   // Section titles
   aboutMe: {
