@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
 import styles from "./desktop-picker.module.css";
@@ -13,10 +13,6 @@ const CAPTION: Record<Language, string> = {
 
 export default function MacCoffeeDrawing() {
   const { language } = useLanguage();
-  const id = useId();
-  const artworkId = `${id}-artwork`;
-  const silhouetteId = `${id}-silhouette`;
-  const revealId = `${id}-reveal`;
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -42,27 +38,7 @@ export default function MacCoffeeDrawing() {
           focusable="false"
           data-loaded={loaded}
         >
-          <defs>
-            <image
-              id={artworkId}
-              href="/coffee-desktop.webp"
-              width="1268"
-              height="2000"
-            />
-            {/* Preserve the artwork's transparency while turning every opaque pixel white. */}
-            <filter id={silhouetteId} colorInterpolationFilters="sRGB">
-              <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0" />
-            </filter>
-            <clipPath id={revealId} clipPathUnits="userSpaceOnUse">
-              <rect className={styles.macCoffeeReveal} width="1268" height="2000" />
-            </clipPath>
-          </defs>
-          <use
-            className={styles.macCoffeeSilhouette}
-            href={`#${artworkId}`}
-            filter={`url(#${silhouetteId})`}
-          />
-          <use href={`#${artworkId}`} clipPath={`url(#${revealId})`} />
+          <image href="/coffee-desktop.webp" width="1268" height="2000" />
         </svg>
       </div>
       {/* Easter egg, positioned to the right of the artwork. Not clipped by macGifArt's overflow. */}

@@ -173,15 +173,9 @@ html.mac-reduced-motion .badge-float,
 html.mac-focus-mode .badge-float {
   animation: none !important;
 }
-html.mac-reduced-motion .macGifImage[data-loaded] .macCoffeeReveal,
-html.mac-focus-mode .macGifImage[data-loaded] .macCoffeeReveal {
-  animation: none !important;
-  transform: scaleY(1) !important;
-}
-html.mac-reduced-motion .macGifImage[data-loaded] .macCoffeeSilhouette,
-html.mac-focus-mode .macGifImage[data-loaded] .macCoffeeSilhouette {
-  animation: none !important;
-  opacity: 0 !important;
+html.mac-reduced-motion .macGifImage,
+html.mac-focus-mode .macGifImage {
+  transition: none !important;
 }
 html.mac-focus-mode {
   /* Optional UI sounds are suppressed in JS when Focus is active. */
