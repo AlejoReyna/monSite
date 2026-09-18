@@ -8,6 +8,13 @@ import MobileMacStage from "./mobile-mac-stage";
 import ChatInterface from "@/components/chat-interface";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
+import { ICON_COLUMN_STRIP } from "@/lib/desktop/icon-layout";
+
+/* The terminal opens beside the desktop icons, never on top of them: the icon
+   strip plus a gutter that grows a little on wide screens. Dragging is still
+   free, so the window can be moved over the icons on purpose. */
+const TERMINAL_GUTTER = "max(18px, 2vw)";
+const TERMINAL_RIGHT = `calc(${ICON_COLUMN_STRIP}px + ${TERMINAL_GUTTER})`;
 
 const SCROLL_PROMPT: Record<Language, string> = {
   en: "scroll down to see my projects!",
@@ -255,7 +262,7 @@ export default function HeroV2({
       <style>{`
         #work[data-active-panel="0"]:has(#home[data-desktop="mac"]) { touch-action: pan-y !important; }
         body:has(#work[data-active-panel="0"] #home[data-desktop="mac"]) .nav-v2-shell { visibility: hidden; }
-        #home[data-desktop="mac"] .comic-terminal { left: auto; right: 6%; top: 20%; bottom: auto; translate: none; transform: none; width: min(580px, 88vw); }
+        #home[data-desktop="mac"] .comic-terminal { left: auto; right: ${TERMINAL_RIGHT}; top: 20%; bottom: auto; translate: none; transform: none; width: min(580px, calc(100% - ${ICON_COLUMN_STRIP}px - ${TERMINAL_GUTTER} - 24px)); }
         #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] { inset: 40px 12px 90px; width: auto; transform: none !important; }
         #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] > div { height: 100%; }
         #home[data-desktop="mac"] .comic-terminal[hidden] { display: none; }
