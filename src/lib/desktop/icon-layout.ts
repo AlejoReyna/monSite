@@ -31,6 +31,11 @@ export const ICON_LAYOUT_STORAGE_KEY = "mac_desktop_icons_v1";
 export const DEFAULT_ICON_LAYOUT: DesktopIconLayout = { sortBy: "none", order: "default", positions: null };
 /** Same geometry as the original two-column grid: 124px columns, 14px/8px gaps, 15px from the top and 22px from the right. */
 export const ICON_GRID = { width: 124, height: 88, gapX: 8, gapY: 14, top: 15, right: 22, columns: 2 } as const;
+/** Width the default icon columns claim along the desktop's right edge: margin,
+    both columns and the gap between them. Windows open clear of this strip, so
+    changing the grid above moves them instead of burying the icons. */
+export const ICON_COLUMN_STRIP =
+  ICON_GRID.right + ICON_GRID.columns * ICON_GRID.width + (ICON_GRID.columns - 1) * ICON_GRID.gapX;
 export const ICON_SORT_MODES: readonly IconSortMode[] = ["none", "grid", "name", "kind"];
 const ICON_ORDERS: readonly IconOrder[] = ["default", "name", "kind"];
 const PITCH_X = ICON_GRID.width + ICON_GRID.gapX;
