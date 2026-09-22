@@ -21,6 +21,10 @@
 .cindyArt img { filter: invert(1); }
 /* Credly badge is a transparent round medal, not a square app icon. */
 .badgeArt img { border-radius: 0; box-shadow: none; object-fit: contain; background: transparent; }
+/* Blank document: a white page with its top-right corner folded and the file type at the foot. The shadow sits on the box so it follows the clipped corner. */
+.documentArt { display: grid; place-items: center; width: 62px; height: 51px; filter: drop-shadow(0 0 .5px #0008) drop-shadow(0 2px 3px #0006); }
+.documentPage { --fold: 11px; position: relative; display: flex; align-items: flex-end; justify-content: center; width: 39px; height: 50px; padding-bottom: 5px; border-radius: 3px; background: linear-gradient(#fff, #eef0f3); clip-path: polygon(0 0, calc(100% - var(--fold)) 0, 100% var(--fold), 100% 100%, 0 100%); color: #8e9198; font: 700 9px/1 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; letter-spacing: .04em; }
+.documentPage::before { content: ""; position: absolute; top: 0; right: 0; width: var(--fold); height: var(--fold); border-bottom-left-radius: 2px; background: linear-gradient(225deg, transparent 50%, #d3d6dc 50%); }
 /* In the Finder grid every icon sits in the same 76px box, so the names line up. */
 .grid .appArt { width: 76px; height: 76px; }.grid .appArt img { width: 56px; height: 56px; border-radius: 12px; }
 .grid .transparentArt img { width: 73px; height: 73px; border-radius: 0; }
@@ -213,7 +217,8 @@
     overflow: auto;
     transition: filter .2s ease, opacity .2s ease;
   }
-  .desktopFolders .folderArt, .desktopFolders .appArt { width: 76px; height: 62px; }
+  .desktopFolders .folderArt, .desktopFolders .appArt, .desktopFolders .documentArt { width: 76px; height: 62px; }
+  .desktopFolders .documentPage { --fold: 13px; width: 48px; height: 62px; padding-bottom: 7px; font-size: 11px; }
   .desktopFolders .appArt img { width: 58px; height: 58px; border-radius: 13px; }
   .desktopFolders .transparentArt { height: 75px; }
   .desktopFolders .transparentArt img { width: 75px; height: 75px; border-radius: 0; }

@@ -36,6 +36,12 @@ const AWS_BADGE = {
   label: "AWS Certified AI Practitioner",
   title: "AWS AI",
 };
+// Exported from the Word CV; the browser's own PDF viewer opens it in a new tab.
+const CV = {
+  id: "cv",
+  title: "CV.pdf",
+  href: "/cv/alexis-reyna-cv.pdf",
+};
 const MONETTA = {
   id: "monetta",
   title: "Monetta",
@@ -110,8 +116,8 @@ export default function MacProjects({
   const closeRef = useRef<HTMLButtonElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const copy = language === "es"
-    ? { title: copyText("Proyectos"), back: "Todos los proyectos", close: "Cerrar", minimize: "Minimizar al Dock", maximize: "Maximizar", restore: "Restaurar tamaño", open: "Abrir proyecto", applications: "Aplicaciones", preview: "Vista previa", visit: "Visitar tienda web", work: "Lo que hice", role: "Rol:", weddingDate: "Fecha de la boda:" }
-    : { title: copyText("Projects"), back: "All projects", close: "Close", minimize: "Minimize to Dock", maximize: "Maximize", restore: "Restore window size", open: "Open project", applications: "Applications", preview: "Preview", visit: "Visit web store", work: "What I did", role: "Role:", weddingDate: "Wedding date:" };
+    ? { title: copyText("Proyectos"), back: "Todos los proyectos", close: "Cerrar", minimize: "Minimizar al Dock", maximize: "Maximizar", restore: "Restaurar tamaño", open: "Abrir proyecto", applications: "Aplicaciones", preview: "Vista previa", visit: "Visitar tienda web", work: "Lo que hice", role: "Rol:", weddingDate: "Fecha de la boda:", cv: "Abrir CV (PDF)" }
+    : { title: copyText("Projects"), back: "All projects", close: "Close", minimize: "Minimize to Dock", maximize: "Maximize", restore: "Restore window size", open: "Open project", applications: "Applications", preview: "Preview", visit: "Visit web store", work: "What I did", role: "Role:", weddingDate: "Wedding date:", cv: "Open CV (PDF)" };
   const project = projects.find(item => item.id === selected);
   const app = selected === MONETTA.id ? MONETTA : null;
   const dismiss = () => {
@@ -163,11 +169,14 @@ export default function MacProjects({
       : <span className={styles.folderArt} aria-hidden="true"><span className={styles.folderBack} /><span className={styles.folderFront} /></span>;
   };
   const monettaArt = <span className={styles.appArt} aria-hidden="true"><Image src={MONETTA.icon} alt="" width={96} height={96} /></span>;
+  // A blank page with a folded corner, like the generic PDF icon in macOS.
+  const cvArt = <span className={styles.documentArt} aria-hidden="true"><span className={styles.documentPage}>PDF</span></span>;
   // Order here is the default desktop arrangement; kinds drive Clean Up By / Sort By Kind.
   const desktopIcons: DesktopIconItem[] = [
     ...projects.map(item => ({ id: item.id, title: item.title, kind: "folder" as const, ariaLabel: `${copy.open}: ${item.title}`, art: projectArt(item.id), onOpen: (button: HTMLButtonElement) => openItem(item.id, button) })),
     { id: MONETTA.id, title: MONETTA.title, kind: "application", ariaLabel: `${copy.open}: ${MONETTA.title}`, art: monettaArt, onOpen: button => openItem(MONETTA.id, button) },
     { id: "aws-ai", title: AWS_BADGE.title, kind: "web", ariaLabel: AWS_BADGE.label, href: AWS_BADGE.href, art: <span className={`${styles.appArt} ${styles.badgeArt}`} aria-hidden="true"><Image src={AWS_BADGE.icon} alt="" width={96} height={96} /></span> },
+    { id: CV.id, title: CV.title, kind: "pdf", ariaLabel: copy.cv, href: CV.href, art: cvArt },
   ];
   return <>
     <div className={styles.desktopSurface} onKeyDown={isolate} onTouchStart={isolate} onTouchEnd={isolate}>

@@ -4,7 +4,7 @@ import type { Language } from "@/components/lang-context";
    desktop; Clean Up, Clean Up By and Sort By put them back in order. Everything
    here is pure so the store, the menu bar and the icon layer agree on positions. */
 
-export type DesktopIconKind = "folder" | "application" | "web";
+export type DesktopIconKind = "folder" | "application" | "web" | "pdf";
 export type DesktopIconMeta = { id: string; title: string; kind: DesktopIconKind };
 /** Offset of an icon's top-right corner from the desktop's top-right corner, so
     moved icons follow the right edge on resize just like the default columns. */
@@ -47,6 +47,7 @@ export const ICON_KIND_LABELS: Record<DesktopIconKind, Record<Language, string>>
   folder: { en: "Folder", es: "Carpeta" },
   application: { en: "Application", es: "Aplicación" },
   web: { en: "Web Location", es: "Ubicación web" },
+  pdf: { en: "PDF Document", es: "Documento PDF" },
 };
 
 export const ICON_ARRANGE_COPY: Record<Language, { desktop: string; view: string; open: string; cleanUp: string; cleanUpBy: string; sortBy: string; none: string; grid: string; name: string; kind: string; restore: string }> = {
