@@ -3,7 +3,7 @@
 - **Live:** https://www.alexisreyna.dev
 - **Stack:** Next.js 16 (App Router, Webpack for local development) · React 19 · TypeScript · Tailwind CSS v4 · Framer Motion
 
-A trilingual (EN/ES/ZH) portfolio built as a full-screen, swipe-driven "desktop." The home page is a sequence of panels you move through with the wheel or a swipe, each one a mini case study, plus a draggable AI chat terminal that answers questions about my work.
+A bilingual (EN/ES) portfolio built as a full-screen, swipe-driven "desktop." The home page is a sequence of panels you move through with the wheel or a swipe, each one a mini case study, plus a draggable AI chat terminal that answers questions about my work.
 
 ---
 
@@ -97,9 +97,11 @@ A wheel/swipe-driven sequence that advances one panel at a time and tints the br
 
 ---
 
-## Internationalization (EN/ES/ZH)
+## Internationalization (EN/ES)
 
-Language state lives in `src/components/lang-context.tsx` (`useLanguage()` → `language`, `setLanguage`, `toggleLanguage`, `toggleWithFade`) and is persisted to `localStorage`. `LanguageFade` masks the swap with a short opacity transition. The app mounts in English first to avoid a post-hydration flip, and `<html lang>` is updated client-side to match the active language.
+The supported languages are English and Spanish (`src/lib/language.ts`). `useLanguage()` shares the selection across the desktop, blog, project pages, invitations and legacy portfolio. The choice is saved in `localStorage` and a same-site cookie. Server-rendered pages read that cookie; switching languages refreshes their content and updates `<html lang>`. Unsupported saved values fall back to Spanish, the site default. Existing bilingual copy stays near its component; shared UI translations live in `src/lib/locale-copy.json`, and the blog article has its own English translation file. Code samples, project names and URLs retain their original values.
+
+The root layout reads the language cookie, so pages render per request rather than using a single globally cached language. No translation service or additional runtime dependency is required.
 
 ---
 

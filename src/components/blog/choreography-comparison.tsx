@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 
 type Point = { x: number; y: number };
@@ -8,6 +9,7 @@ const initialRobot = { x: 17, y: 67 };
 const coin = { x: 76, y: 27 };
 
 export default function ChoreographyComparison() {
+  const copyText = useCopy();
   const stageRef = useRef<HTMLDivElement>(null);
   const [robot, setRobot] = useState<Point>(initialRobot);
   const [dragging, setDragging] = useState(false);
@@ -55,11 +57,11 @@ export default function ChoreographyComparison() {
   return (
     <figure className="blog-choreography-comparison blog-bleed">
       <div className="blog-choreography-comparison__grid">
-        <section className="blog-choreography-panel blog-choreography-panel--fixed" aria-label="Coreografía fija">
+        <section className="blog-choreography-panel blog-choreography-panel--fixed" aria-label={copyText("Coreografía fija")}>
           <header>
             <span className="blog-choreography-panel__title-group">
-              <strong>Coreografía 0</strong>
-              <span>Ruta predefinida</span>
+              <strong>{copyText("Coreografía 0")}</strong>
+              <span>{copyText("Ruta predefinida")}</span>
             </span>
             <span className="blog-choreography-panel__badge">90 s</span>
           </header>
@@ -73,18 +75,18 @@ export default function ChoreographyComparison() {
             </svg>
             <span className="blog-choreography-coin blog-choreography-coin--fixed" />
             <span className="blog-choreography-robot blog-choreography-robot--fixed" />
-            <span className="blog-choreography-clock">reloj: 90 s</span>
+            <span className="blog-choreography-clock">{copyText("reloj: 90 s")}</span>
           </div>
-          <p>La ruta y el momento de desaparecer ya están escritos.</p>
+          <p>{copyText("La ruta y el momento de desaparecer ya están escritos.")}</p>
         </section>
 
-        <section className="blog-choreography-panel blog-choreography-panel--sim" aria-label="Simulación reactiva">
+        <section className="blog-choreography-panel blog-choreography-panel--sim" aria-label={copyText("Simulación reactiva")}>
           <header>
             <span className="blog-choreography-panel__title-group">
-              <strong>Simulación</strong>
-              <span>Observa y reacciona</span>
+              <strong>{copyText("Simulación")}</strong>
+              <span>{copyText("Observa y reacciona")}</span>
             </span>
-            <span className="blog-choreography-panel__badge">en vivo</span>
+            <span className="blog-choreography-panel__badge">{copyText("en vivo")}</span>
           </header>
           <div
             ref={stageRef}
@@ -121,18 +123,17 @@ export default function ChoreographyComparison() {
               aria-hidden="true"
             />
             <span className="blog-choreography-hint" aria-hidden="true">
-              {dragging ? "suelta aquí" : phase === "pursuing" ? "la política reacciona" : phase === "collected" ? "moneda recogida" : "arrastra al robot"}
+              {dragging ? copyText("suelta aquí") : phase === "pursuing" ? copyText("la política reacciona") : phase === "collected" ? copyText("moneda recogida") : copyText("arrastra al robot")}
             </span>
           </div>
           <div className="blog-choreography-panel__footer">
-            <p>Arrástralo y suéltalo: la política observa desde esa nueva posición.</p>
-            <button type="button" onClick={reset}>Reiniciar</button>
+            <p>{copyText("Arrástralo y suéltalo: la política observa desde esa nueva posición.")}</p>
+            <button type="button" onClick={reset}>{copyText("Reiniciar")}</button>
           </div>
         </section>
       </div>
       <figcaption>
-        La diferencia visible: antes el reloj decidía el resultado; ahora la posición soltada cambia la siguiente decisión.
-      </figcaption>
+        {copyText("La diferencia visible: antes el reloj decidía el resultado; ahora la posición soltada cambia la siguiente decisión. ")}</figcaption>
     </figure>
   );
 }

@@ -1,8 +1,11 @@
+import { buildCvBrief, CV_ONE_LINER, HIRING, IDENTITY } from "@/lib/profile/cv";
+import { briefDetailFor, detectTopic } from "@/lib/profile/direction";
+
 export type CuratedProject = {
   id: string;
   title: string;
   category: string;
-  summary: { en: string; es: string; zh: string };
+  summary: { en: string; es: string; };
   tags: string[];
   href: string;
 };
@@ -11,13 +14,12 @@ export const CURATED_PROJECTS: CuratedProject[] = [
   {
     id: "inverater",
     title: "Inverater",
-    category: "Proptech",
-    tags: ["Infrastructure", "Product engineering"],
+    category: "Fintech / Proptech",
+    tags: ["Stripe", "STP/SPEI", "Go", "Vue 3", "AWS"],
     href: "https://www.inverater.com",
     summary: {
-      en: "Real-estate investing made accessible. Infrastructure, hosting and product engineering.",
-      es: "Inversión inmobiliaria accesible. Infraestructura, hosting e ingeniería de producto.",
-      zh: "让房地产投资更易参与。基础设施、托管与产品工程。",
+      en: "Real-estate investing platform. Stripe and STP/SPEI payment flows, Rails to Go migration, white-label context and the infrastructure behind it.",
+      es: "Plataforma de inversión inmobiliaria. Flujos de pago con Stripe y STP/SPEI, migración de Rails a Go, contexto multimarca y la infraestructura que lo sostiene.",
     },
   },
   {
@@ -29,7 +31,6 @@ export const CURATED_PROJECTS: CuratedProject[] = [
     summary: {
       en: "Community-driven DAO on Internet Computer. Design, branding and UX from scratch.",
       es: "DAO en Internet Computer. Diseño, branding y UX desde cero.",
-      zh: "基于 Internet Computer 的社区 DAO。从零完成设计与 UX。",
     },
   },
   {
@@ -39,9 +40,8 @@ export const CURATED_PROJECTS: CuratedProject[] = [
     tags: ["Blazor", ".NET", "Solidity", "PostgreSQL"],
     href: "https://cafe.alexisrs.dev",
     summary: {
-      en: "Pixel-art coffee experience with multichain integrations on Ethereum, BNB Chain and Solana.",
-      es: "Experiencia de café con pixel art e integraciones en Ethereum, BNB Chain y Solana.",
-      zh: "像素艺术咖啡体验，集成 Ethereum、BNB Chain 与 Solana。",
+      en: "Pixel-art coffee store on ASP.NET Core and Blazor, with test payments on Ethereum Sepolia and ERC-20 / ERC-4626 contracts.",
+      es: "Tienda de café con pixel art en ASP.NET Core y Blazor, con pagos de prueba en Ethereum Sepolia y contratos ERC-20 / ERC-4626.",
     },
   },
   {
@@ -53,7 +53,6 @@ export const CURATED_PROJECTS: CuratedProject[] = [
     summary: {
       en: "Interactive wedding invitation with RSVP, schedule and maps.",
       es: "Invitación de boda interactiva con RSVP, itinerario y mapas.",
-      zh: "互动婚礼邀请函，含 RSVP、日程与地图。",
     },
   },
   {
@@ -65,7 +64,6 @@ export const CURATED_PROJECTS: CuratedProject[] = [
     summary: {
       en: "Immersive wedding invitation with animated storytelling, a 3D gallery, itinerary, maps and RSVP.",
       es: "Invitación de boda inmersiva con narrativa animada, galería 3D, itinerario, mapas y RSVP.",
-      zh: "沉浸式婚礼邀请函，含动画叙事、3D 相册、日程、地图与 RSVP。",
     },
   },
   {
@@ -77,7 +75,6 @@ export const CURATED_PROJECTS: CuratedProject[] = [
     summary: {
       en: "Autonomous BNB Chain trading agent built for BNB Hack.",
       es: "Agente autónomo de trading en BNB Chain para BNB Hack.",
-      zh: "为 BNB Hack 构建的自主 BNB Chain 交易代理。",
     },
   },
   {
@@ -89,16 +86,11 @@ export const CURATED_PROJECTS: CuratedProject[] = [
     summary: {
       en: "Native iOS and Android shopping app for monetta.mx, with a live Shopify catalog and on-device recommendations.",
       es: "App nativa de compras para iOS y Android de monetta.mx, con catálogo en vivo de Shopify y recomendaciones en el dispositivo.",
-      zh: "monetta.mx 的 iOS 与 Android 原生购物应用，含 Shopify 实时商品目录与端侧推荐。",
     },
   },
 ];
 
-export const ABOUT_PORTFOLIO = {
-  en: "Alexis Reyna is a Mexican full-stack developer from Montemorelos, Nuevo León. Stack: React, Next.js, TypeScript, Node, PostgreSQL, Rails, AWS, Docker, Linux. Contact: alexis.reynasz@hotmail.com · https://www.alexisrs.dev",
-  es: "Alexis Reyna es un desarrollador full-stack mexicano de Montemorelos, Nuevo León. Stack: React, Next.js, TypeScript, Node, PostgreSQL, Rails, AWS, Docker, Linux. Contacto: alexis.reynasz@hotmail.com · https://www.alexisrs.dev",
-  zh: "Alexis Reyna 是来自墨西哥 Nuevo León 州 Montemorelos 的全栈开发者。技术栈：React、Next.js、TypeScript、Node、PostgreSQL、Rails、AWS、Docker、Linux。联系：alexis.reynasz@hotmail.com · https://www.alexisrs.dev",
-} as const;
+export const ABOUT_PORTFOLIO = CV_ONE_LINER;
 
 export function findProject(idOrTitle: string): CuratedProject | undefined {
   const q = idOrTitle.trim().toLowerCase();
@@ -107,16 +99,27 @@ export function findProject(idOrTitle: string): CuratedProject | undefined {
   );
 }
 
-export function buildAssistantSystemPrompt(lang: "en" | "es" | "zh"): string {
+/** Questions a recruiter asks by voice, answered from the dossier when no project matches. */
+export function hiringAnswer(lang: "en" | "es"): string {
+  return HIRING[lang].join(" ");
+}
+
+/**
+ * Orbit replays this prompt on the tool follow-up, so it pays for the dossier twice per
+ * question. Passing the visitor's message scales the dossier to what the question needs.
+ */
+export function buildAssistantSystemPrompt(lang: "en" | "es", message = ""): string {
   const list = CURATED_PROJECTS.map(
     (p) => `- ${p.id}: ${p.title} (${p.category}) — ${p.summary[lang]}`,
   ).join("\n");
   return [
     "You are Orbit, the voice assistant for Alexis Reyna's portfolio website.",
     "You are NOT Apple Siri. Never claim to be Siri or an Apple product.",
-    "Keep answers brief and friendly. Prefer the visitor's language.",
+    "Keep answers brief, professional and friendly, in plain speech. Prefer the visitor's language.",
+    "Recruiters use this assistant. Every fact about Alexis's experience, employers, dates, numbers, studies or certifications must come from the dossier below; say a fact is not in his CV rather than guessing.",
+    `Never quote a salary or rate, never accept an interview and never commit to a start date. Send those to ${IDENTITY.email}.`,
     "You may only use the provided tools for side effects. Never invent credentials or private data.",
-    "About: " + ABOUT_PORTFOLIO[lang],
     "Projects:\n" + list,
+    buildCvBrief(lang, message ? briefDetailFor(detectTopic(message, lang)) : "full"),
   ].join("\n");
 }

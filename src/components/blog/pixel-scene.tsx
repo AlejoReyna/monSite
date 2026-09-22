@@ -1,3 +1,6 @@
+"use client";
+
+import { useCopy } from "@/components/use-copy";
 import Image from "next/image";
 
 interface PixelSceneProps {
@@ -9,6 +12,7 @@ export default function PixelScene({
   decorative = false,
   showRobot = true,
 }: PixelSceneProps) {
+  const copyText = useCopy();
   const loading = decorative ? "eager" : "lazy";
 
   return (
@@ -19,7 +23,7 @@ export default function PixelScene({
         : {
             role: "img",
             "aria-label":
-              "Cielo pixel de Artisanal Brew con estrellas, planetas, Andrómeda, redes, monedas, café y un robot",
+              copyText("Cielo pixel de Artisanal Brew con estrellas, planetas, Andrómeda, redes, monedas, café y un robot"),
           })}
     >
       {Array.from({ length: 12 }, (_, index) => (

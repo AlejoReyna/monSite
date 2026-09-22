@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import {
   useCallback,
   useEffect,
@@ -105,10 +106,11 @@ interface CardProps {
 }
 
 function ProjectCard({ project, isActive, isVisible, videoRef }: CardProps) {
+  const copyText = useCopy();
   return (
     <motion.article
       className="v3-carousel-card"
-      aria-label={project.title}
+      aria-label={copyText(project.title)}
       style={{ transform: "scale(1)" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: isVisible ? 1 : 0 }}
@@ -125,7 +127,7 @@ function ProjectCard({ project, isActive, isVisible, videoRef }: CardProps) {
               loop
               playsInline
               preload="auto"
-              aria-label={project.title}
+              aria-label={copyText(project.title)}
               className="v3-carousel-media-inner"
               style={{
                 filter: isActive ? "none" : "grayscale(0.6)",
@@ -138,7 +140,7 @@ function ProjectCard({ project, isActive, isVisible, videoRef }: CardProps) {
             <Image
               key={project.media}
               src={project.media}
-              alt={project.title}
+              alt={copyText(project.title)}
               fill
               sizes="(max-width: 720px) 90vw, 620px"
               className="v3-carousel-media-inner"
@@ -165,41 +167,34 @@ function ProjectCard({ project, isActive, isVisible, videoRef }: CardProps) {
   );
 }
 
-const BUILD_NOTES: Record<string, { es: string; en: string; zh: string }> = {
+const BUILD_NOTES: Record<string, { es: string; en: string; }> = {
   "plebes-dao": {
     es: "Construí esto como una mezcla rara entre gobernanza, cultura de internet y producto cripto que tenía que sentirse vivo, no corporativo.",
     en: "I built this as a weird mix of governance, internet culture and crypto product work that had to feel alive, not corporate.",
-    zh: "我把它建构成治理、互联网文化与加密产品工作的奇特混合体，必须让人感觉鲜活，而非企业化。",
   },
   "andrea-aldo": {
     es: "Este fue más delicado: la interfaz tenía que sentirse íntima, útil y emocional sin romper el flujo de una boda real.",
     en: "This one was delicate: the interface had to feel intimate, useful and emotional without getting in the way of a real wedding.",
-    zh: "这个更细腻：界面必须让人感觉亲密、实用且富有情感，同时不打扰真实婚礼的流程。",
   },
   "mk1-presale": {
     es: "Aquí me fui por impacto rápido: una landing que se entendiera en segundos, capturara leads y sostuviera el hype.",
     en: "Here I chased fast impact: a landing that made sense in seconds, captured leads and carried the hype.",
-    zh: "这里我追求快速冲击：一个几秒钟内就能理解、能捕获潜在客户并能维持热度的落地页。",
   },
   pokefolio: {
     es: "Lo armé como si el portfolio fuera un juego: diálogo, ritmo y pequeñas recompensas en vez de una página estática.",
     en: "I built it like the portfolio was a game: dialogue, rhythm and small rewards instead of a static page.",
-    zh: "我把它建构成一个游戏：对话、节奏和小奖励，而不是静态页面。",
   },
   "uanl-interface": {
     es: "Este fue puro rescate de UX: tomar pantallas heredadas, pelearme con frames viejos y devolverles algo usable.",
     en: "This was straight UX rescue work: taking legacy screens, fighting old frames and giving them something usable back.",
-    zh: "这是纯粹的 UX 救援工作：接管遗留屏幕，与旧框架搏斗，还给它们一些可用的东西。",
   },
   mpbot: {
     es: "Fue un sprint de hackathon: convertir DeFi en conversación, recortar lo innecesario y hacer que funcionara rápido.",
     en: "This was a hackathon sprint: turning DeFi into conversation, cutting the noise and making it work fast.",
-    zh: "这是一个黑客马拉松冲刺：把 DeFi 变成对话，剔除噪音，让它快速运转。",
   },
   birdlypay: {
     es: "La idea era simple y difícil: pagos on-chain que se sintieran tan naturales como compartir un enlace.",
     en: "The idea was simple and hard: on-chain payments that felt as natural as sharing a link.",
-    zh: "这个想法简单却很难：链上支付要像分享链接一样自然。",
   },
 };
 
@@ -214,10 +209,10 @@ function ProjectStickerPanel({
   isVisible: boolean;
   typingReady: boolean;
 }) {
+  const copyText = useCopy();
   const buildNote = BUILD_NOTES[project.id] ?? {
     es: "Construí esto iterando entre lo visual, lo técnico y lo raro hasta que empezó a sentirse propio.",
     en: "I built this by pushing between visuals, engineering and weird little details until it started feeling like its own thing.",
-    zh: "我通过在视觉、工程和奇怪的小细节之间不断推进来构建它，直到它开始感觉像自己的东西。",
   };
   const tagline = project.tagline[language];
   const description = project.description[language];
@@ -235,7 +230,7 @@ function ProjectStickerPanel({
         >
           <TypewriterText
             as="span"
-            text={language === "zh" ? "构建日志" : language === "es" ? "bitacora" : "build log"}
+            text={language === "es" ? "bitacora" : "build log"}
             activeKey={typingKey}
             className="v3-carousel-build-kicker"
             enabled={typingReady}
@@ -244,7 +239,7 @@ function ProjectStickerPanel({
           />
           <TypewriterText
             as="h3"
-            text={project.title}
+            text={copyText(project.title)}
             activeKey={typingKey}
             enabled={typingReady}
             delay={180}

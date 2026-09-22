@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState, type ComponentType, type PointerEvent as ReactPointerEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
@@ -29,11 +30,6 @@ const TITLE_COPY: Record<Language, { line1: string; script: string; line3: strin
     script: "formando parte de",
     line3: "momentos inolvidables",
   },
-  zh: {
-    line1: "连续两年",
-    script: "参与",
-    line3: "难忘时刻",
-  },
 };
 
 const WEDDING_GATEWAY_COPY: Record<Language, {
@@ -53,12 +49,6 @@ const WEDDING_GATEWAY_COPY: Record<Language, {
     swipeHint: "Desliza o toca para ver cada invitación",
     backAria: "Volver a las dos invitaciones",
     backLabel: "Volver",
-  },
-  zh: {
-    viewInvitation: "查看邀请函",
-    swipeHint: "滑动或点击查看每张邀请函",
-    backAria: "返回两个邀请函",
-    backLabel: "返回",
   },
 };
 
@@ -101,6 +91,7 @@ const getTimeLeft = (targetDate: string) => {
 const formatNumber = (value: number) => value.toString().padStart(2, "0");
 
 function AndreaHeroPreview() {
+  const copyText = useCopy();
   return (
     <div className={`${styles.heroFull} ${styles.andreaFull}`}>
       <div className={styles.heroShell}>
@@ -108,16 +99,15 @@ function AndreaHeroPreview() {
         <div className={styles.andreaTopOverlay} />
 
         <div className={styles.andreaContent}>
-          <div className={styles.andreaDate}>SÁBADO 18 DE OCTUBRE</div>
+          <div className={styles.andreaDate}>{copyText("SÁBADO 18 DE OCTUBRE")}</div>
           <div className={styles.andreaNames}>
             <h3>ANDREA</h3>
             <span>&amp;</span>
             <h3>ALDO</h3>
           </div>
-          <p className={styles.andreaKicker}>ACOMPÁÑANOS A CELEBRAR</p>
+          <p className={styles.andreaKicker}>{copyText("ACOMPÁÑANOS A CELEBRAR")}</p>
           <DisabledRsvpButton className={styles.andreaButton}>
-            CONFIRMAR ASISTENCIA
-          </DisabledRsvpButton>
+            {copyText("CONFIRMAR ASISTENCIA ")}</DisabledRsvpButton>
         </div>
 
         <div className={styles.andreaTimer}>
@@ -129,6 +119,7 @@ function AndreaHeroPreview() {
 }
 
 function CindyHeroPreview() {
+  const copyText = useCopy();
   const cindy = "Cindy".split("");
   const jorge = "Jorge".split("");
 
@@ -155,14 +146,14 @@ function CindyHeroPreview() {
                 ))}
               </h3>
             </div>
-            <div className={styles.cindyDate}>22 de agosto de 2026</div>
+            <div className={styles.cindyDate}>{copyText("22 de agosto de 2026")}</div>
           </div>
 
           <div className={styles.cindyBottomGroup}>
             <DisabledRsvpButton className={styles.cindyButton}>
               <span className={styles.cindyButtonBorder} />
               <span className={styles.cindyButtonBg} />
-              <span className={styles.cindyButtonLabel}>Confirma Tu Asistencia</span>
+              <span className={styles.cindyButtonLabel}>{copyText("Confirma Tu Asistencia")}</span>
             </DisabledRsvpButton>
             <div className={styles.cindyTimer}>
               <Countdown targetDate="2026-08-22T00:00:00" variant="cindy" />
@@ -210,6 +201,7 @@ const SWIPE_DISTANCE = 45;
 const EXPAND_TRANSITION = { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const };
 
 export default function WeddingServiceGateway({ isActive = false }: { isActive?: boolean }) {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const titleCopy = TITLE_COPY[language];
   const gatewayCopy = WEDDING_GATEWAY_COPY[language];
@@ -363,7 +355,7 @@ export default function WeddingServiceGateway({ isActive = false }: { isActive?:
     >
       <motion.div
         className={styles.previewLayer}
-        aria-label="Wedding invitation mobile hero previews"
+        aria-label={copyText("Wedding invitation mobile hero previews")}
         initial={{ opacity: 0 }}
         animate={isActive ? { opacity: 1 } : { opacity: 0 }}
         transition={{ duration: 1, delay: 0.1 }}

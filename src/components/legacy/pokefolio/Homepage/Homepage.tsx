@@ -1,5 +1,6 @@
 "use client"
 
+import { useCopy } from "@/components/use-copy";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TypingText } from './Script/TypingText';
@@ -9,6 +10,7 @@ import './Homepage.css';
 
 
 export default function HomepageComponent() {
+  const copyText = useCopy();
     const [isTypingFinished, setIsTypingFinished] = useState(false);
     const router = useRouter();
 
@@ -33,14 +35,13 @@ export default function HomepageComponent() {
                         <MusicComponent />
                         </div>
                         <p id="second-textbox-line" className="text-sm sm:text-base md:text-lg text-center w-full mb-4">
-                        What would you like to do next?
-                        </p>
+                        {copyText("What would you like to do next? ")}</p>
                         <div className="flex justify-center items-center w-full space-x-4">
                             <div className="goToProjects cursor-pointer" onClick={goToProjects}>
-                                <p className="hover-effect option text-center">Go to my projects</p>
+                                <p className="hover-effect option text-center">{copyText("Go to my projects")}</p>
                             </div>
                             <div className="cursor-pointer" >
-                               <p className="hover-effect option text-center"> Under construction</p>
+                               <p className="hover-effect option text-center"> {copyText(" Under construction")}</p>
                             </div>
                         </div>
                     </div>

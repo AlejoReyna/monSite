@@ -8,7 +8,6 @@ import styles from "./desktop-picker.module.css";
 const CAPTION: Record<Language, string> = {
   en: "A more handsome representation of me",
   es: "Una representación más guapa de mí",
-  zh: "比本人更帅的我",
 };
 
 export default function MacCoffeeDrawing() {

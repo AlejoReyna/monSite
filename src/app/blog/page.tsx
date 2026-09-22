@@ -1,9 +1,11 @@
+import { getCopy, getRequestLanguage } from "@/lib/request-language";
 import Link from "next/link";
 import ArtisanalBrewHero from "@/components/blog/artisanal-brew-hero";
 import { getAllPosts, formatDate } from "@/lib/blog/posts";
 
 export default async function BlogIndex() {
-  const posts = getAllPosts();
+  const copyText = await getCopy();
+  const posts = getAllPosts(await getRequestLanguage());
   const featuredPost = posts[0];
   const remainingPosts = posts.slice(1);
   const featuredIsSpanish =
@@ -20,7 +22,7 @@ export default async function BlogIndex() {
 
           <div className="blog-feature-content">
             <div className="blog-feature-copy">
-              <h1 id="featured-post-title">{featuredPost.title}</h1>
+              <h1 id="featured-post-title">{copyText(featuredPost.title)}</h1>
               <p>{featuredPost.summary}</p>
               <Link className="blog-feature-link" href={`/blog/${featuredPost.slug}`}>
                 {featuredIsSpanish ? "Lee el post" : "Read the story"}
@@ -38,7 +40,7 @@ export default async function BlogIndex() {
               </p>
             </div>
 
-            <div className="blog-feature-dots" aria-label="Featured post">
+            <div className="blog-feature-dots" aria-label={copyText("Featured post")}>
               <span data-active="true" />
             </div>
           </div>
@@ -49,13 +51,11 @@ export default async function BlogIndex() {
         <section className="blog-index blog-shell" aria-labelledby="all-posts-title">
           <div className="blog-index-heading">
             <div>
-              <p className="blog-eyebrow">Archivo</p>
-              <h2 id="all-posts-title">Más notas técnicas</h2>
+              <p className="blog-eyebrow">{copyText("Archivo")}</p>
+              <h2 id="all-posts-title">{copyText("Más notas técnicas")}</h2>
             </div>
             <p>
-              Arquitectura, sistemas de diseño y decisiones pequeñas que hacen
-              que el software se sienta sólido.
-            </p>
+              {copyText("Arquitectura, sistemas de diseño y decisiones pequeñas que hacen que el software se sienta sólido. ")}</p>
           </div>
 
           <ul className="blog-list blog-index-list">
@@ -66,7 +66,7 @@ export default async function BlogIndex() {
                     {formatDate(post.date, post.locale)}
                   </time>
                   <div>
-                    <h3 className="blog-row-title">{post.title}</h3>
+                    <h3 className="blog-row-title">{copyText(post.title)}</h3>
                     <p className="blog-row-summary">{post.summary}</p>
                     <div className="blog-row-meta">
                       {post.tags.map((tag) => (
@@ -91,14 +91,12 @@ export default async function BlogIndex() {
           </ul>
 
           <p className="blog-coming-soon" style={{ marginTop: "3.5rem", marginBottom: "4rem" }}>
-            No hay más publicaciones por ahora, ¡pero pronto habrá más!
-          </p>
+            {copyText("No hay más publicaciones por ahora, ¡pero pronto habrá más! ")}</p>
         </section>
       ) : (
         <div className="blog-shell" style={{ padding: "4rem 0 5rem", textAlign: "center" }}>
           <p className="blog-coming-soon" style={{ margin: 0 }}>
-            No hay más publicaciones por ahora, ¡pero pronto habrá más!
-          </p>
+            {copyText("No hay más publicaciones por ahora, ¡pero pronto habrá más! ")}</p>
         </div>
       )}
     </>

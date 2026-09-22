@@ -1,10 +1,12 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import CountdownTimer from '../../components/CountdownTimer';
 import DisabledRsvpButton from '@/weddings/shared/disabled-rsvp-button';
 import { useStatusBarSection } from '../../hooks/useStatusBarManager';
 import { useTheme } from '../context/ThemeContext';
 
 const HeroSection = () => {
+  const copyText = useCopy();
   const { isNightMode } = useTheme();
 
   const heroSectionRef = useStatusBarSection({
@@ -35,8 +37,7 @@ const HeroSection = () => {
         {/* Fecha */}
         <div className="text-center mb-4 animate-fade-in-center animate-delay-300 mt-6 md:mt-0">
           <span className="text-white/70 text-base sm:text-lg md:text-xl lg:text-2xl garamond-300 tracking-[0.25em] sm:tracking-[0.35em] block">
-            SÁBADO 18 DE OCTUBRE
-          </span>
+            {copyText("SÁBADO 18 DE OCTUBRE ")}</span>
         </div>
 
         {/* Nombres */}
@@ -63,16 +64,14 @@ const HeroSection = () => {
         {/* Texto descriptivo */}
         <div className="text-center animate-fade-in-center animate-delay-900 mb-6 sm:mb-4">
           <p className="text-xs mx-auto max-w-5xl px-2 md:text-lg font-light tracking-[0.2em] uppercase text-white/80 italic garamond-300">
-            ACOMPÁÑANOS A CELEBRAR 
-          </p>
+            {copyText("ACOMPÁÑANOS A CELEBRAR ")}</p>
         </div>
 
         {/* Botón confirmar asistencia (MISMO LUGAR, ÚLTIMO EN APARECER) */}
         <div className="text-center animate-fade-in-center animate-delay-1800">
           <DisabledRsvpButton className="group inline-flex items-center px-6 sm:px-8 py-2.5 sm:py-3 bg-black/50 backdrop-blur-sm border border-white/40 text-white/95 hover:bg-black/70 hover:border-white/60 transition-all duration-500 text-sm sm:text-base transform hover:scale-105 sm:hover:scale-110">
             <span className="garamond-300 tracking-[0.15em] sm:tracking-[0.2em]">
-              CONFIRMAR ASISTENCIA
-            </span>
+              {copyText("CONFIRMAR ASISTENCIA ")}</span>
           </DisabledRsvpButton>
         </div>
       </div>

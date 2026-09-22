@@ -1,9 +1,11 @@
 "use client"
 
+import { useCopy } from "@/components/use-copy";
 import Image from 'next/image'
 import { useEffect, useState, useRef } from 'react'
 
 export default function ParentsSection() {
+  const copyText = useCopy();
   const [isVisible, setIsVisible] = useState(false)
   const [showMainText, setShowMainText] = useState(false)
   const [showParentsCards, setShowParentsCards] = useState(false)
@@ -80,11 +82,8 @@ export default function ParentsSection() {
         <div className="mx-10 flex justify-center items-center">
           <div className="relative">
             <p className="text-lg md:text-xl font-light tracking-[0.1em] uppercase mb-12 text-[#8B7355] italic garamond-300 max-w-4xl">
-              Con el amor,
-              <br/>
-              la bendición de Dios,
-              <br/> y de nuestros padres.
-            </p>
+              {copyText("Con el amor, ")}<br/>
+              {copyText("la bendición de Dios, ")}<br/> {copyText(" y de nuestros padres. ")}</p>
             <div 
               className="absolute inset-0 transition-all duration-1200 ease-out"
               style={{
@@ -101,12 +100,12 @@ export default function ParentsSection() {
           <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#C4985B]/30 to-transparent transform -translate-x-1/2 hidden md:block"></div>
           
           <div className="text-center">
-            <h3 className="text-2xl font-semibold tracking-widest uppercase text-[#5c5c5c] mb-4 garamond-300">Papás de la Novia</h3>
+            <h3 className="text-2xl font-semibold tracking-widest uppercase text-[#5c5c5c] mb-4 garamond-300">{copyText("Papás de la Novia")}</h3>
             <p className="text-lg text-stone-600 garamond-300">Guillermo Alejandro Reyna Muñoz</p>
             <p className="text-lg text-stone-600 garamond-300">Norma Irene Sánchez Ibarra</p>
           </div>
           <div className="text-center">
-            <h3 className="text-2xl font-semibold tracking-widest uppercase text-[#5c5c5c] mb-4 garamond-300">Papás del Novio</h3>
+            <h3 className="text-2xl font-semibold tracking-widest uppercase text-[#5c5c5c] mb-4 garamond-300">{copyText("Papás del Novio")}</h3>
             <p className="text-lg text-stone-600 garamond-300">Aldo Rene Berlanga Soto</p>
             <p className="text-lg text-stone-600 garamond-300">Silvia Mendoza Arizpe</p>
           </div>

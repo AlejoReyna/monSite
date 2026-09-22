@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useState } from "react";
 import ArtisanalBrewHero from "./artisanal-brew-hero";
 import PixelScene from "./pixel-scene";
@@ -18,6 +19,7 @@ const LAYERS = [
 type LayerId = (typeof LAYERS)[number]["id"];
 
 export default function HeroLayerStack() {
+  const copyText = useCopy();
   const [activeLayer, setActiveLayer] = useState<LayerId>("z1");
   const layer = LAYERS.find(({ id }) => id === activeLayer) ?? LAYERS[0];
 
@@ -30,7 +32,7 @@ export default function HeroLayerStack() {
         <div
           className="blog-hero-layer-selector"
           role="tablist"
-          aria-label="Capas del hero"
+          aria-label={copyText("Capas del hero")}
         >
           {LAYERS.map((item, index) => (
             <button
@@ -45,13 +47,13 @@ export default function HeroLayerStack() {
               onClick={() => setActiveLayer(item.id)}
             >
               <span>Z {index + 1}</span>
-              <small>{item.shortTitle}</small>
+              <small>{copyText(item.shortTitle)}</small>
             </button>
           ))}
         </div>
 
         <p className="blog-hero-layer-label">
-          <span>{layer.number}</span> {layer.title}
+          <span>{layer.number}</span> {copyText(layer.title)}
         </p>
       </div>
 

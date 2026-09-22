@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring, useDragControls, type MotionValue } from "framer-motion";
@@ -21,13 +22,11 @@ const TERMINAL_RIGHT = `calc(${ICON_COLUMN_STRIP}px + ${TERMINAL_GUTTER})`;
 const SCROLL_PROMPT: Record<Language, string> = {
   en: "scroll down to see my projects!",
   es: "Desliza hacia abajo para ver mis proyectos!",
-  zh: "向下滚动查看我的项目！",
 };
 
 const HERO_TITLE: Record<Language, string> = {
   en: "Alexis Reyna — Full-stack Developer & UI Engineer",
   es: "Alexis Reyna — Desarrollador Full-stack & UI Engineer",
-  zh: "Alexis Reyna — 全栈开发者与 UI 工程师",
 };
 type HeroV2Props = {
   /**
@@ -51,6 +50,7 @@ export default function HeroV2({
   embedContentOpacity,
   noBgImage = false,
 }: HeroV2Props) {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const heroRef = useRef<HTMLElement>(null);
   const [macTerminalOpen, setMacTerminalOpen] = useState(true);
@@ -190,7 +190,7 @@ export default function HeroV2({
             href="https://www.credly.com/badges/a58ebe0a-da77-4ffe-8499-3d46b84b2059"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="AWS Certified AI Practitioner badge"
+            aria-label={copyText("AWS Certified AI Practitioner badge")}
           >
             <Image
               src="/credly-badge.png"
@@ -350,8 +350,7 @@ export default function HeroV2({
         className="hero-artist-credit hidden md:block absolute bottom-11 right-3 z-50 text-[0.65rem] tracking-wider text-white/40 hover:text-white/80 transition-colors pointer-events-auto"
         style={{ fontFamily: "ui-monospace, monospace" }}
       >
-        Artist: @jayivee._
-      </a>
+        {copyText("Artist: @jayivee._ ")}</a>
     </section>
   );
 }

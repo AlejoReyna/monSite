@@ -7,7 +7,7 @@ Replaced the decorative macOS menu bar (Notion / ShieldHalf / Aperture / CircleP
 **Left:** Apple · active app name · File · Go · Window · Help
 **Right:** Focus · Connection · Battery (when supported) · Search (Spotlight) · Orbit assistant orb · Date/time calendar
 
-Shared desktop state lives in `src/lib/desktop/` (`DesktopStoreProvider`) and synchronizes Projects Finder, Terminal visibility (via `hero-v2`), menus, Spotlight, and Orbit actions. Preferences persist in `localStorage` (language stays on existing `app_lang`; motion / voice / hour format / UI sounds on `mac_desktop_prefs_v1`). **Microphone permission is never auto-restored.**
+Shared desktop state lives in `src/lib/desktop/` (`DesktopStoreProvider`) and synchronizes Projects Finder, Terminal visibility (via `hero-v2`), menus, Spotlight, and Orbit actions. Preferences persist in `localStorage` (except language, which lives in the `app_lang` cookie so server renders match; Spanish when unset; motion / voice / hour format / UI sounds on `mac_desktop_prefs_v1`). **Microphone permission is never auto-restored.**
 
 Orbit assistant pipeline (not Apple Siri, never claims to be Siri):
 

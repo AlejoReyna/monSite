@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState } from 'react';
 import { MdLocationOn, MdApartment } from 'react-icons/md';
 
@@ -12,6 +13,7 @@ const hotels = [
 ];
 
 export default function HotelsSection() {
+  const copyText = useCopy();
   const hotelsRef = useRef<HTMLDivElement>(null);
   const [hotelsVisible, setHotelsVisible] = useState(false);
 
@@ -40,8 +42,8 @@ export default function HotelsSection() {
               color="rgba(122, 84, 48, 0.72)"
               style={{ display: 'block', margin: '0 auto 0.9rem auto' }}
             />
-            <h3 className="hotels-title">Hoteles en Montemorelos</h3>
-            <p className="hotels-subtitle">Si buscas hospedaje, te sugerimos las siguientes opciones:</p>
+            <h3 className="hotels-title">{copyText("Hoteles en Montemorelos")}</h3>
+            <p className="hotels-subtitle">{copyText("Si buscas hospedaje, te sugerimos las siguientes opciones:")}</p>
           </div>
 
           <div className="hotels-grid">
@@ -67,8 +69,8 @@ export default function HotelsSection() {
 
                 <p className="hotel-name">{hotel.name}</p>
                 <span className="hotel-rule" />
-                <p className="hotel-price-label">a partir de</p>
-                <p className="hotel-price">{hotel.price} <span className="hotel-price-mxn">MXN / noche</span></p>
+                <p className="hotel-price-label">{copyText("a partir de")}</p>
+                <p className="hotel-price">{hotel.price} <span className="hotel-price-mxn">{copyText("MXN / noche")}</span></p>
                 <a
                   href={hotel.mapsUrl}
                   target="_blank"
@@ -76,7 +78,7 @@ export default function HotelsSection() {
                   className="hotel-maps-btn"
                 >
                   <MdLocationOn className="text-sm" />
-                  <span>Ver en Maps</span>
+                  <span>{copyText("Ver en Maps")}</span>
                 </a>
               </div>
             ))}

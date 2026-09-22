@@ -1,13 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { DEFAULT_LANGUAGE, isLanguage, LANGUAGE_COOKIE, type Language } from "@/lib/language";
 
-export type Language = "en" | "es" | "zh";
+export type { Language } from "@/lib/language";
 
 const PAGE_TITLES: Record<Language, string> = {
   en: "Alexis Reyna — Full-stack Developer",
   es: "Alexis Reyna — Desarrollador Full-stack",
-  zh: "Alexis Reyna — 全栈开发者",
 };
 
 type LanguageContextValue = {
@@ -17,41 +18,31 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
-function isValidLanguage(value: string | null): value is Language {
-  return value === "en" || value === "es" || value === "zh";
-}
-
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>("en");
-
-  // Initialize from localStorage once mounted; default to English.
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem("app_lang");
-      if (isValidLanguage(stored)) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLanguage(stored);
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem("app_lang", language);
-    } catch {}
-  }, [language]);
+// The cookie is the only record of a choice. Earlier builds wrote English to localStorage on every
+// first visit, whether or not anyone picked it, so that value is not read back as a preference.
+export function LanguageProvider({ children, initialLanguage = DEFAULT_LANGUAGE }: { children: React.ReactNode; initialLanguage?: Language }) {
+  const [language, updateLanguage] = useState<Language>(initialLanguage);
+  const router = useRouter();
+  const pathname = usePathname();
+  const setLanguage = React.useCallback((next: Language) => {
+    if (!isLanguage(next)) return;
+    updateLanguage(next);
+    document.cookie = `${LANGUAGE_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
+    // Server-rendered pages (blog, metadata, <html lang>) read the cookie, so re-render them too.
+    router.refresh();
+  }, [router]);
 
   // Keep <html lang="..."> and document.title in sync without making layout.tsx a client component.
   useEffect(() => {
     if (typeof document !== "undefined") {
       document.documentElement.lang = language;
-      document.title = PAGE_TITLES[language];
+      if (pathname === "/") document.title = PAGE_TITLES[language];
     }
-  }, [language]);
+  }, [language, pathname]);
 
   const value = useMemo(
     () => ({ language, setLanguage }),
-    [language]
+    [language, setLanguage]
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
@@ -62,4 +53,3 @@ export function useLanguage() {
   if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
   return ctx;
 }
-

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveLanguage } from "@/lib/language";
 
 const MAX_BYTES = 2_500_000; // ~2.5MB utterance cap
 const RATE_WINDOW_MS = 60_000;
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
   try {
     const form = await req.formData();
     const file = form.get("file");
-    const language = String(form.get("language") || "en");
+    const language = resolveLanguage(form.get("language"));
     if (!(file instanceof Blob)) {
       return NextResponse.json({ error: "Audio file required." }, { status: 400 });
     }
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     const outbound = new FormData();
     outbound.append("file", file, "utterance.webm");
-    if (language) outbound.append("language", language === "zh" ? "zh" : language === "es" ? "es" : "en");
+    outbound.append("language", language);
 
     const res = await fetch("https://api.x.ai/v1/stt", {
       method: "POST",

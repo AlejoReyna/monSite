@@ -1,3 +1,6 @@
+"use client";
+
+import { useCopy } from "@/components/use-copy";
 import Link from "next/link";
 
 /**
@@ -6,10 +9,11 @@ import Link from "next/link";
  * envelope splash — so the way back is never blocked.
  */
 export default function BackToPortfolio() {
+  const copyText = useCopy();
   return (
     <Link
       href="/"
-      aria-label="Back to the portfolio"
+      aria-label={copyText("Back to the portfolio")}
       style={{
         alignItems: "center",
         backdropFilter: "blur(6px)",
@@ -32,7 +36,6 @@ export default function BackToPortfolio() {
         zIndex: 2147483000,
       }}
     >
-      <span aria-hidden="true">‹</span> Portfolio
-    </Link>
+      <span aria-hidden="true">‹</span> {copyText(" Portfolio ")}</Link>
   );
 }

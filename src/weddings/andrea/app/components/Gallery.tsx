@@ -1,8 +1,10 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 
 export default function Gallery() {
+  const copyText = useCopy();
   const [selectedImage, setSelectedImage] = useState<{ src: string, alt: string, index: number, shape?: string } | null>(null);
   // Fix hydration error by removing window check in initial state
   const [centerIndex, setCenterIndex] = useState(0);
@@ -89,13 +91,13 @@ export default function Gallery() {
 
 
   const photos = [
-    { src: '/weddings/andrea/carousel/c-1.jpeg', alt: 'Andrea & Aldo - Recuerdo 1' },
-    { src: '/weddings/andrea/carousel/c-2.jpeg', alt: 'Andrea & Aldo - Recuerdo 2' },
-    { src: '/weddings/andrea/carousel/c-3.jpeg', alt: 'Andrea & Aldo - Recuerdo 3' },
-    { src: '/weddings/andrea/carousel/c-4.jpeg', alt: 'Andrea & Aldo - Recuerdo 4' },
-    { src: '/weddings/andrea/carousel/c-5.jpeg', alt: 'Andrea & Aldo - Recuerdo 5' },
-    { src: '/weddings/andrea/carousel/c-6.jpeg', alt: 'Andrea & Aldo - Recuerdo 6' },
-    { src: '/weddings/andrea/carousel/c-7.jpeg', alt: 'Andrea & Aldo - Recuerdo 7' },
+    { src: '/weddings/andrea/carousel/c-1.jpeg', alt: copyText("Andrea & Aldo - Recuerdo 1") },
+    { src: '/weddings/andrea/carousel/c-2.jpeg', alt: copyText("Andrea & Aldo - Recuerdo 2") },
+    { src: '/weddings/andrea/carousel/c-3.jpeg', alt: copyText("Andrea & Aldo - Recuerdo 3") },
+    { src: '/weddings/andrea/carousel/c-4.jpeg', alt: copyText("Andrea & Aldo - Recuerdo 4") },
+    { src: '/weddings/andrea/carousel/c-5.jpeg', alt: copyText("Andrea & Aldo - Recuerdo 5") },
+    { src: '/weddings/andrea/carousel/c-6.jpeg', alt: copyText("Andrea & Aldo - Recuerdo 6") },
+    { src: '/weddings/andrea/carousel/c-7.jpeg', alt: copyText("Andrea & Aldo - Recuerdo 7") },
   ];
 
   useEffect(() => {
@@ -376,7 +378,7 @@ export default function Gallery() {
             <div className="w-68 h-24 relative">
               <Image
                 src="/weddings/andrea/assets/legal_assets/flowers_s2.png"
-                alt="Decorative flowers"
+                alt={copyText("Decorative flowers")}
                 fill
                 className="object-contain"
                 style={{
@@ -392,8 +394,7 @@ export default function Gallery() {
             <h2 className={`text-3xl md:text-4xl lg:text-5xl font-light tracking-[0.3em] uppercase text-[#5c5c5c] mb-2 garamond-300 relative transition-all duration-500 ease-out ${
               animationStep >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
-              ¡Nos Casamos!
-            </h2>
+              {copyText("¡Nos Casamos! ")}</h2>
           </div>
 
           {/* Decorative line with extension animation - appears first */}
@@ -410,8 +411,7 @@ export default function Gallery() {
             <p className={`text-lg md:text-xl font-light tracking-[0.1em] uppercase mb-4 text-[#8B7355] italic garamond-300 max-w-2xl mx-auto transition-all duration-500 ease-out ${
               animationStep >= 2 ? 'opacity-100 -translate-y-0' : 'opacity-0 -translate-y-6'
             }`}>
-             Hoy, mañana y siempre, <br/> elegimos amarnos.
-            </p>
+             {copyText("Hoy, mañana y siempre, ")}<br/> {copyText(" elegimos amarnos. ")}</p>
           </div>
         </div>
 
@@ -439,7 +439,7 @@ export default function Gallery() {
               }
             }}
             className="hidden md:flex items-center justify-center absolute left-4 top-1/2 -translate-y-1/2 z-50 bg-white/90 hover:bg-white text-[#8B7355] hover:text-[#C4985B] transition-all duration-300 p-3 rounded-full shadow-elegant hover:shadow-elegant-hover hover:scale-110"
-            aria-label="Previous photo"
+            aria-label={copyText("Previous photo")}
             style={{ backdropFilter: 'blur(12px)' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -519,7 +519,7 @@ export default function Gallery() {
                     <div className="relative w-full h-full bg-white overflow-hidden shadow-elegant">
                       <Image
                         src={photo.src}
-                        alt={photo.alt}
+                        alt={copyText(photo.alt)}
                         fill
                         className="object-cover transition-all duration-700 pointer-events-none" // DEBUG: Added pointer-events-none to image
                         sizes="(max-width: 768px) 18rem, 24rem"
@@ -567,7 +567,7 @@ export default function Gallery() {
               }
             }}
             className="hidden md:flex items-center justify-center absolute right-4 top-1/2 -translate-y-1/2 z-50 bg-white/90 hover:bg-white text-[#8B7355] hover:text-[#C4985B] transition-all duration-300 p-3 rounded-full shadow-elegant hover:shadow-elegant-hover hover:scale-110"
-            aria-label="Next photo"
+            aria-label={copyText("Next photo")}
             style={{ backdropFilter: 'blur(12px)' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -664,7 +664,7 @@ export default function Gallery() {
             <div className="relative w-full h-full max-w-6xl max-h-full rounded-2xl overflow-hidden shadow-elegant">
               <Image 
                 src={selectedImage.src} 
-                alt={selectedImage.alt} 
+                alt={copyText(selectedImage.alt)} 
                 fill
                 className="object-contain"
                 priority

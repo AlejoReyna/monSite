@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import Image from "next/image";
 import type { AssetGalleryItem } from "@/lib/blog/types";
 
@@ -8,9 +9,10 @@ export default function SonicShoesGallery({
 }: {
   assets: AssetGalleryItem[];
 }) {
+  const copyText = useCopy();
   return (
     <div className="blog-sonic-shoes-visual">
-      <div className="blog-sonic-shoes-stage" aria-label="Tenis sónicos">
+      <div className="blog-sonic-shoes-stage" aria-label={copyText("Tenis sónicos")}>
         {assets.map((asset, index) => (
           <Image
             key={asset.src}
@@ -18,7 +20,7 @@ export default function SonicShoesGallery({
               index === 0 ? " blog-sonic-shoes-sprite--first" : ""
             }`}
             src={asset.src}
-            alt={asset.alt}
+            alt={copyText(asset.alt)}
             width={asset.width}
             height={asset.height}
             loading={index === 0 ? "eager" : "lazy"}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { motion } from "framer-motion";
 import styles from "./nonamedbot-gateway.module.css";
 import { useLanguage } from "@/components/lang-context";
@@ -39,15 +40,6 @@ const COPY: Record<Language, {
     ctaSecondary: "GitHub repo",
     techAriaLabel: "Stack tecnológico de NoNamedBot",
   },
-  zh: {
-    deployedOn: "部署于",
-    subtitle: "自主 BSC 交易代理",
-    lead: "其核心是一个 {accent} —— 一个为 BNB Hack AI Trading Agent Edition 打造的生产级 Python 机器人。它通过基于市场状态的防护栏对高流动性 BNB Chain 代币进行评分，并通过 TWAK 执行自托管交换，因此 Python 永远不会持有交易密钥。",
-    leadAccent: "TWAK 代理",
-    ctaPrimary: "查看部署",
-    ctaSecondary: "文档",
-    techAriaLabel: "NoNamedBot 技术栈",
-  },
 };
 
 const techStack = [
@@ -61,6 +53,7 @@ const techStack = [
 ] as const;
 
 export default function NoNamedBotGateway({ isActive = false }: { isActive?: boolean }) {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const copy = COPY[language];
 
@@ -107,8 +100,8 @@ export default function NoNamedBotGateway({ isActive = false }: { isActive?: boo
         <img
           className={styles.techLogo}
           src={tech.logo}
-          alt={tech.label}
-          title={tech.label}
+          alt={copyText(tech.label)}
+          title={copyText(tech.label)}
           loading="lazy"
         />
       </motion.li>
@@ -164,7 +157,7 @@ export default function NoNamedBotGateway({ isActive = false }: { isActive?: boo
           </motion.h2>
 
           <motion.p className={styles.subtitle} variants={item}>
-            {copy.subtitle}
+            {copyText(copy.subtitle)}
           </motion.p>
 
           <motion.p className={styles.lead} variants={item}>

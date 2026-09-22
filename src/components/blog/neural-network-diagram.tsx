@@ -1,3 +1,6 @@
+"use client";
+
+import { useCopy } from "@/components/use-copy";
 const INPUT_COUNT = 13;
 const HIDDEN_COUNT = 16;
 
@@ -76,6 +79,7 @@ function WeightList({
 }
 
 export default function NeuralNetworkDiagram() {
+  const copyText = useCopy();
   return (
     <figure
       className="blog-neural-network"
@@ -88,13 +92,9 @@ export default function NeuralNetworkDiagram() {
         aria-labelledby="robot-policy-svg-title robot-policy-svg-desc"
       >
         <title id="robot-policy-svg-title">
-          Red neuronal de trece entradas, dieciséis neuronas y dos salidas
-        </title>
+          {copyText("Red neuronal de trece entradas, dieciséis neuronas y dos salidas ")}</title>
         <desc id="robot-policy-svg-desc">
-          Las trece observaciones del robot se conectan con una capa de
-          dieciséis neuronas tanh. La red produce dos valores: aceleración
-          horizontal y vertical.
-        </desc>
+          {copyText("Las trece observaciones del robot se conectan con una capa de dieciséis neuronas tanh. La red produce dos valores: aceleración horizontal y vertical. ")}</desc>
 
         <g className="blog-neural-network__connections" aria-hidden="true">
           {inputNodes.flatMap((input, inputIndex) =>
@@ -123,23 +123,18 @@ export default function NeuralNetworkDiagram() {
 
         <g className="blog-neural-network__column-labels" aria-hidden="true">
           <text x="70" y="22">
-            ENTRADAS
-          </text>
+            {copyText("ENTRADAS ")}</text>
           <text x="70" y="42">
-            13 observaciones
-          </text>
+            {copyText("13 observaciones ")}</text>
           <text x="250" y="22">
-            CAPA OCULTA
-          </text>
+            {copyText("CAPA OCULTA ")}</text>
           <text x="250" y="42">
             16 × tanh
           </text>
           <text x="430" y="22">
-            SALIDAS
-          </text>
+            {copyText("SALIDAS ")}</text>
           <text x="430" y="42">
-            aceleración
-          </text>
+            {copyText("aceleración ")}</text>
         </g>
 
         <g className="blog-neural-network__input-nodes" aria-hidden="true">
@@ -159,7 +154,7 @@ export default function NeuralNetworkDiagram() {
             <g key={node.label}>
               <circle cx={node.x} cy={node.y} r="18" />
               <text x={node.x} y={node.y + 1}>
-                {node.label}
+                {copyText(node.label)}
               </text>
             </g>
           ))}
@@ -168,14 +163,14 @@ export default function NeuralNetworkDiagram() {
 
       <details className="blog-neural-network__weights">
         <summary>
-          <span>Ver los 240 pesos entrenados</span>
-          <strong>Generación 300</strong>
+          <span>{copyText("Ver los 240 pesos entrenados")}</span>
+          <strong>{copyText("Generación 300")}</strong>
         </summary>
         <div className="blog-neural-network__weight-scroll">
           <section>
             <header>
-              <span>Entrada → capa oculta</span>
-              <strong>208 pesos</strong>
+              <span>{copyText("Entrada → capa oculta")}</span>
+              <strong>{copyText("208 pesos")}</strong>
             </header>
             <WeightList
               weights={TRAINED_CONNECTION_WEIGHTS.slice(0, 208)}
@@ -184,8 +179,8 @@ export default function NeuralNetworkDiagram() {
           </section>
           <section>
             <header>
-              <span>Capa oculta → salida</span>
-              <strong>32 pesos</strong>
+              <span>{copyText("Capa oculta → salida")}</span>
+              <strong>{copyText("32 pesos")}</strong>
             </header>
             <WeightList
               weights={TRAINED_CONNECTION_WEIGHTS.slice(208)}

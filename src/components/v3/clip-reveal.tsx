@@ -26,9 +26,9 @@ export default function ClipReveal() {
     <>
       <SectionHeader
         index="01"
-        tag={language === "zh" ? "第 01 节 / 裁剪揭示" : language === "es" ? "sección 01 / clip-path reveal" : "section 01 / clip-path reveal"}
-        title={language === "zh" ? "开篇" : language === "es" ? "APERTURA" : "OPENING"}
-        caption={language === "zh" ? "滚动展开隐藏之物" : language === "es" ? "el scroll expande lo oculto" : "scroll expands the hidden"}
+        tag={language === "es" ? "sección 01 / clip-path reveal" : "section 01 / clip-path reveal"}
+        title={language === "es" ? "APERTURA" : "OPENING"}
+        caption={language === "es" ? "el scroll expande lo oculto" : "scroll expands the hidden"}
       />
 
       <div ref={ref} style={{ height: "260vh", position: "relative" }}>
@@ -45,7 +45,7 @@ export default function ClipReveal() {
           {/* background placeholder */}
           <div className="v3-clip-bg">
             <span className="v3-clip-bg-hint">
-              {language === "zh" ? "向下滚动以揭示" : language === "es" ? "desplaza para revelar" : "scroll to reveal"}
+              {language === "es" ? "desplaza para revelar" : "scroll to reveal"}
             </span>
           </div>
 
@@ -64,14 +64,7 @@ export default function ClipReveal() {
             }}
           >
             <blockquote className="v3-clip-quote">
-              {language === "zh" ? (
-                <>
-                  一切尚未被看见之物<br />
-                  已然<strong>存在</strong>。<br />
-                  只待那个姿态<br />
-                  来<strong>召唤</strong>它。
-                </>
-              ) : language === "es" ? (
+              {language === "es" ? (
                 <>
                   Todo lo que aún no se ve<br />
                   ya <strong>existe</strong>.<br />

@@ -1,3 +1,6 @@
+"use client";
+
+import { useCopy } from "@/components/use-copy";
 /**
  * The two figures for the Deploy section.
  *
@@ -22,6 +25,7 @@ type Stage = {
 };
 
 function StageBox({ stage }: { stage: Stage }) {
+  const copyText = useCopy();
   const cx = stage.x + stage.w / 2;
   const cy = stage.y + stage.h / 2;
 
@@ -40,11 +44,11 @@ function StageBox({ stage }: { stage: Stage }) {
         y={stage.sub ? cy - 6 : cy}
         className="blog-deploy-diagram__box-title"
       >
-        {stage.title}
+        {copyText(stage.title)}
       </text>
       {stage.sub && (
         <text x={cx} y={cy + 14} className="blog-deploy-diagram__box-sub">
-          {stage.sub}
+          {copyText(stage.sub)}
         </text>
       )}
     </g>
@@ -83,6 +87,7 @@ const PIPELINE_STAGES: Stage[] = [
 ];
 
 function Pipeline() {
+  const copyText = useCopy();
   return (
     <svg
       className="blog-deploy-diagram__svg blog-deploy-diagram__svg--pipeline"
@@ -91,17 +96,9 @@ function Pipeline() {
       aria-labelledby="deploy-pipeline-title deploy-pipeline-desc"
     >
       <title id="deploy-pipeline-title">
-        Del entrenamiento offline al hero desplegado
-      </title>
+        {copyText("Del entrenamiento offline al hero desplegado ")}</title>
       <desc id="deploy-pipeline-desc">
-        El trainer corre fuera de línea y escribe los pesos como un módulo de
-        JavaScript que entra al repositorio con un commit. Un push a main ejecuta
-        el gate de CI, que evalúa la política en cien semillas no vistas y a
-        tres tasas de refresco. Si pasa, se construye la imagen Docker del Web,
-        se publica en Azure Container Registry con el SHA del commit y Azure
-        Container Apps actualiza el servicio. El navegador recibe el mismo
-        archivo verificado, como un asset estático más de la imagen.
-      </desc>
+        {copyText("El trainer corre fuera de línea y escribe los pesos como un módulo de JavaScript que entra al repositorio con un commit. Un push a main ejecuta el gate de CI, que evalúa la política en cien semillas no vistas y a tres tasas de refresco. Si pasa, se construye la imagen Docker del Web, se publica en Azure Container Registry con el SHA del commit y Azure Container Apps actualiza el servicio. El navegador recibe el mismo archivo verificado, como un asset estático más de la imagen. ")}</desc>
 
       <ArrowDefs />
 
@@ -122,13 +119,13 @@ function Pipeline() {
       ))}
 
       <g className="blog-deploy-diagram__note" aria-hidden="true">
-        <text x="365" y="238">los mismos bytes que aprobó el gate</text>
-        <text x="452" y="112">push a main</text>
+        <text x="365" y="238">{copyText("los mismos bytes que aprobó el gate")}</text>
+        <text x="452" y="112">{copyText("push a main")}</text>
       </g>
 
       <g className="blog-deploy-diagram__tag" aria-hidden="true">
         <rect x="600" y="16" width="260" height="24" rx="4" />
-        <text x="730" y="32">sin modelo.bin — el modelo es código</text>
+        <text x="730" y="32">{copyText("sin modelo.bin — el modelo es código")}</text>
       </g>
     </svg>
   );
@@ -142,6 +139,7 @@ const GATE_STAGES: Stage[] = [
 ];
 
 function ReleaseGate() {
+  const copyText = useCopy();
   return (
     <svg
       className="blog-deploy-diagram__svg blog-deploy-diagram__svg--gate"
@@ -150,15 +148,9 @@ function ReleaseGate() {
       aria-labelledby="deploy-gate-title deploy-gate-desc"
     >
       <title id="deploy-gate-title">
-        El contrato de salud que decide si latest avanza
-      </title>
+        {copyText("El contrato de salud que decide si latest avanza ")}</title>
       <desc id="deploy-gate-desc">
-        Tras actualizar Container Apps, el workflow espera hasta ciento
-        cincuenta segundos por el endpoint de salud y por el contrato visual
-        del hero en el HTML de la portada. Si la revisión está sana, la
-        etiqueta latest se mueve al nuevo SHA; si falla, se restaura la imagen
-        anterior.
-      </desc>
+        {copyText("Tras actualizar Container Apps, el workflow espera hasta ciento cincuenta segundos por el endpoint de salud y por el contrato visual del hero en el HTML de la portada. Si la revisión está sana, la etiqueta latest se mueve al nuevo SHA; si falla, se restaura la imagen anterior. ")}</desc>
 
       <ArrowDefs />
 
@@ -181,14 +173,12 @@ function ReleaseGate() {
           className="blog-deploy-diagram__decision"
         />
         <text x="585" y="140" className="blog-deploy-diagram__decision-text">
-          ¿sano?
-        </text>
+          {copyText("¿sano? ")}</text>
       </g>
 
       <g className="blog-deploy-diagram__choice" aria-hidden="true">
         <text x="600" y="74" className="blog-deploy-diagram__choice--pass">
-          sí
-        </text>
+          {copyText("sí ")}</text>
         <text x="600" y="204" className="blog-deploy-diagram__choice--fail">
           no
         </text>
@@ -208,6 +198,7 @@ export default function DeployPipeline({
   variant: "pipeline" | "release-gate";
   caption?: string;
 }) {
+  const copyText = useCopy();
   return (
     <figure className="blog-deploy-diagram blog-bleed">
       <div className="blog-deploy-diagram__frame">
@@ -217,8 +208,7 @@ export default function DeployPipeline({
         <figcaption>
           <span>{caption}</span>
           <span className="blog-deploy-diagram__scroll-hint" aria-hidden="true">
-            Desliza ↔
-          </span>
+            {copyText("Desliza ↔ ")}</span>
         </figcaption>
       )}
     </figure>

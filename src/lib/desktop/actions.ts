@@ -1,5 +1,6 @@
 import type { Language } from "@/components/lang-context";
-import { findProject, ABOUT_PORTFOLIO, type CuratedProject } from "./portfolio-content";
+import { findProject, hiringAnswer, ABOUT_PORTFOLIO, type CuratedProject } from "./portfolio-content";
+import { detectTopic } from "@/lib/profile/direction";
 import type { AllowlistedActionName, DesktopAction } from "./types";
 
 export const ALLOWLISTED_ACTIONS: AllowlistedActionName[] = [
@@ -17,7 +18,7 @@ export const ASSISTANT_TOOLS = [
     type: "function" as const,
     function: {
       name: "answer_portfolio",
-      description: "Answer a question using curated portfolio facts only.",
+      description: "Answer a question about Alexis using his verified CV dossier and curated portfolio facts only. Use it for experience, employers, dates, skills, availability and hiring questions.",
       parameters: {
         type: "object",
         properties: {
@@ -63,11 +64,11 @@ export const ASSISTANT_TOOLS = [
     type: "function" as const,
     function: {
       name: "change_language",
-      description: "Change UI language to en, es, or zh.",
+      description: "Change UI language to en or es.",
       parameters: {
         type: "object",
         properties: {
-          language: { type: "string", enum: ["en", "es", "zh"] },
+          language: { type: "string", enum: ["en", "es"] },
         },
         required: ["language"],
       },
@@ -97,7 +98,7 @@ export const ASSISTANT_TOOLS = [
 ];
 
 function isLanguage(value: unknown): value is Language {
-  return value === "en" || value === "es" || value === "zh";
+  return value === "en" || value === "es";
 }
 
 export function parseToolCall(
@@ -134,7 +135,7 @@ export function parseToolCall(
     case "navigate_contact":
       return { type: "navigate_contact", args: {} };
     case "change_language":
-      if (!isLanguage(args.language)) return { error: "language must be en, es, or zh" };
+      if (!isLanguage(args.language)) return { error: "language must be en or es" };
       return { type: "change_language", args: { language: args.language } };
     case "toggle_focus":
       return {
@@ -156,6 +157,8 @@ export function answerFromCurated(topic: string | undefined, lang: Language): st
   if (topic) {
     const project = findProject(topic);
     if (project) return explainProjectText(project, lang);
+    // A recruiter asking by voice gets the hiring status rather than a generic bio.
+    if (detectTopic(topic, lang) === "hiring") return hiringAnswer(lang);
   }
   return ABOUT_PORTFOLIO[lang];
 }

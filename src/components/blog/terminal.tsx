@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { TerminalLine } from "@/lib/blog/types";
 
@@ -22,6 +23,7 @@ interface TerminalProps {
  *    so a long curl never widens the page on mobile.
  */
 export default function Terminal({ lines, label = "bash" }: TerminalProps) {
+  const copyText = useCopy();
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -65,9 +67,9 @@ export default function Terminal({ lines, label = "bash" }: TerminalProps) {
             className="blog-term-copy"
             onClick={copy}
             data-copied={copied}
-            aria-label={copied ? "Commands copied" : "Copy commands to clipboard"}
+            aria-label={copied ? copyText("Commands copied") : copyText("Copy commands to clipboard")}
           >
-            {copied ? "copied" : "copy"}
+            {copied ? copyText("copied") : copyText("copy")}
           </button>
         )}
       </div>

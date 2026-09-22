@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { FiGithub, FiInstagram, FiLinkedin } from "react-icons/fi";
@@ -49,10 +50,11 @@ export default function Footer({
   social = defaultSocial,
   className = "",
 }: FooterProps) {
+  const copyText = useCopy();
   const [isVisible, setIsVisible] = useState(false);
   const [displayText, setDisplayText] = useState("");
   const footerRef = useRef<HTMLElement>(null);
-  const targetText = "¡Hablemos!";
+  const targetText = copyText("¡Hablemos!");
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -77,7 +79,7 @@ export default function Footer({
       }
     }, 100);
     return () => clearInterval(typeInterval);
-  }, [isVisible]);
+  }, [isVisible, targetText]);
 
   return (
     <footer
@@ -126,6 +128,7 @@ function BrandMark({
   name: string;
   slogan?: string;
 }) {
+  const copyText = useCopy();
   const Mark = (
     <div className="flex items-center gap-3">
       <div className="flex flex-col">
@@ -149,7 +152,7 @@ function BrandMark({
       className="group inline-flex w-fit items-center"
     >
       {Mark}
-      <span className="sr-only">{name} - Portfolio</span>
+      <span className="sr-only">{name} {copyText(" - Portfolio")}</span>
     </a>
   );
 }
@@ -226,6 +229,7 @@ function TalkCTA({
   displayText: string;
   showCaret: boolean;
 }) {
+  const copyText = useCopy();
   const ref = useRef<HTMLAnchorElement>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>(
@@ -275,9 +279,9 @@ function TalkCTA({
           "cursor-pointer select-none",
         ].join(" ")}
         style={{ transform: `translate3d(${pos.x}px, ${pos.y}px, 0)` }}
-        aria-label="Hablemos por WhatsApp"
+        aria-label={copyText("Hablemos por WhatsApp")}
       >
-        <span className="text-sm md:text-base">{prefix}</span>
+        <span className="text-sm md:text-base">{copyText(prefix)}</span>
 
         <span className="relative inline-flex items-center font-semibold">
           <span className="relative">

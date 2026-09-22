@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useLanguage, type Language } from "@/components/lang-context";
 
 type LanguageOption = {
@@ -9,10 +10,35 @@ type LanguageOption = {
 };
 
 const OPTIONS: LanguageOption[] = [
-  { code: "en", label: "EN", title: "English" },
   { code: "es", label: "ES", title: "Español" },
-  { code: "zh", label: "中", title: "中文" },
+  { code: "en", label: "EN", title: "English" },
 ];
+
+const TOGGLE_LABELS: Record<Language, string> = {
+  es: "Idioma: español. Cambiar a inglés",
+  en: "Language: English. Switch to Spanish",
+};
+
+/**
+ * One-tap language control for tight rows (the phone Dock, the menu bar, the phone navbar).
+ * It shows the current language, like the macOS input menu, and a tap switches to the other one.
+ */
+export function LanguageToggle({ className = "" }: { className?: string }) {
+  const { language, setLanguage } = useLanguage();
+  const label = TOGGLE_LABELS[language];
+  return (
+    <button
+      type="button"
+      className={className}
+      lang={language}
+      aria-label={label}
+      title={label}
+      onClick={() => setLanguage(language === "es" ? "en" : "es")}
+    >
+      {language.toUpperCase()}
+    </button>
+  );
+}
 
 type LanguageSwitcherProps = {
   className?: string;
@@ -20,6 +46,7 @@ type LanguageSwitcherProps = {
 };
 
 export default function LanguageSwitcher({ className = "", size = "md" }: LanguageSwitcherProps) {
+  const copyText = useCopy();
   const { language, setLanguage } = useLanguage();
 
   const sizeClasses =
@@ -31,16 +58,15 @@ export default function LanguageSwitcher({ className = "", size = "md" }: Langua
     <div
       className={`inline-flex items-center ${sizeClasses} ${className}`}
       role="group"
-      aria-label="Language switcher"
+      aria-label={copyText("Language switcher")}
     >
-      <span style={{ 
-        color: "rgba(255,255,255,0.4)", 
-        letterSpacing: "0.2em", 
-        textTransform: "uppercase", 
-        fontFamily: "var(--font-space-mono, ui-monospace, monospace)" 
+      <span style={{
+        color: "rgba(255,255,255,0.4)",
+        letterSpacing: "0.2em",
+        textTransform: "uppercase",
+        fontFamily: "var(--font-space-mono, ui-monospace, monospace)"
       }}>
-        Language
-      </span>
+        {copyText("Language ")}</span>
       {OPTIONS.map((option) => {
         const isActive = language === option.code;
         return (
@@ -48,7 +74,7 @@ export default function LanguageSwitcher({ className = "", size = "md" }: Langua
             key={option.code}
             type="button"
             onClick={() => setLanguage(option.code)}
-            title={option.title}
+            title={copyText(option.title)}
             aria-pressed={isActive}
             className={`transition-colors duration-200 uppercase font-mono ${
               isActive
@@ -56,7 +82,7 @@ export default function LanguageSwitcher({ className = "", size = "md" }: Langua
                 : "text-white/50 hover:text-white"
             }`}
           >
-            {option.label}
+            {copyText(option.label)}
           </button>
         );
       })}

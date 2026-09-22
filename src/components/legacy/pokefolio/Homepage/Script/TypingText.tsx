@@ -1,5 +1,6 @@
 "use client"
 
+import { useCopy } from "@/components/use-copy";
 import React, { useState, useEffect } from 'react';
 
 interface TypingTextProps {
@@ -7,8 +8,9 @@ interface TypingTextProps {
 }
 
 export const TypingText: React.FC<TypingTextProps> = ({ onFinished }) => {
+  const copyText = useCopy();
     const [text, setText] = useState<string>('');
-    const fullText: string = 'Welcome to my projects portfolio!';
+    const fullText: string = copyText("Welcome to my projects portfolio!");
 
     useEffect(() => {
         if (text.length < fullText.length) {

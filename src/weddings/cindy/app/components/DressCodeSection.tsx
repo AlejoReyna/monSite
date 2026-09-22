@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
@@ -22,6 +23,7 @@ function LetterReveal({ text, active, baseDelay = 0, charStagger = 55, className
 }
 
 export default function DressCodeSection() {
+  const copyText = useCopy();
   const ACCENT_COLOR = '#6b4f3a';
   const DARK_ACCENT_COLOR = '#4a3426';
   const sectionRef = useRef<HTMLElement>(null);
@@ -108,7 +110,7 @@ export default function DressCodeSection() {
             {/* ══ 1) NOTA ESPECIAL HEADING ══ */}
             <p className="garamond-300 text-[2.35rem] sm:text-[2.75rem] md:text-6xl text-[#6b4f3a] mb-2 sm:mb-3">
               <LetterReveal
-                text="Nota especial"
+                text={copyText("Nota especial")}
                 active={isVisible}
                 baseDelay={0}
                 charStagger={22}
@@ -117,7 +119,7 @@ export default function DressCodeSection() {
 
             <h2 className="garamond-300 text-[0.63rem] sm:text-xs md:text-base tracking-[0.18em] sm:tracking-[0.26em] md:tracking-[0.32em] uppercase text-[#5a4635] mb-8 sm:mb-10 md:mb-16">
               <LetterReveal
-                text="para nuestros invitados"
+                text={copyText("para nuestros invitados")}
                 active={isVisible}
                 baseDelay={100}
                 charStagger={14}
@@ -128,7 +130,7 @@ export default function DressCodeSection() {
             <div className="mb-8 sm:mb-10 md:mb-16">
               <p className="garamond-300 tracking-[0.2em] sm:tracking-[0.28em] md:tracking-[0.32em] text-[0.68rem] sm:text-xs md:text-base uppercase mb-3 sm:mb-4 md:mb-0" style={{ color: ACCENT_COLOR, opacity: 0.9 }}>
                 <LetterReveal
-                  text="Etiqueta"
+                  text={copyText("Etiqueta")}
                   active={isVisible}
                   baseDelay={350}
                   charStagger={22}
@@ -136,7 +138,7 @@ export default function DressCodeSection() {
               </p>
               <p className="garamond-regular text-[2rem] sm:text-[2.35rem] md:text-5xl leading-snug mb-4 sm:mb-5 md:mb-6" style={{ color: ACCENT_COLOR }}>
                 <LetterReveal
-                  text="Formal"
+                  text={copyText("Formal")}
                   active={isVisible}
                   baseDelay={500}
                   charStagger={28}
@@ -149,7 +151,7 @@ export default function DressCodeSection() {
               }`} style={{ transitionDelay: '580ms' }}>
                 <Image
                   src="https://cdn-icons-png.flaticon.com/512/1124/1124043.png"
-                  alt="Código de vestimenta formal"
+                  alt={copyText("Código de vestimenta formal")}
                   className="dress-icon"
                   width={84}
                   height={84}
@@ -163,14 +165,14 @@ export default function DressCodeSection() {
 
               <p className="garamond-300 text-[1.22rem] sm:text-[1.32rem] md:text-xl text-[#5a4635] leading-relaxed max-w-md mx-auto">
                 <LetterReveal
-                  text="El blanco está reservado para la novia."
+                  text={copyText("El blanco está reservado para la novia.")}
                   active={isVisible}
                   baseDelay={620}
                   charStagger={8}
                 />
                 <br />
                 <LetterReveal
-                  text="Les agradecemos elegir otros colores."
+                  text={copyText("Les agradecemos elegir otros colores.")}
                   active={isVisible}
                   baseDelay={750}
                   charStagger={8}
@@ -188,7 +190,7 @@ export default function DressCodeSection() {
                   style={{ color: DARK_ACCENT_COLOR }}
                 >
                   <LetterReveal
-                    text="NO NIÑOS"
+                    text={copyText("NO NIÑOS")}
                     active={noNinosReady}
                     baseDelay={100}
                     charStagger={35}
@@ -205,9 +207,7 @@ export default function DressCodeSection() {
                   className="garamond-regular text-[1.12rem] sm:text-[1.2rem] md:text-[1.12rem] leading-relaxed"
                   style={{ color: DARK_ACCENT_COLOR, opacity: 0.98 }}
                 >
-                  Con mucho cariño hemos planeado una velada íntima entre adultos.
-                  {' '}Les pedimos amablemente que este día tan especial sea solo para los grandes.
-                </p>
+                  {copyText("Con mucho cariño hemos planeado una velada íntima entre adultos. ")}{' '}{copyText("Les pedimos amablemente que este día tan especial sea solo para los grandes. ")}</p>
               </div>
             </div>
             </div>

@@ -1,6 +1,8 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import Link from "next/link";
+import LanguageSwitcher from "@/components/language-switcher";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { BlogChapter } from "@/lib/blog/chapters";
 
@@ -13,6 +15,7 @@ const INTRO_ID = "article-introduction";
 export default function ChapterNavigation({
   chapters,
 }: ChapterNavigationProps) {
+  const copyText = useCopy();
   const [activeId, setActiveId] = useState(INTRO_ID);
   /** Only the mobile sheet uses this; the desktop rail folds instead. */
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -183,10 +186,10 @@ export default function ChapterNavigation({
   );
   const activeChapter =
     activeChapterIndex === -1 ? null : chapters[activeChapterIndex];
-  const activeLabel = activeChapter ? activeChapter.title : "Introducción";
+  const activeLabel = activeChapter ? activeChapter.title : copyText("Introducción");
   const activeNumber = activeChapter
     ? `Cap. ${String(activeChapterIndex + 1).padStart(2, "0")}`
-    : "Inicio";
+    : copyText("Inicio");
 
   /**
    * The way out of the article. The floating nav stays hidden for the whole
@@ -195,8 +198,7 @@ export default function ChapterNavigation({
    */
   const backLink = (
     <Link className="blog-back blog-chapters-back" href="/blog">
-      <span aria-hidden="true">←</span> Volver al blog
-    </Link>
+      <span aria-hidden="true">←</span> {copyText(" Volver al blog ")}</Link>
   );
 
   /** One glyph for both rail toggles: a panel with a rail on its left edge. */
@@ -223,8 +225,7 @@ export default function ChapterNavigation({
         onClick={(event) => activate(event, INTRO_ID)}
         aria-current={activeId === INTRO_ID ? "location" : undefined}
       >
-        Introducción
-      </a>
+        {copyText("Introducción ")}</a>
 
       <ol className="blog-chapter-list">
         {chapters.map((chapter, index) => {
@@ -235,7 +236,7 @@ export default function ChapterNavigation({
           return (
             <li key={chapter.id} data-active={chapterActive}>
               <span className="blog-chapter-number">
-                Capítulo {String(index + 1).padStart(2, "0")}
+                {copyText("Capítulo ")}{String(index + 1).padStart(2, "0")}
               </span>
               <a
                 className="blog-chapter-link"
@@ -244,7 +245,7 @@ export default function ChapterNavigation({
                 onClick={(event) => activate(event, chapter.id)}
                 aria-current={activeId === chapter.id ? "location" : undefined}
               >
-                {chapter.title}
+                {copyText(chapter.title)}
               </a>
 
               {chapter.sections.length > 0 && (
@@ -259,7 +260,7 @@ export default function ChapterNavigation({
                           activeId === section.id ? "location" : undefined
                         }
                       >
-                        {section.title}
+                        {copyText(section.title)}
                       </a>
                     </li>
                   ))}
@@ -291,8 +292,7 @@ export default function ChapterNavigation({
               <span />
               <span />
             </span>
-            Menu
-          </span>
+            {copyText("Menu ")}</span>
 
           {/* Where a docs bar would say "On this page": the chapter you are
               actually in, which is the same information plus your place in
@@ -324,7 +324,7 @@ export default function ChapterNavigation({
             the bar stays the anchor for where you are in the post. */}
         <div
           className="blog-chapter-sheet"
-          aria-label="Capítulos del artículo"
+          aria-label={copyText("Capítulos del artículo")}
           aria-hidden={!sheetOpen}
           // Nothing inside may be tabbed to or tapped through while collapsed.
           inert={!sheetOpen}
@@ -334,6 +334,7 @@ export default function ChapterNavigation({
               are in, and repeating "Contenido" under the line you just tapped
               spends the panel's first 40px on nothing. */}
           {backLink}
+          <LanguageSwitcher size="sm" />
           {chapterList}
         </div>
       </div>
@@ -343,7 +344,7 @@ export default function ChapterNavigation({
         className="blog-chapter-backdrop"
         data-open={sheetOpen}
         tabIndex={-1}
-        aria-label="Cerrar contenido"
+        aria-label={copyText("Cerrar contenido")}
         onClick={() => setSheetOpen(false)}
       />
 
@@ -352,23 +353,23 @@ export default function ChapterNavigation({
       <aside
         className="blog-chapters"
         id="blog-chapters-rail"
-        aria-label="Capítulos del artículo"
+        aria-label={copyText("Capítulos del artículo")}
         data-collapsed={railCollapsed}
       >
         {/* Only the way back stays pinned — it has to stay reachable from
             anywhere in a seven-chapter list. The heading below scrolls with
             the list it introduces instead of sticking to the exit. */}
-        <div className="blog-chapters-top">{backLink}</div>
+        <div className="blog-chapters-top">{backLink}<LanguageSwitcher size="sm" /></div>
 
         <div className="blog-chapters-heading">
-          <span>Contenido</span>
+          <span>{copyText("Contenido")}</span>
           <button
             type="button"
             className="blog-rail-toggle"
             onClick={() => setRailCollapsed(true)}
             aria-expanded={!railCollapsed}
             aria-controls="blog-chapters-rail"
-            aria-label="Ocultar el índice"
+            aria-label={copyText("Ocultar el índice")}
           >
             {railIcon}
           </button>
@@ -387,7 +388,7 @@ export default function ChapterNavigation({
         onClick={() => setRailCollapsed(false)}
         aria-expanded={!railCollapsed}
         aria-controls="blog-chapters-rail"
-        aria-label="Mostrar el índice"
+        aria-label={copyText("Mostrar el índice")}
       >
         {railIcon}
       </button>

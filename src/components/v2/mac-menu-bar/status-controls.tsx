@@ -77,14 +77,10 @@ export function BatteryControl() {
               {charging
                 ? language === "es"
                   ? "Cargando"
-                  : language === "zh"
-                    ? "充电中"
-                    : "Charging"
+                  : "Charging"
                 : language === "es"
                   ? "En batería"
-                  : language === "zh"
-                    ? "使用电池"
-                    : "On battery"}
+                  : "On battery"}
             </span>
             <span>{pct}%</span>
           </button>
@@ -97,7 +93,7 @@ export function BatteryControl() {
               setOpenMenu(null);
             }}
           >
-            {language === "es" ? "Reducir efectos" : language === "zh" ? "降低效果" : "Reduce Effects"}
+            {language === "es" ? "Reducir efectos" : "Reduce Effects"}
           </button>
         </div>
       )}

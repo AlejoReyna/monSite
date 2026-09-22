@@ -1,6 +1,8 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import Link from "next/link";
+import LanguageSwitcher from "@/components/language-switcher";
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
@@ -21,6 +23,7 @@ const DELTA_DEADZONE = 6;
 const POINTER_REVEAL_ZONE = 80;
 
 export default function BlogNavbar() {
+  const copyText = useCopy();
   const shellRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
 
@@ -142,9 +145,9 @@ export default function BlogNavbar() {
 
   return (
     <header className={`blog-nav-shell${isPostPage ? " blog-nav-shell--hidden" : ""}`} ref={shellRef}>
-      <nav className="blog-nav" aria-label="Blog navigation">
+      <nav className="blog-nav" aria-label={copyText("Blog navigation")}>
         <div className="blog-nav-left">
-          <Link className="blog-nav-brand" href="/blog" aria-label="Alexis Reyna Blog home">
+          <Link className="blog-nav-brand" href="/blog" aria-label={copyText("Alexis Reyna Blog home")}>
             <span className="blog-nav-brand-main">
               <span className="blog-nav-bracket">&lt;</span>
               <span>Alexis Reyna</span>
@@ -154,14 +157,14 @@ export default function BlogNavbar() {
           </Link>
 
           <div className="blog-nav-links">
-            <Link href="/blog">Posts</Link>
+            <Link href="/blog">{copyText("Posts")}</Link>
             <Link className="blog-nav-portfolio" href="/">
-              Portfolio
-            </Link>
+              {copyText("Portfolio ")}</Link>
           </div>
         </div>
 
         <div className="blog-nav-right">
+          <LanguageSwitcher size="sm" />
           <div className="blog-nav-socials">
             <a
               href="https://github.com/AlejoReyna"
@@ -185,8 +188,7 @@ export default function BlogNavbar() {
             </a>
           </div>
           <Link className="blog-nav-cta" href="/#contact">
-            Hablemos
-          </Link>
+            {copyText("Hablemos ")}</Link>
         </div>
       </nav>
     </header>

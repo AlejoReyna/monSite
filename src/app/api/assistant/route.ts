@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { cookies } from "next/headers";
-import type { Language } from "@/components/lang-context";
+import { resolveLanguage, type Language } from "@/lib/language";
 import {
   ASSISTANT_TOOLS,
   answerFromCurated,
@@ -27,16 +27,13 @@ function resolveKimi() {
   };
 }
 
-function isLang(value: unknown): value is Language {
-  return value === "en" || value === "es" || value === "zh";
-}
-
 async function readQuota() {
   const store = await cookies();
   return decodeQuotaCookie(store.get(QUOTA_COOKIE)?.value);
 }
 
-/** Kimi accepts a provider-specific `thinking` field; cast keeps OpenAI SDK types satisfied. */
+/** Kimi accepts a provider-specific `thinking` field; cast keeps OpenAI SDK types satisfied.
+    Never pass `temperature`: K2.6 fixes it per mode (0.6 without thinking) and rejects any other value with a 400. */
 async function kimiChat(
   client: OpenAI,
   model: string,
@@ -81,7 +78,7 @@ export async function POST(req: NextRequest) {
 
   const message = (body.message || "").toString().trim().slice(0, 1200);
   if (!message) return NextResponse.json({ error: "message required" }, { status: 400 });
-  const language: Language = isLang(body.language) ? body.language : "en";
+  const language: Language = resolveLanguage(body.language);
 
   const quota = await readQuota();
   if (quota.remaining <= 0) {
@@ -100,7 +97,7 @@ export async function POST(req: NextRequest) {
     fetch: (url: RequestInfo, init?: RequestInit) => fetch(url, init),
   });
 
-  const system = buildAssistantSystemPrompt(language);
+  const system = buildAssistantSystemPrompt(language, message);
   const actions: Array<{ type: string; args?: Record<string, unknown> }> = [];
   let reply = "";
 
@@ -112,7 +109,6 @@ export async function POST(req: NextRequest) {
       ],
       tools: ASSISTANT_TOOLS,
       tool_choice: "auto",
-      temperature: 1,
       max_tokens: 800,
     });
 
@@ -182,7 +178,6 @@ export async function POST(req: NextRequest) {
 
       const second = await kimiChat(client, kimi.model, {
         messages: followups,
-        temperature: 1,
         max_tokens: 600,
       });
       reply = second.choices[0]?.message?.content?.trim() || "";
@@ -206,7 +201,7 @@ export async function POST(req: NextRequest) {
             reply = answerFromCurated(parsed.args.topic, language);
           }
         } else if (actions.length) {
-          reply = language === "es" ? "Listo." : language === "zh" ? "好的。" : "Done.";
+          reply = language === "es" ? "Listo." : "Done.";
         }
       }
     } else {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import church from '../../assets/church.png';
@@ -30,6 +31,7 @@ export default function ItineraryItemCard({
   accentColor = '#C4985B',
   isActive = false,
 }: ItineraryItemCardProps) {
+  const copyText = useCopy();
   const cardRef = useRef<HTMLDivElement>(null);
   const [isInView, setIsInView] = useState(false);
   const [animating, setAnimating] = useState(false);
@@ -94,7 +96,7 @@ export default function ItineraryItemCard({
         return (
           <Image
             src={church}
-            alt="Misa"
+            alt={copyText("Misa")}
             width={112}
             height={112}
             className={`${iconClassName} h-[88px] sm:h-[102px] md:h-[118px]`}
@@ -104,7 +106,7 @@ export default function ItineraryItemCard({
         return (
           <Image
             src={church}
-            alt="Ceremonia"
+            alt={copyText("Ceremonia")}
             width={112}
             height={112}
             className={`${iconClassName} h-[88px] sm:h-[102px] md:h-[118px]`}
@@ -114,7 +116,7 @@ export default function ItineraryItemCard({
         return (
           <Image
             src={legalDocument}
-            alt="Ceremonia Civil"
+            alt={copyText("Ceremonia Civil")}
             width={76}
             height={76}
             className={`${iconClassName} h-[60px] sm:h-[68px] md:h-[76px]`}
@@ -124,7 +126,7 @@ export default function ItineraryItemCard({
         return (
           <Image
             src={nightClub}
-            alt="Cocktail de Bienvenida"
+            alt={copyText("Cocktail de Bienvenida")}
             width={76}
             height={76}
             className={`${iconClassName} h-[60px] sm:h-[68px] md:h-[76px]`}
@@ -134,7 +136,7 @@ export default function ItineraryItemCard({
         return (
           <Image
             src={nightClub}
-            alt="Recepción"
+            alt={copyText("Recepción")}
             width={76}
             height={76}
             className={`${iconClassName} h-[60px] sm:h-[68px] md:h-[76px] brightness-0`}
@@ -249,7 +251,7 @@ export default function ItineraryItemCard({
                 }`}
                 style={{ color: cardColor }}
               >
-                {item.title}
+                {copyText(item.title)}
               </h3>
             </div>
 
@@ -306,7 +308,7 @@ export default function ItineraryItemCard({
                 }`}
                 style={{ color: cardColorLight }}
               >
-                {item.description}
+                {copyText(item.description)}
               </p>
             )}
           </div>

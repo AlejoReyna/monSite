@@ -1,3 +1,6 @@
+"use client";
+
+import { useCopy } from "@/components/use-copy";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import PixelScene from "./pixel-scene";
@@ -20,6 +23,7 @@ const TITLE_LINES = ["YOUR NEXT", "COFFEE,", "ON-CHAIN"] as const;
 const NAV_LINKS = ["Shop", "Yield", "Lab", "About"] as const;
 
 export default function ArtisanalBrewHero({ className }: { className?: string }) {
+  const copyText = useCopy();
   // The bob is staggered across the whole headline rather than per line, so
   // the ripple runs through the three of them once.
   let letterIndex = 0;
@@ -36,7 +40,7 @@ export default function ArtisanalBrewHero({ className }: { className?: string })
         <span className="ab-hero__brand">Artisanal Brew</span>
         <span className="ab-hero__links">
           {NAV_LINKS.map((link) => (
-            <i key={link}>{link}</i>
+            <i key={copyText(link)}>{copyText(link)}</i>
           ))}
         </span>
         <span className="ab-hero__utils">
@@ -48,7 +52,7 @@ export default function ArtisanalBrewHero({ className }: { className?: string })
               width={27}
               height={27}
             />
-            <span>Login</span>
+            <span>{copyText("Login")}</span>
           </span>
           <span className="ab-hero__burger">
             <i />
@@ -60,7 +64,7 @@ export default function ArtisanalBrewHero({ className }: { className?: string })
 
       <div className="ab-hero__copy">
         <p className="ab-hero__title">
-          {TITLE_LINES.map((line) => (
+          {TITLE_LINES.map(copyText).map((line) => (
             <span className="ab-hero__line" key={line}>
               {line.split(" ").map((word) => (
                 <span className="ab-hero__word" key={word}>
@@ -80,13 +84,11 @@ export default function ArtisanalBrewHero({ className }: { className?: string })
         </p>
 
         <p className="ab-hero__lede">
-          Stake CAFE while it roasts, and watch a friendly pixel crew run
-          wallet-signed test missions on-chain.
-        </p>
+          {copyText("Stake CAFE while it roasts, and watch a friendly pixel crew run wallet-signed test missions on-chain. ")}</p>
 
         <div className="ab-hero__ctas">
-          <span className="ab-hero__cta">Stake coffee</span>
-          <span className="ab-hero__cta ab-hero__cta--ghost">Read my blog</span>
+          <span className="ab-hero__cta">{copyText("Stake coffee")}</span>
+          <span className="ab-hero__cta ab-hero__cta--ghost">{copyText("Read my blog")}</span>
         </div>
       </div>
     </div>

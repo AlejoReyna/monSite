@@ -66,6 +66,7 @@ export type MenuId =
   | "search"
   | "assistant"
   | "datetime"
+  | "language"
   | "overflow"
   | null;
 

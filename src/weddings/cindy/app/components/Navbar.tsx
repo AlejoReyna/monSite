@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useState, useEffect, useRef, useCallback } from 'react';
 import DisabledRsvpButton from '@/weddings/shared/disabled-rsvp-button';
 import { withBasePath } from '../../lib/basePath';
@@ -105,6 +106,7 @@ interface NavbarProps {
 }
 
 const Navbar = ({ visible = true }: NavbarProps) => {
+  const copyText = useCopy();
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isInFooterSection, setIsInFooterSection] = useState(false);
   const [isInRSVPSection, setIsInRSVPSection] = useState(false);
@@ -332,7 +334,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
     if (item.id === 'rsvp') {
       return (
         <DisabledRsvpButton className={classes}>
-          {item.label.toUpperCase()}
+          {copyText(item.label).toUpperCase()}
         </DisabledRsvpButton>
       );
     }
@@ -345,7 +347,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
         }}
         className={classes}
       >
-        {item.label.toUpperCase()}
+        {copyText(item.label).toUpperCase()}
         <span
           className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-[1px] w-0 group-hover:w-full transition-all duration-500 ease-out"
           style={{ backgroundColor: lineColor }}
@@ -365,7 +367,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
     if (item.id === 'rsvp') {
       return (
         <DisabledRsvpButton className={classes}>
-          {item.label.toUpperCase()}
+          {copyText(item.label).toUpperCase()}
         </DisabledRsvpButton>
       );
     }
@@ -378,7 +380,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
         }}
         className={classes}
       >
-        {item.label.toUpperCase()}
+        {copyText(item.label).toUpperCase()}
       </a>
     );
   };
@@ -401,7 +403,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
               activeSection === item.id ? 'bg-[#C4985B] scale-100' : 'bg-transparent scale-0'
             }`}
           />
-          <span>{item.label.toUpperCase()}</span>
+          <span>{copyText(item.label).toUpperCase()}</span>
         </DisabledRsvpButton>
       );
     }
@@ -420,7 +422,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
             activeSection === item.id ? 'bg-[#C4985B] scale-100' : 'bg-transparent scale-0'
           }`}
         />
-        <span>{item.label.toUpperCase()}</span>
+        <span>{copyText(item.label).toUpperCase()}</span>
       </a>
     );
   };
@@ -478,7 +480,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
           <div className="px-8 xl:px-10 flex items-center justify-center relative z-[2147483647]">
             <div
               role="img"
-              aria-label="Monograma"
+              aria-label={copyText("Monograma")}
               style={{
                 width: `${logoDesktop}px`,
                 height: `${logoDesktop}px`,
@@ -523,7 +525,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
           <div className="flex items-center justify-center relative z-[2147483647]">
             <div
               role="img"
-              aria-label="Monograma"
+              aria-label={copyText("Monograma")}
               style={{
                 width: `${logoMobile}px`,
                 height: `${logoMobile}px`,
@@ -555,7 +557,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`p-2 transition-colors duration-400 ${textCls}`}
-            aria-label="Menú adicional"
+            aria-label={copyText("Menú adicional")}
           >
             <div className="flex flex-col gap-[4px]">
               <div
@@ -596,7 +598,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
           <div className="flex items-center justify-center relative z-[2147483647]">
             <div
               role="img"
-              aria-label="Monograma"
+              aria-label={copyText("Monograma")}
               style={{
                 width: `${logoMobile}px`,
                 height: `${logoMobile}px`,
@@ -620,7 +622,7 @@ const Navbar = ({ visible = true }: NavbarProps) => {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className={`p-2 transition-colors duration-400 ${textCls}`}
-              aria-label="Menú de navegación"
+              aria-label={copyText("Menú de navegación")}
             >
               <div className="flex flex-col gap-[5px]">
                 <div
@@ -672,14 +674,13 @@ const Navbar = ({ visible = true }: NavbarProps) => {
               <div className="flex items-center gap-2">
                 <span className="block w-6 h-[0.5px] bg-[#C4985B]/35" />
                 <span className="text-[10px] garamond-300 tracking-[0.3em] text-[#8B7355]/50 uppercase">
-                  Menú
-                </span>
+                  {copyText("Menú ")}</span>
                 <span className="block w-6 h-[0.5px] bg-[#C4985B]/35" />
               </div>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="p-1.5 text-[#8B7355]/40 hover:text-[#543c24] transition-colors duration-300"
-                aria-label="Cerrar menú"
+                aria-label={copyText("Cerrar menú")}
               >
                 <svg
                   className="w-4 h-4"

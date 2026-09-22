@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { readSseStream } from '@/lib/dialogue/stream';
+import type { Language } from '@/lib/language';
 
 export interface ChatMessage {
   id: string;
@@ -14,7 +15,9 @@ export interface ChatMessage {
 
 type Usage = { prompt_tokens: number; completion_tokens: number; total_tokens: number };
 
-export function useChat(userName?: string) {
+type ChatOptions = { userName?: string; language?: Language };
+
+export function useChat({ userName, language }: ChatOptions = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -42,7 +45,8 @@ export function useChat(userName?: string) {
     const controller = new AbortController();
     activeRef.current = controller;
     const startedAt = Date.now();
-    const turnId = crypto.randomUUID();
+    // randomUUID exists only in secure contexts; a phone opening the dev server over the LAN is not one.
+    const turnId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const userMessage: ChatMessage = {
       id: `user-${turnId}`, role: 'user', content: content.trim(), timestamp: new Date(), pending: true,
     };
@@ -78,7 +82,7 @@ export function useChat(userName?: string) {
         headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
         body: JSON.stringify({
           messages: [...history, userMessage].map(({ role, content: text }) => ({ role, content: text })),
-          userName, stream: true,
+          userName, language, stream: true,
         }),
         signal: controller.signal,
       });
@@ -142,7 +146,7 @@ export function useChat(userName?: string) {
         activeRef.current = null;
       }
     }
-  }, [userName, updateMessages]);
+  }, [userName, language, updateMessages]);
 
   const stop = useCallback(() => activeRef.current?.abort(), []);
   const clearMessages = useCallback(() => {

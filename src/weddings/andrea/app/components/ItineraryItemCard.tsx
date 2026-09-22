@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
 import church from '../../assets/church.png';
@@ -21,6 +22,7 @@ interface ItineraryItemCardProps {
 }
 
 export default function ItineraryItemCard({ item, index }: ItineraryItemCardProps) {
+  const copyText = useCopy();
   const cardRef = useRef<HTMLDivElement>(null);
   const [isCardVisible, setIsCardVisible] = useState(false);
 
@@ -158,7 +160,7 @@ export default function ItineraryItemCard({ item, index }: ItineraryItemCardProp
         return (
           <Image 
             src={church} 
-            alt="Misa" 
+            alt={copyText("Misa")} 
             width={40} 
             height={40} 
             className="opacity-80 group-hover:opacity-100 transition-opacity duration-300" 
@@ -168,7 +170,7 @@ export default function ItineraryItemCard({ item, index }: ItineraryItemCardProp
         return (
           <Image 
             src={church} 
-            alt="Ceremonia" 
+            alt={copyText("Ceremonia")} 
             width={40} 
             height={40} 
             className="opacity-80 group-hover:opacity-100 transition-opacity duration-300" 
@@ -178,7 +180,7 @@ export default function ItineraryItemCard({ item, index }: ItineraryItemCardProp
         return (
           <Image 
             src={legalDocument} 
-            alt="Ceremonia Civil" 
+            alt={copyText("Ceremonia Civil")} 
             width={40} 
             height={40} 
             className="opacity-80 group-hover:opacity-100 transition-opacity duration-300" 
@@ -188,7 +190,7 @@ export default function ItineraryItemCard({ item, index }: ItineraryItemCardProp
         return (
           <Image 
             src={nightClub} 
-            alt="Recepción" 
+            alt={copyText("Recepción")} 
             width={40} 
             height={40} 
             className={`opacity-80 group-hover:opacity-100 transition-opacity duration-300 ${

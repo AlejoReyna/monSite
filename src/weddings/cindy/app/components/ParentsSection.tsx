@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { useCopy } from '@/components/use-copy'
 
 // ═══════════════════════════════════════════════════════════════════════
 // LETTER-WRITING ANIMATION + SWALLOW BIRDS (Canvas)
@@ -19,7 +20,6 @@ const QUOTE_LINES = [
   'la bendición de Dios,',
   'y de nuestros padres.',
 ]
-const QUOTE_WORDS = QUOTE_LINES.join(' ').split(' ')
 
 const BRIDE_HEADING = 'Padres de la novia'
 const BRIDE_NAMES   = [
@@ -140,9 +140,10 @@ export default function ParentsSection() {
   const [birdsVisible, setBirdsVisible] = useState(false)
 
   // ── Timeline para los delays de animación ──────────────────────────
-  const quoteWords        = QUOTE_WORDS
-  const brideHeadingChars = BRIDE_HEADING.split('')
-  const groomHeadingChars = GROOM_HEADING.split('')
+  const copyText = useCopy()
+  const quoteWords = QUOTE_LINES.map(copyText).join(' ').split(' ')
+  const brideHeadingChars = copyText(BRIDE_HEADING).split('')
+  const groomHeadingChars = copyText(GROOM_HEADING).split('')
   const brideName0Words   = BRIDE_NAMES[0].split(' ')
   const brideName1Words   = BRIDE_NAMES[1].split(' ')
   const groomName0Words   = GROOM_NAMES[0].split(' ')
@@ -291,7 +292,7 @@ export default function ParentsSection() {
           {/* Quote — palabra a palabra */}
           <div className="flex justify-center items-center mb-8 sm:mb-10 md:mb-12">
             <p className="ps-quote-text">
-              {QUOTE_WORDS.map((word, i) => (
+              {quoteWords.map((word, i) => (
                 <span key={`q-${i}`}>
                   <span
                     className={`ps-word${textStarted ? ' ps-word--animated' : ''}`}

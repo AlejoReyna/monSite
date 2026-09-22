@@ -42,28 +42,24 @@ const SOCIAL_LINKS: {
   href: string;
   labelEn: string;
   labelEs: string;
-  labelZh: string;
 }[] = [
   {
     id: "github",
     href: "https://github.com/AlejoReyna",
     labelEn: "GitHub profile",
     labelEs: "Perfil de GitHub",
-    labelZh: "GitHub 个人主页",
   },
   {
     id: "linkedin",
     href: "https://www.linkedin.com/in/alexis-alberto-reyna-sánchez-6953102b4",
     labelEn: "LinkedIn profile",
     labelEs: "Perfil de LinkedIn",
-    labelZh: "LinkedIn 个人主页",
   },
   {
     id: "email",
-    href: "mailto:alexis.rs@inverater.com",
+    href: "mailto:alexis.rs@proton.me",
     labelEn: "Send email",
     labelEs: "Enviar correo",
-    labelZh: "发送邮件",
   },
 ];
 
@@ -111,11 +107,11 @@ function SubmitButtonContent({ status, language }: { status: FormStatus; languag
         >
           ↻
         </motion.span>
-        {language === "zh" ? "发送中..." : language === "es" ? "ENVIANDO..." : "SENDING..."}
+        {language === "es" ? "ENVIANDO..." : "SENDING..."}
       </span>
     );
   }
-  return <>{language === "zh" ? "发送 →" : language === "es" ? "ENVIAR →" : "SEND →"}</>;
+  return <>{language === "es" ? "ENVIAR →" : "SEND →"}</>;
 }
 
 /* ═══════════════════════════════════════════
@@ -191,7 +187,7 @@ export default function ContactEditorial() {
 
       if (!res.ok) {
         const data: unknown = await res.json().catch(() => ({}));
-        const msg = (data as { error?: string }).error ?? t("failedToSend", language);
+        const msg = t("failedToSend", language);
         throw new Error(msg);
       }
 
@@ -238,12 +234,7 @@ export default function ContactEditorial() {
               fontWeight: 400,
             }}
           >
-            {language === "zh" ? (
-              <>
-                告诉我你想{" "}
-                <span style={{ color: "var(--v3-gold)" }}>构建</span>什么。
-              </>
-            ) : language === "es" ? (
+            {language === "es" ? (
               <>
                 Cuéntame qué quieres{" "}
                 <span style={{ color: "var(--v3-gold)" }}>construir</span>.
@@ -287,7 +278,7 @@ export default function ContactEditorial() {
             <input
               id="contact-name"
               className="v3-contact-input"
-              placeholder={language === "zh" ? "你的名字" : language === "es" ? "TU NOMBRE" : "YOUR NAME"}
+              placeholder={language === "es" ? "TU NOMBRE" : "YOUR NAME"}
               value={form.name}
               onChange={setField("name")}
               required
@@ -308,7 +299,7 @@ export default function ContactEditorial() {
               id="contact-email"
               className="v3-contact-input"
               type="email"
-              placeholder={language === "zh" ? "你的邮箱" : language === "es" ? "TU CORREO" : "YOUR EMAIL"}
+              placeholder={language === "es" ? "TU CORREO" : "YOUR EMAIL"}
               value={form.email}
               onChange={setField("email")}
               required
@@ -324,12 +315,12 @@ export default function ContactEditorial() {
             style={{ position: "relative" }}
           >
             <label htmlFor="contact-subject" className="sr-only">
-              {language === "zh" ? "简短主题（可选）" : language === "es" ? "Asunto breve (opcional)" : "Brief subject (optional)"}
+              {language === "es" ? "Asunto breve (opcional)" : "Brief subject (optional)"}
             </label>
             <input
               id="contact-subject"
               className="v3-contact-input"
-              placeholder={language === "zh" ? "简短主题" : language === "es" ? "ASUNTO BREVE" : "BRIEF SUBJECT"}
+              placeholder={language === "es" ? "ASUNTO BREVE" : "BRIEF SUBJECT"}
               value={form.subject}
               onChange={setField("subject")}
               maxLength={SUBJECT_MAX}
@@ -369,7 +360,7 @@ export default function ContactEditorial() {
             <textarea
               id="contact-message"
               className="v3-contact-input"
-              placeholder={language === "zh" ? "你的消息" : language === "es" ? "TU MENSAJE" : "YOUR MESSAGE"}
+              placeholder={language === "es" ? "TU MENSAJE" : "YOUR MESSAGE"}
               value={form.message}
               onChange={setField("message")}
               required
@@ -413,9 +404,7 @@ export default function ContactEditorial() {
                       textTransform: "uppercase",
                     }}
                   >
-                    {language === "zh"
-                      ? "消息已收到 · 我会尽快回复"
-                      : language === "es"
+                    {language === "es"
                       ? "MENSAJE RECIBIDO · TE ESCRIBO PRONTO"
                       : "MESSAGE RECEIVED · I'LL WRITE SOON"}
                   </span>
@@ -473,7 +462,7 @@ export default function ContactEditorial() {
               target={link.href.startsWith("http") ? "_blank" : undefined}
               rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
               className="v3-social-icon-link"
-              aria-label={language === "zh" ? link.labelZh : language === "es" ? link.labelEs : link.labelEn}
+              aria-label={language === "es" ? link.labelEs : link.labelEn}
             >
               <SocialIcon id={link.id} />
             </a>

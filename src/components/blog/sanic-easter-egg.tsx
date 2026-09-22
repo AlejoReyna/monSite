@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
@@ -10,6 +11,7 @@ interface SanicEasterEggWrapperProps {
 export default function SanicEasterEggWrapper({
   children,
 }: SanicEasterEggWrapperProps) {
+  const copyText = useCopy();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isDashing, setIsDashing] = useState(false);
@@ -56,16 +58,16 @@ export default function SanicEasterEggWrapper({
         onClick={handleClick}
         onMouseEnter={() => setShowSpeech(true)}
         onMouseLeave={() => !isDashing && setShowSpeech(false)}
-        title="Gotta go fast!"
+        title={copyText("Gotta go fast!")}
       >
         {showSpeech && (
           <div className="sanic-speech-bubble">
-            <span>GOTTA GO FAST!</span>
+            <span>{copyText("GOTTA GO FAST!")}</span>
           </div>
         )}
         <Image
           src="/sanic.png"
-          alt="Sanic Easter Egg"
+          alt={copyText("Sanic Easter Egg")}
           className="sanic-img"
           width={591}
           height={531}
