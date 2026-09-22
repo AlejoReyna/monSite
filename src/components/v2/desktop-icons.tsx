@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useLanguage } from "@/components/lang-context";
@@ -52,6 +53,7 @@ export default function DesktopIcons({ items, interactive, label, className, ico
   iconClassName: string;
   ghostClassName: string;
 }) {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const { iconLayout, iconMotion, arrangeIcons, registerIconContext } = useDesktopStore();
   const copy = ICON_ARRANGE_COPY[language];
@@ -276,12 +278,12 @@ export default function DesktopIcons({ items, interactive, label, className, ico
   return <>
     <div ref={layerRef} className={className} inert={!interactive} aria-hidden={!interactive} aria-label={label} data-animate={iconMotion || undefined}>
       {items.map(item => item.href
-        ? <a key={item.id} href={item.href} target="_blank" rel="noopener noreferrer" aria-label={item.ariaLabel} draggable={false} {...iconProps(item)}>{item.art}<strong>{item.title}</strong></a>
-        : <button key={item.id} type="button" aria-label={item.ariaLabel} {...iconProps(item)}>{item.art}<strong>{item.title}</strong></button>)}
+        ? <a key={item.id} href={item.href} target="_blank" rel="noopener noreferrer" aria-label={item.ariaLabel} draggable={false} {...iconProps(item)}>{item.art}<strong>{copyText(item.title)}</strong></a>
+        : <button key={item.id} type="button" aria-label={item.ariaLabel} {...iconProps(item)}>{item.art}<strong>{copyText(item.title)}</strong></button>)}
     </div>
     {drag && createPortal(
       <div ref={ghostRef} className={`${className} ${ghostClassName}`} aria-hidden="true">
-        {items.filter(item => drag.origins[item.id]).map(item => <div key={item.id} className={iconClassName} style={iconStyle(drag.origins[item.id])} data-selected="">{item.art}<strong>{item.title}</strong></div>)}
+        {items.filter(item => drag.origins[item.id]).map(item => <div key={item.id} className={iconClassName} style={iconStyle(drag.origins[item.id])} data-selected="">{item.art}<strong>{copyText(item.title)}</strong></div>)}
       </div>,
       drag.host,
     )}

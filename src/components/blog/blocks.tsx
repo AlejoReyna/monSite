@@ -1,3 +1,4 @@
+import { getCopy } from "@/lib/request-language";
 import { Fragment } from "react";
 import Image from "next/image";
 import { getPostHeadings } from "@/lib/blog/chapters";
@@ -58,6 +59,7 @@ async function BlockView({
   block: Block;
   headingId?: string;
 }) {
+  const copyText = await getCopy();
   switch (block.kind) {
     case "heading":
       return <h2 id={headingId}>{block.text}</h2>;
@@ -92,8 +94,7 @@ async function BlockView({
               {block.caption ?? block.language}
             </span>
             <span className="blog-code-scroll-hint" aria-hidden="true">
-              Desliza ↔
-            </span>
+              {copyText("Desliza ↔ ")}</span>
           </div>
           <div
             className="blog-code-body"
@@ -127,7 +128,7 @@ async function BlockView({
       return (
         <aside className="blog-callout" data-tone={block.tone}>
           {block.title && (
-            <span className="blog-callout-title">{block.title}</span>
+            <span className="blog-callout-title">{copyText(block.title)}</span>
           )}
           <p>{renderInline(block.content)}</p>
         </aside>
@@ -227,7 +228,7 @@ async function BlockView({
             <figcaption className="blog-asset-card-header">
               <div className="blog-asset-card-info">
                 <span className="blog-asset-card-title">
-                  {block.asset.title}
+                  {copyText(block.asset.title)}
                 </span>
               </div>
             </figcaption>
@@ -235,7 +236,7 @@ async function BlockView({
               <div className="blog-asset-media">
                 <Image
                   src={block.asset.src}
-                  alt={block.asset.alt}
+                  alt={copyText(block.asset.alt)}
                   width={block.asset.width}
                   height={block.asset.height}
                   loading="lazy"
@@ -269,8 +270,7 @@ async function BlockView({
                 {block.code.caption ?? block.code.language}
               </span>
               <span className="blog-code-scroll-hint" aria-hidden="true">
-                Desliza ↔
-              </span>
+                {copyText("Desliza ↔ ")}</span>
             </div>
             <div
               className="blog-code-body"
@@ -287,7 +287,7 @@ async function BlockView({
           <div className="blog-photo-media">
             <Image
               src={block.src}
-              alt={block.alt}
+              alt={copyText(block.alt)}
               width={block.width}
               height={block.height}
               loading="lazy"
@@ -305,7 +305,7 @@ async function BlockView({
             <LoopingVideo
               src={block.src}
               poster={block.poster}
-              alt={block.alt}
+              alt={copyText(block.alt)}
               width={block.width}
               height={block.height}
             />
@@ -317,7 +317,7 @@ async function BlockView({
     case "scenePreview":
       return (
         <figure className="blog-scene-preview blog-bleed">
-          <figcaption>{block.label}</figcaption>
+          <figcaption>{copyText(block.label)}</figcaption>
           <PixelScene />
         </figure>
       );
@@ -335,7 +335,7 @@ async function BlockView({
       return (
         <GenerationShowcase
           items={block.items}
-          title={block.title}
+          title={block.title ? copyText(block.title) : undefined}
           titleId={headingId}
         />
       );

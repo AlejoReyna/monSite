@@ -1,5 +1,5 @@
+import { localizeMetadata } from "@/lib/request-language";
 import { Bebas_Neue, Cormorant_Garamond, Space_Mono } from "next/font/google";
-import { LanguageProvider } from "@/components/lang-context";
 
 const bebas = Bebas_Neue({
   weight: "400",
@@ -23,7 +23,7 @@ const spaceMono = Space_Mono({
   display: "swap",
 });
 
-export const metadata = {
+const baseMetadata = {
   title: "V3 Preview — Alexis Reyna",
   description: "Preview aislado de secciones v3: carousel de proyectos y contacto editorial.",
   robots: { index: false },
@@ -39,7 +39,11 @@ export default function PreviewLayout({
       className={`${bebas.variable} ${cormorant.variable} ${spaceMono.variable}`}
       style={{ background: "#08080a", minHeight: "100vh" }}
     >
-      <LanguageProvider>{children}</LanguageProvider>
+      {children}
     </div>
   );
+}
+
+export async function generateMetadata() {
+  return localizeMetadata(baseMetadata);
 }

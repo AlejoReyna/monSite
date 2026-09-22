@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import ItineraryItemCard from './ItineraryItemCard';
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 
@@ -155,6 +156,7 @@ function paintLeaf(ctx: CanvasRenderingContext2D, l: Leaf) {
 // ═══════════════════════════════════════════════════════════════════
 
 export default function ItinerarySection() {
+  const copyText = useCopy();
   const containerRef    = useRef<HTMLDivElement>(null)
   const cardsRef        = useRef<HTMLDivElement>(null)
   const cardWrapperRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -377,8 +379,7 @@ export default function ItinerarySection() {
           <div className="itinerary-heading">
             <div className="itinerary-heading__title-shell">
               <h2 className="itinerary-heading__title">
-                Itinerario
-              </h2>
+                {copyText("Itinerario ")}</h2>
             </div>
 
             <div className="itinerary-heading__floral md:mb-12" aria-hidden="true">

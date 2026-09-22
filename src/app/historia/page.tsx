@@ -1,6 +1,8 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import React, { useState, useRef } from "react";
+import { useLanguage } from "@/components/lang-context";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import {
   Terminal,
@@ -201,7 +203,7 @@ const copy = {
 } as const;
 
 export default function HistoriaPage() {
-  const [locale, setLocale] = useState<PageLocale>("es");
+  const { language: locale, setLanguage: setLocale } = useLanguage();
   const [localeSwitchCount, setLocaleSwitchCount] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [ack, setAck] = useState(false);
@@ -422,6 +424,7 @@ function TimelineSection({
   index: number;
   locale: PageLocale;
 }) {
+  const copyText = useCopy();
   const container = useRef(null);
   const Icon = step.icon;
   const processLabel = copy[locale].processView;
@@ -469,7 +472,7 @@ function TimelineSection({
                 color: "var(--gic-pitch-black)",
               }}
             >
-              {step.title}
+              {copyText(step.title)}
             </h2>
             <p
               className="text-balance"
@@ -480,7 +483,7 @@ function TimelineSection({
                 color: "var(--gic-charcoal)",
               }}
             >
-              {step.description}
+              {copyText(step.description)}
             </p>
           </motion.div>
 
@@ -523,7 +526,7 @@ function TimelineSection({
                   fontSize: "var(--gic-text-caption)",
                 }}
               >
-                {processLabel}: {step.title}
+                {processLabel}: {copyText(step.title)}
               </p>
             </div>
             {/* Efecto de ruido/textura sutil */}

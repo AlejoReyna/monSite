@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Github, Linkedin, Mail } from "lucide-react";
@@ -107,7 +108,6 @@ const SOCIAL_LINKS = [
     label: {
       en: "GitHub profile",
       es: "Perfil de GitHub",
-      zh: "GitHub 主页",
     },
   },
   {
@@ -117,17 +117,15 @@ const SOCIAL_LINKS = [
     label: {
       en: "LinkedIn profile",
       es: "Perfil de LinkedIn",
-      zh: "LinkedIn 主页",
     },
   },
   {
     id: "email",
-    href: "mailto:alexis.rs@inverater.com",
+    href: "mailto:alexis.rs@proton.me",
     Icon: Mail,
     label: {
       en: "Send email",
       es: "Enviar correo",
-      zh: "发送邮件",
     },
   },
 ] as const;
@@ -135,10 +133,10 @@ const SOCIAL_LINKS = [
 const titleLines: Record<Language, string[]> = {
   en: ["LETS GET", "IN TOUCH!"],
   es: ["HABLEMOS!"],
-  zh: ["联系我们!"],
 };
 
 export default function ContactGateway({ isActive = false }: { isActive?: boolean }) {
+  const copyText = useCopy();
   const { language } = useLanguage();
 
   const container = {
@@ -202,7 +200,7 @@ export default function ContactGateway({ isActive = false }: { isActive?: boolea
             <span className={`${styles.dot} ${styles.dotRed}`} />
             <span className={`${styles.dot} ${styles.dotYellow}`} />
             <span className={`${styles.dot} ${styles.dotGreen}`} />
-            <span className={styles.terminalTitle}>contact — mail</span>
+            <span className={styles.terminalTitle}>{copyText("contact — mail")}</span>
           </div>
 
           <ContactEmailForm />
@@ -311,7 +309,7 @@ export function ContactEmailForm({ onSent }: { onSent?: () => void } = {}) {
           <motion.p key="success" className={styles.success} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} role="status"><span className={styles.prompt}>&gt;</span> {t("messageSent", language)}</motion.p>
         ) : (
           <motion.button key="submit" type="submit" className={styles.submit} disabled={!isValid || status === "loading"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            {status === "loading" ? (language === "es" ? "Enviando..." : language === "zh" ? "发送中..." : "Sending...") : language === "es" ? "Enviar mensaje →" : language === "zh" ? "发送消息 →" : "Send message →"}
+            {status === "loading" ? (language === "es" ? "Enviando..." : "Sending...") : language === "es" ? "Enviar mensaje →" : "Send message →"}
           </motion.button>
         )}
       </AnimatePresence>

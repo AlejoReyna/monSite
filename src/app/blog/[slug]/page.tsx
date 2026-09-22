@@ -1,4 +1,6 @@
+import { getCopy } from "@/lib/request-language";
 import type { Metadata } from "next";
+import { getRequestLanguage } from "@/lib/request-language";
 import { notFound } from "next/navigation";
 import Blocks from "@/components/blog/blocks";
 import ChapterNavigation from "@/components/blog/chapter-navigation";
@@ -23,7 +25,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = getPost(slug, await getRequestLanguage());
 
   if (!post) return { title: "Not found" };
 
@@ -34,7 +36,7 @@ export async function generateMetadata({
           url: post.ogImage,
           width: 1200,
           height: 630,
-          alt: `${post.title} — artículo de Alexis Reyna`,
+          alt: `${post.title} — Alexis Reyna`,
         },
       ]
     : undefined;
@@ -76,8 +78,9 @@ export default async function PostPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const copyText = await getCopy();
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = getPost(slug, await getRequestLanguage());
 
   if (!post) notFound();
   const chapters = getPostChapters(post.blocks);
@@ -154,7 +157,7 @@ export default async function PostPage({
                 </span>
               </div>
               <div className="blog-article-title-row">
-                <h1>{post.title}</h1>
+                <h1>{copyText(post.title)}</h1>
               </div>
               <p className="blog-row-summary">{post.summary}</p>
               <ul className="blog-article-tags" aria-label={isSpanish ? "Temas" : "Topics"}>
@@ -166,7 +169,7 @@ export default async function PostPage({
                 <div
                   className="blog-title-robots"
                   role="img"
-                  aria-label={post.titleAsset.alt}
+                  aria-label={copyText(post.titleAsset.alt)}
                 >
                   <span
                     aria-hidden

@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useState, useEffect, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import { withBasePath } from '../../lib/basePath';
@@ -10,6 +11,7 @@ interface SplashScreenProps {
 const SPLASH_NOTCH_COLOR = '#e8dfd2';
 
 const SplashScreen = ({ onEnter }: SplashScreenProps) => {
+  const copyText = useCopy();
   const [ready, setReady] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -87,7 +89,7 @@ const SplashScreen = ({ onEnter }: SplashScreenProps) => {
         <button
           onClick={handleEnter}
           className={`seal ${ready ? 'seal--visible' : ''}`}
-          aria-label="Abrir invitación"
+          aria-label={copyText("Abrir invitación")}
         >
           <span className="seal-glow" />
           <span className="seal-body">
@@ -104,8 +106,7 @@ const SplashScreen = ({ onEnter }: SplashScreenProps) => {
         </button>
 
         <p className={`hint ${ready ? 'hint--visible' : ''}`}>
-          Toca para abrir
-        </p>
+          {copyText("Toca para abrir ")}</p>
       </div>
 
 

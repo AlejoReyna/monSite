@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState } from 'react';
 import { FaCreditCard, FaEnvelope, FaGift } from 'react-icons/fa';
 import Image from 'next/image';
@@ -14,6 +15,7 @@ interface GiftCardProps {
 }
 
 function GiftCard({ icon: Icon, title, subtitle, content, details, className = "" }: GiftCardProps) {
+  const copyText = useCopy();
   return (
     <div
       className={`overflow-hidden rounded-lg transition-all duration-700 transform hover:-translate-y-2 hover:scale-[1.01] group relative border border-[#d4c4b0]/40 h-full ${className}`}
@@ -118,7 +120,7 @@ function GiftCard({ icon: Icon, title, subtitle, content, details, className = "
                     className="text-[#5a4a3a]/80 font-medium tracking-[0.1em] uppercase text-xs"
                     style={{ textShadow: '0 1px 1px rgba(255,255,255,0.7)' }}
                   >
-                    {detail.label}:
+                    {copyText(detail.label)}:
                   </span>
                   <span
                     className="font-semibold font-mono text-[#2c2826] text-sm"
@@ -137,6 +139,7 @@ function GiftCard({ icon: Icon, title, subtitle, content, details, className = "
 }
 
 export default function GiftSection() {
+  const copyText = useCopy();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -170,10 +173,10 @@ export default function GiftSection() {
   );
 
   const bankDetails = [
-    { label: "Banco", value: "BBVA" },
+    { label: copyText("Banco"), value: "BBVA" },
     { label: "CLABE", value: "012 180 01571801772 5" },
-    { label: "Tarjeta", value: "4152 3143 6348 6377" },
-    { label: "Titular", value: "Aldo Berlanga Mendoza" }
+    { label: copyText("Tarjeta"), value: "4152 3143 6348 6377" },
+    { label: copyText("Titular"), value: "Aldo Berlanga Mendoza" }
   ];
 
   return (
@@ -220,7 +223,7 @@ export default function GiftSection() {
             <div className="w-32 h-32 md:w-80 md:h-40 ">
               <Image
                 src="/weddings/andrea/assets/gift_asset.png"
-                alt="Gift icon"
+                alt={copyText("Gift icon")}
                 width={160}
                 height={160}
                 className="object-contain w-full h-full"
@@ -230,15 +233,12 @@ export default function GiftSection() {
           </div>
 
           <p className="text-xs md:text-sm font-light tracking-[0.4em] uppercase mb-6 text-[#8B7355] italic garamond-300">
-            SI DESEAS OBSEQUIARNOS
-          </p>
+            {copyText("SI DESEAS OBSEQUIARNOS ")}</p>
           <div className="w-24 h-px mx-auto mb-6 bg-[#C4985B] opacity-60"></div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light tracking-[0.3em] uppercase text-[#5c5c5c] mb-8 garamond-300 relative">
-            Regalos
-          </h2>
+            {copyText("Regalos ")}</h2>
           <p className="text-center text-stone-600 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto font-light mb-8">
-            Tu presencia es nuestro regalo más preciado. Si deseas honrarnos con un obsequio, te ofrecemos estas opciones con profunda gratitud.
-          </p>
+            {copyText("Tu presencia es nuestro regalo más preciado. Si deseas honrarnos con un obsequio, te ofrecemos estas opciones con profunda gratitud. ")}</p>
         </div>
 
         {/* Side decorative elements */}
@@ -262,9 +262,9 @@ export default function GiftSection() {
           >
             <GiftCard
               icon={FaEnvelope}
-              title="Sobre"
-              subtitle="Tradicional"
-              content="Un sobre con tu contribución será recibido con profundo agradecimiento el día de nuestra celebración. Es la forma más tradicional y querida de acompañarnos."
+              title={copyText("Sobre")}
+              subtitle={copyText("Tradicional")}
+              content={copyText("Un sobre con tu contribución será recibido con profundo agradecimiento el día de nuestra celebración. Es la forma más tradicional y querida de acompañarnos.")}
             />
           </div>
 
@@ -277,9 +277,9 @@ export default function GiftSection() {
           >
             <GiftCard
               icon={FaCreditCard}
-              title="Transferencia"
-              subtitle="Bancaria"
-              content="Puedes realizar una transferencia bancaria directa a nuestra cuenta."
+              title={copyText("Transferencia")}
+              subtitle={copyText("Bancaria")}
+              content={copyText("Puedes realizar una transferencia bancaria directa a nuestra cuenta.")}
               details={bankDetails}
             />
           </div>
@@ -319,14 +319,12 @@ export default function GiftSection() {
                     className="text-xl md:text-2xl font-light tracking-[0.12em] uppercase text-[#2c2826] mb-1"
                     style={{ fontFamily: 'Playfair Display, serif' }}
                   >
-                    Mesa de Regalos
-                  </h3>
+                    {copyText("Mesa de Regalos ")}</h3>
                   <p
                     className="text-[#5a4f45] leading-relaxed text-sm md:text-base"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
-                    Si prefieres, también puedes obsequiarnos desde nuestra mesa de regalos en Amazon.
-                  </p>
+                    {copyText("Si prefieres, también puedes obsequiarnos desde nuestra mesa de regalos en Amazon. ")}</p>
                 </div>
 
                 {/* Botón creativo tipo “gift-tag” */}
@@ -336,8 +334,8 @@ export default function GiftSection() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="gift-tag-btn group inline-flex items-center"
-                    aria-label="Abrir Mesa de Regalos de Aldo Berlanga y Andrea Reyna en Amazon"
-                    title="Mesa de Regalos de Aldo Berlanga y Andrea Reyna"
+                    aria-label={copyText("Abrir Mesa de Regalos de Aldo Berlanga y Andrea Reyna en Amazon")}
+                    title={copyText("Mesa de Regalos de Aldo Berlanga y Andrea Reyna")}
                   >
                     {/* Efecto brillo barrido */}
                     <span className="shine" aria-hidden="true" />
@@ -347,8 +345,7 @@ export default function GiftSection() {
                     <span className="flex items-center gap-2 z-10">
                       <FaGift className="text-[#5a4a3a] text-base md:text-lg" />
                       <span className="btn-text uppercase tracking-[0.12em] text-xs md:text-sm">
-                        Abrir mesa en Amazon
-                      </span>
+                        {copyText("Abrir mesa en Amazon ")}</span>
                     </span>
                     {/* Flecha */}
                     <svg

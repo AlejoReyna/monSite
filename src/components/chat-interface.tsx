@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import Image from "next/image";
 import { ArrowUp, Folder, Maximize2, Minimize2, Minus, Square, X } from "lucide-react";
@@ -8,7 +9,6 @@ import { ContactEmailForm } from "@/components/contact-gateway";
 import { useChat } from "@/hooks/useChat";
 import { CURATED_PROJECTS } from "@/lib/desktop/portfolio-content";
 import { dispatchDesktopAction } from "@/lib/desktop/desktop-store";
-import { buildEnhancedHint, detectEnhancedIntent } from "./data/chat-enhancements";
 import { TERMINAL_ABOUT, TERMINAL_COPY } from "@/lib/terminal/copy";
 import { completeTerminalCommand, parseTerminalCommand, TERMINAL_COMMANDS, type TerminalCommand } from "@/lib/terminal/commands";
 import styles from "./chat-interface.module.css";
@@ -51,12 +51,13 @@ export default function ChatInterface({
   onToggleMaximize, maximized = false, presentation = "window", onBusyChange,
   titleOverride, compact = false,
 }: ChatInterfaceProps) {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const copy = TERMINAL_COPY[language];
   // The portrait sits between the first paragraph of About and the rest.
   const [aboutLead, ...aboutRest] = TERMINAL_ABOUT[language].split("\n\n");
   const opener = useSyncExternalStore(unchanging, readOpener, () => null);
-  const chat = useChat();
+  const chat = useChat({ language });
   const [mode, setMode] = useState<"shell" | "assistant">("shell");
   const [input, setInput] = useState("");
   const [localEntries, setLocalEntries] = useState<LocalEntry[]>([]);
@@ -197,8 +198,8 @@ export default function ChatInterface({
         addEntry("/ai", "/ai");
         setMode("assistant");
       }
-      const payload = buildEnhancedHint(detectEnhancedIntent(value, language), language) + "\n" + value;
-      void chat.sendMessage(payload);
+      // The persona and the CV dossier live on the server; the composer only sends what was typed.
+      void chat.sendMessage(value);
     }
     focusInput(fromComposer);
   };
@@ -244,7 +245,7 @@ export default function ChatInterface({
         <button key={item.command} type="button" data-selected={selection === index} onFocus={() => setSelection(index)} onMouseEnter={() => setSelection(index)} onClick={() => execute(item.command)}>
           <span className={styles.menuMarker} aria-hidden="true">{selection === index ? "❯" : " "}</span>
           <span className={`${styles.muted} ${styles.menuNumber}`} aria-hidden="true">{index + 1}.</span>
-          <span>{item.label}</span><span className={styles.menuHint}>{item.hint}</span>
+          <span>{copyText(item.label)}</span><span className={styles.menuHint}>{item.hint}</span>
         </button>
       ))}
       <p className={styles.keyboardHint}>{copy.menuHint}</p>
@@ -268,7 +269,7 @@ export default function ChatInterface({
               scrollToLatest();
               addEntry(`open ${project.id}`, "opened", project.title);
               dispatchDesktopAction("open_projects", { projectId: project.id });
-            }}><span aria-hidden="true">↗</span><span>{project.title}</span></button>)}
+            }}><span aria-hidden="true">↗</span><span>{copyText(project.title)}</span></button>)}
           </div>
         </>}
         {entry.kind === "/contact" && <>
@@ -315,7 +316,7 @@ export default function ChatInterface({
       }}>
         {welcome && <div className={styles.welcome}>
           <div className={styles.commandLine}>{prompt()}<span>./portfolio</span></div>
-          <div className={styles.welcomeBody}><strong>{copy.title}</strong><p>{compact ? copy.compactWelcome : copy.welcome}</p>{!compact && <p className={styles.muted}>{copy.intro}</p>}</div>
+          <div className={styles.welcomeBody}><strong>{copyText(copy.title)}</strong><p>{compact ? copy.compactWelcome : copy.welcome}</p>{!compact && <p className={styles.muted}>{copy.intro}</p>}</div>
           {compact && menuId === "welcome" && opener !== null && <button type="button" className={styles.opener} onClick={() => execute(copy.openers[opener])}><span aria-hidden="true">›</span>{copy.openers[opener]}</button>}
           {renderMenu("welcome")}
         </div>}

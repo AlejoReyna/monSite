@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Palette } from "lucide-react";
@@ -36,6 +37,7 @@ function WindowsFlag() {
 }
 
 export default function WindowsDesktop({ onChangeView, changeLabel }: { onChangeView: () => void; changeLabel: string }) {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const { navigateToSection } = useNavigation();
   const [open, setOpen] = useState(false);
@@ -43,13 +45,11 @@ export default function WindowsDesktop({ onChangeView, changeLabel }: { onChange
   const menuRef = useRef<HTMLDivElement>(null);
   const startRef = useRef<HTMLButtonElement>(null);
   const labels = language === "es"
-    ? { computer: "Mi portafolio", projects: "Mis proyectos", web: "Mi blog", start: "Inicio", contact: "Contacto" }
-    : language === "zh"
-      ? { computer: "我的作品集", projects: "我的项目", web: "我的博客", start: "开始", contact: "联系我" }
-      : { computer: "My Portfolio", projects: "My Projects", web: "My Blog", start: "Start", contact: "Contact" };
+    ? { computer: "Mi portafolio", projects: "Mis proyectos", web: "Mi blog", start: copyText("Inicio"), contact: "Contacto" }
+    : { computer: "My Portfolio", projects: "My Projects", web: "My Blog", start: "Start", contact: "Contact" };
 
   useEffect(() => {
-    const update = () => setTime(new Date().toLocaleTimeString(language === "es" ? "es-MX" : language === "zh" ? "zh-CN" : "en-US", { hour: "numeric", minute: "2-digit" }));
+    const update = () => setTime(new Date().toLocaleTimeString(language === "es" ? "es-MX" : "en-US", { hour: "numeric", minute: "2-digit" }));
     update();
     const timer = setInterval(update, 30_000);
     return () => clearInterval(timer);
@@ -69,7 +69,7 @@ export default function WindowsDesktop({ onChangeView, changeLabel }: { onChange
   return (
     <div className={styles.desktop}>
       <div className={styles.topBar} onKeyDown={event => event.stopPropagation()}>
-        <span>Alexis Reyna&apos;s Portfolio</span>
+        <span>{copyText("Alexis Reyna's Portfolio")}</span>
         <button type="button" onClick={onChangeView}><Palette size={14} />{changeLabel}</button>
       </div>
       <div className={styles.wallpaper} aria-hidden="true">
@@ -77,7 +77,7 @@ export default function WindowsDesktop({ onChangeView, changeLabel }: { onChange
         <span className={styles.microsoft}>Microsoft</span>
         <span className={styles.wordmark}>Windows<span>95</span></span>
       </div>
-      <nav className={styles.shortcuts} aria-label="Desktop shortcuts" onKeyDown={event => event.stopPropagation()}>
+      <nav className={styles.shortcuts} aria-label={copyText("Desktop shortcuts")} onKeyDown={event => event.stopPropagation()}>
         <Link href="/legacy" className={styles.shortcut}><DesktopIcon kind="computer" /><span>{labels.computer}</span></Link>
         <button type="button" className={styles.shortcut} onClick={projects}><DesktopIcon kind="folder" /><span>{labels.projects}</span></button>
         <Link href="/blog" className={styles.shortcut}><DesktopIcon kind="web" /><span>{labels.web}</span></Link>

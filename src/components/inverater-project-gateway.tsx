@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState, type TouchEvent, type WheelEvent } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/lang-context";
@@ -129,39 +130,6 @@ const COPY: Record<Language, GatewayCopy> = {
     currentWorkLabel: "Trabajo actual",
     pastWorkLabel: "Trabajo realizado",
   },
-  zh: {
-    employmentLabel: "当前任职",
-    heroEyebrow: "Inverater 落地页",
-    heroLineOneAccent: "房地产",
-    heroLineOne: "投资",
-    heroLineTwo: "带着",
-    heroLineTwoAccent: "使命",
-    heroDescription: "欢迎使用这款让你从 1,000 墨西哥比索起成为房产共有人的应用。",
-    visionariesStart: "由",
-    visionariesMiddle: "远见者",
-    visionariesEnd: "为远见者打造。",
-    accountCta: "开设账户",
-    seenOn: "媒体报道",
-    infoEyebrow: "什么是 Inverater？",
-    infoTitleStart: "让房地产投资更加",
-    infoTitleAccent: "触手可及。",
-    infoDescription:
-      "Inverater 是一个墨西哥房地产科技平台，将房地产机会转化为易于参与的数字投资。用户可以浏览物业、查看数据、从 1,000 墨西哥比索起投资，并在一个产品中跟踪投资组合。",
-    contribution: "产品平台",
-    contributionBody:
-      "一个投入生产的平台，涵盖公开项目、投资者注册、身份验证、结账与支付、投资组合仪表板、推荐、报告，以及面向主经纪商的白标体验。",
-    stackLabel: "Inverater 技术栈",
-    websiteCta: "访问 Inverater",
-    scrollHint: "向下滚动了解平台",
-    roleEyebrow: "我在 Inverater 的工作",
-    roleTitleStart: "让整个平台持续",
-    roleTitleAccent: "运行与演进。",
-    roleIntro:
-      "我目前负责基础设施、托管和产品工程，在维护生产系统的同时设计并交付平台的下一阶段。",
-    commitLabel: "代码库记录",
-    currentWorkLabel: "当前工作",
-    pastWorkLabel: "已交付工作",
-  },
 };
 
 const CONTRIBUTIONS: Record<Language, Array<{
@@ -231,36 +199,6 @@ const CONTRIBUTIONS: Record<Language, Array<{
       commits: ["365e73b", "cc5a864", "10ede1b", "3935c73"],
     },
   ],
-  zh: [
-    {
-      index: "01",
-      phase: "current",
-      title: "基础设施与托管",
-      body: "我负责平台持续运行所需的托管、部署流程、环境配置、CI 稳定性以及生产代码。",
-      commits: ["c2e03b8", "49ae2b2", "bb2860a"],
-    },
-    {
-      index: "02",
-      phase: "past",
-      title: "上下文管理",
-      body: "我分阶段构建了 masterbroker 上下文架构，包括中央 store、URL 分析、数据服务、导航门面和路由/认证工具，并迁移了数十个使用方。",
-      commits: ["d7f201d", "8bdd3d9", "10b0729", "7026f14"],
-    },
-    {
-      index: "03",
-      phase: "past",
-      title: "/venta-manual",
-      body: "我完成了手动销售的端到端集成，而不只是界面：基于存储过程的创建与结算、项目与 CETE 预留、Stripe/STP 支付、Webhook 处理、短链接验证、交易状态，以及已完成销售与佣金流程的衔接。",
-      commits: ["6aaf06a", "9ba2407", "1a66f85", "5983866"],
-    },
-    {
-      index: "04",
-      phase: "past",
-      title: "核心产品交付",
-      body: "我的工作还涵盖 STP 结账迁移、支付与入金体验、注册数据同步、推荐流程、管理工具和落地页的持续迭代。",
-      commits: ["365e73b", "cc5a864", "10ede1b", "3935c73"],
-    },
-  ],
 };
 
 function ArrowIcon() {
@@ -292,10 +230,12 @@ const CLASSIC_HERO_WORDS = [
 ] as const;
 
 function ClassicInveraterHero({ isActive }: { isActive: boolean }) {
+  const { language } = useLanguage();
+  const words = language === "es" ? CLASSIC_HERO_WORDS : ["your future", "your family", "your retirement", "visionaries"];
   const [wordIndex, setWordIndex] = useState(0);
-  const [visibleWord, setVisibleWord] = useState<string>(CLASSIC_HERO_WORDS[0]);
+  const [visibleWord, setVisibleWord] = useState<string>(words[0]);
   const [isDeleting, setIsDeleting] = useState(false);
-  const fullWord = CLASSIC_HERO_WORDS[wordIndex];
+  const fullWord = words[wordIndex];
 
   useEffect(() => {
     if (!isActive) return;
@@ -317,14 +257,14 @@ function ClassicInveraterHero({ isActive }: { isActive: boolean }) {
         const nextIndex = (wordIndex + 1) % CLASSIC_HERO_WORDS.length;
         setIsDeleting(false);
         setWordIndex(nextIndex);
-        setVisibleWord(CLASSIC_HERO_WORDS[nextIndex].slice(0, 1));
+        setVisibleWord((language === "es" ? CLASSIC_HERO_WORDS : ["your future", "your family", "your retirement", "visionaries"])[nextIndex].slice(0, 1));
       } else {
         setVisibleWord(visibleWord.slice(0, -1));
       }
     }, delay);
 
     return () => window.clearTimeout(timer);
-  }, [fullWord, isActive, isDeleting, visibleWord, wordIndex]);
+  }, [fullWord, isActive, isDeleting, visibleWord, wordIndex, language]);
 
   return (
     <div className={styles.classicHeroContent}>
@@ -334,9 +274,9 @@ function ClassicInveraterHero({ isActive }: { isActive: boolean }) {
         animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: -50 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        Inversiones inmobiliarias
+        {language === "es" ? "Inversiones inmobiliarias" : "Real estate investments"}
         <span>
-          para <em>{visibleWord || "\u200b"}</em>
+          {language === "es" ? "para " : "for "}<em>{visibleWord || "\u200b"}</em>
         </span>
       </motion.h1>
 
@@ -345,6 +285,7 @@ function ClassicInveraterHero({ isActive }: { isActive: boolean }) {
 }
 
 function PressBar({ label, isActive }: { label: string; isActive: boolean }) {
+  const copyText = useCopy();
   const logoClass = {
     inc: styles.pressLogoInc,
     inmobiliare: styles.pressLogoInmobiliare,
@@ -370,7 +311,7 @@ function PressBar({ label, isActive }: { label: string; isActive: boolean }) {
                   <img
                     className={`${styles.pressLogo} ${logoClass[logo.kind]}`}
                     src={logo.src}
-                    alt={logo.label}
+                    alt={copyText(logo.label)}
                   />
                 </span>
               ))}
@@ -383,6 +324,7 @@ function PressBar({ label, isActive }: { label: string; isActive: boolean }) {
 }
 
 export default function InveraterProjectGateway({ isActive = false }: { isActive?: boolean }) {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const copy = COPY[language];
   const contributions = CONTRIBUTIONS[language];
@@ -496,7 +438,7 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
         >
           <ClassicHeroBackground />
 
-          <ClassicInveraterHero isActive={isActive && activeView === "hero"} />
+          <ClassicInveraterHero key={language} isActive={isActive && activeView === "hero"} />
 
           <motion.div
             className={styles.heroEmploymentBadge}
@@ -530,8 +472,8 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img 
                         src={tech.logo} 
-                        alt={tech.label} 
-                        title={tech.label} 
+                        alt={copyText(tech.label)} 
+                        title={copyText(tech.label)} 
                         loading="lazy" 
                         className={"spin" in tech && tech.spin ? styles.spinIcon : undefined}
                       />
@@ -572,7 +514,7 @@ export default function InveraterProjectGateway({ isActive = false }: { isActive
                     <span className={styles.contributionIndex}>{contribution.index}</span>
                     <span>{contribution.phase === "current" ? copy.currentWorkLabel : copy.pastWorkLabel}</span>
                   </div>
-                  <h3>{contribution.title}</h3>
+                  <h3>{copyText(contribution.title)}</h3>
                   <p>{contribution.body}</p>
                   <div className={styles.commitRow} aria-label={copy.commitLabel}>
                     {contribution.commits.map((commit) => (

@@ -1,9 +1,11 @@
+import { localizeMetadata } from "@/lib/request-language";
+import { getCopy } from "@/lib/request-language";
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import BlogNavbar from "@/components/blog/blog-navbar";
 import "./blog.css";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: {
     default: "Blog — Alexis Reyna",
     template: "%s — Alexis Reyna",
@@ -28,11 +30,12 @@ export const viewport: Viewport = {
   themeColor: "#111214",
 };
 
-export default function BlogLayout({
+export default async function BlogLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const copyText = await getCopy();
   return (
     <div className="blog">
       <BlogNavbar />
@@ -40,10 +43,14 @@ export default function BlogLayout({
 
       <footer className="blog-footer blog-shell">
         <p>© {new Date().getFullYear()} Alexis Reyna</p>
-        <nav aria-label="Blog sections">
-          <Link href="/">Portfolio</Link>
+        <nav aria-label={copyText("Blog sections")}>
+          <Link href="/">{copyText("Portfolio")}</Link>
         </nav>
       </footer>
     </div>
   );
+}
+
+export async function generateMetadata() {
+  return localizeMetadata(baseMetadata);
 }

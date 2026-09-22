@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "@/components/lang-context";
 import { useDesktopStore } from "@/lib/desktop/desktop-store";
@@ -9,6 +10,7 @@ import styles from "./menu-bar.module.css";
 import { useOutsideClick } from "./use-menu-dismiss";
 
 export function SpotlightSearch() {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const store = useDesktopStore();
   const open = store.openMenu === "search";
@@ -34,10 +36,10 @@ export function SpotlightSearch() {
       ? {
           placeholder: "Buscar proyectos, páginas, comandos…",
           empty: "Sin resultados",
-          projects: "Proyectos",
+          projects: copyText("Proyectos"),
           pages: "Páginas",
           commands: "Comandos",
-          home: "Inicio",
+          home: copyText("Inicio"),
           blog: "Blog",
           contact: "Contacto",
           terminal: "Terminal",
@@ -45,28 +47,13 @@ export function SpotlightSearch() {
           prefs: "Preferencias",
           assistant: `Preguntar a ${ASSISTANT_NAME}`,
         }
-      : language === "zh"
-        ? {
-            placeholder: "搜索项目、页面、命令…",
-            empty: "无结果",
-            projects: "项目",
-            pages: "页面",
-            commands: "命令",
-            home: "首页",
-            blog: "博客",
-            contact: "联系",
-            terminal: "终端",
-            focus: "开启 Focus",
-            prefs: "偏好设置",
-            assistant: `询问 ${ASSISTANT_NAME}`,
-          }
-        : {
+      : {
             placeholder: "Search projects, pages, commands…",
             empty: "No results",
-            projects: "Projects",
+            projects: copyText("Projects"),
             pages: "Pages",
             commands: "Commands",
-            home: "Home",
+            home: copyText("Home"),
             blog: "Blog",
             contact: "Contact",
             terminal: "Terminal",
@@ -92,7 +79,7 @@ export function SpotlightSearch() {
         id: "page-home",
         kind: "page",
         title: labels.home,
-        keywords: ["home", "inicio", "首页"],
+        keywords: ["home", "inicio"],
         action: () => {
           store.navigateHome();
           store.setOpenMenu(null);
@@ -109,7 +96,7 @@ export function SpotlightSearch() {
         id: "page-contact",
         kind: "page",
         title: labels.contact,
-        keywords: ["contact", "contacto", "联系"],
+        keywords: ["contact", "contacto"],
         action: () => {
           store.navigateContact();
           store.setOpenMenu(null);
@@ -232,8 +219,8 @@ export function SpotlightSearch() {
               onClick={() => run(index)}
             >
               <span className={styles.kind}>{item.kind}</span>
-              <strong>{item.title}</strong>
-              {item.subtitle && <small>{item.subtitle}</small>}
+              <strong>{copyText(item.title)}</strong>
+              {item.subtitle && <small>{copyText(item.subtitle)}</small>}
             </button>
           ))
         )}

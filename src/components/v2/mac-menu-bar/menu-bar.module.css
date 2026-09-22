@@ -64,6 +64,13 @@
   background: #ffffff20;
 }
 
+.inputSource {
+  padding: 0 7px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+
 .appleTrigger {
   padding: 0 6px;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { Maximize2, Minimize2, Minus, X } from "lucide-react";
 import { ContactEmailForm } from "@/components/contact-gateway";
@@ -13,6 +14,7 @@ export default function MacMail({ open, onClose }: { open: boolean; onClose: () 
 }
 
 function MacMailWindow({ onClose, minimizedRef }: { onClose: () => void; minimizedRef: RefObject<boolean> }) {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const [typedCommand, setTypedCommand] = useState("");
@@ -23,9 +25,7 @@ function MacMailWindow({ onClose, minimizedRef }: { onClose: () => void; minimiz
   const cancelGenie = useRef<(() => void) | null>(null);
   const copy = language === "es"
     ? { title: "alexis — correo — zsh — 80×24", command: "mail --compose", close: "Cerrar", minimize: "Minimizar al Dock", maximize: "Maximizar", restore: "Restaurar tamaño" }
-    : language === "zh"
-      ? { title: "alexis — 邮件 — zsh — 80×24", command: "mail --compose", close: "关闭", minimize: "最小化到程序坞", maximize: "最大化", restore: "恢复大小" }
-      : { title: "alexis — mail — zsh — 80×24", command: "mail --compose", close: "Close", minimize: "Minimize to Dock", maximize: "Maximize", restore: "Restore window size" };
+    : { title: "alexis — mail — zsh — 80×24", command: "mail --compose", close: "Close", minimize: "Minimize to Dock", maximize: "Maximize", restore: "Restore window size" };
 
   useLayoutEffect(() => {
     if (!windowRef.current) return;
@@ -99,7 +99,7 @@ function MacMailWindow({ onClose, minimizedRef }: { onClose: () => void; minimiz
             <button className={styles.minimize} onClick={minimize} aria-label={copy.minimize}><Minus size={10} /></button>
             <button className={styles.maximize} onClick={() => setExpanded((value) => !value)} aria-label={expanded ? copy.restore : copy.maximize} aria-pressed={expanded}>{expanded ? <Minimize2 size={9} /> : <Maximize2 size={9} />}</button>
           </div>
-          <strong id="mac-mail-title">{copy.title}</strong>
+          <strong id="mac-mail-title">{copyText(copy.title)}</strong>
         </header>
         <div className={styles.body}>
           <p className={styles.command} aria-live="polite">

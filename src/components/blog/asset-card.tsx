@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import Image from "next/image";
 import { useState } from "react";
 import type { AssetGalleryItem } from "@/lib/blog/types";
@@ -9,6 +10,7 @@ interface AssetCardProps {
 }
 
 export default function AssetCard({ asset }: AssetCardProps) {
+  const copyText = useCopy();
   const [viewMode, setViewMode] = useState<"asset" | "code">("asset");
   const [copied, setCopied] = useState(false);
 
@@ -29,21 +31,21 @@ export default function AssetCard({ asset }: AssetCardProps) {
     <figure className="blog-asset-card" data-mode={viewMode}>
       <figcaption className="blog-asset-card-header">
         <div className="blog-asset-card-info">
-          <span className="blog-asset-card-title">{asset.title}</span>
+          <span className="blog-asset-card-title">{copyText(asset.title)}</span>
           {asset.format && (
             <span className="blog-asset-card-format">{asset.format}</span>
           )}
         </div>
 
         {hasCode && (
-          <div className="blog-asset-switcher" role="tablist" aria-label="Vista de asset o código">
+          <div className="blog-asset-switcher" role="tablist" aria-label={copyText("Vista de asset o código")}>
             <button
               type="button"
               role="tab"
               aria-selected={viewMode === "asset"}
               className={`blog-asset-tab ${viewMode === "asset" ? "is-active" : ""}`}
               onClick={() => setViewMode("asset")}
-              title="Ver imagen / asset"
+              title={copyText("Ver imagen / asset")}
             >
               <svg
                 width="13"
@@ -68,7 +70,7 @@ export default function AssetCard({ asset }: AssetCardProps) {
               aria-selected={viewMode === "code"}
               className={`blog-asset-tab ${viewMode === "code" ? "is-active" : ""}`}
               onClick={() => setViewMode("code")}
-              title="Ver código del editor"
+              title={copyText("Ver código del editor")}
             >
               <svg
                 width="13"
@@ -84,7 +86,7 @@ export default function AssetCard({ asset }: AssetCardProps) {
                 <polyline points="16 18 22 12 16 6" />
                 <polyline points="8 6 2 12 8 18" />
               </svg>
-              <span>Código</span>
+              <span>{copyText("Código")}</span>
             </button>
           </div>
         )}
@@ -95,7 +97,7 @@ export default function AssetCard({ asset }: AssetCardProps) {
           <div className="blog-asset-media">
             <Image
               src={asset.src}
-              alt={asset.alt}
+              alt={copyText(asset.alt)}
               width={asset.width}
               height={asset.height}
               loading="lazy"
@@ -114,7 +116,7 @@ export default function AssetCard({ asset }: AssetCardProps) {
                 onClick={handleCopy}
                 data-copied={copied}
               >
-                {copied ? "copiado" : "copiar"}
+                {copied ? copyText("copiado") : copyText("copiar")}
               </button>
             </div>
             {asset.usage && (

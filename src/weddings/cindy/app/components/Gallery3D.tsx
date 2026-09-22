@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { withBasePath } from '../../lib/basePath';
@@ -39,6 +40,7 @@ const LETTER_SPEED = 12;
 const WORD_SPEED   = 18;
 
 export default function Gallery3D() {
+  const copyText = useCopy();
   const [isVisible, setIsVisible] = useState(false);
   const hasTriggered = useRef(false);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -107,9 +109,9 @@ export default function Gallery3D() {
   }, []);
 
   // ── Text data ──
-  const titleLine1 = '¡Nos';
-  const titleLine2 = 'Casamos!';
-  const subtitleWords = 'Con gran ilusión, te invitamos a celebrar el inicio de nuestra vida juntos'.split(' ');
+  const titleLine1 = copyText("¡Nos");
+  const titleLine2 = copyText("Casamos!");
+  const subtitleWords = copyText("Con gran ilusión, te invitamos a celebrar el inicio de nuestra vida juntos").split(' ');
 
   // ── Scroll observer → animation cascade ──
   useEffect(() => {
@@ -443,7 +445,7 @@ export default function Gallery3D() {
                       className="gl3d-photo relative"
                       role="button"
                       tabIndex={0}
-                      aria-label={`Ver ${photo.label} en pantalla completa`}
+                      aria-label={`${copyText("Ver foto en pantalla completa")}: ${copyText(photo.label)}`}
                       style={{
                         filter: hoveredIndex === index
                           ? 'brightness(1.08) saturate(1.06)'
@@ -464,7 +466,7 @@ export default function Gallery3D() {
                     >
                       <Image
                         src={photo.src}
-                        alt={photo.label}
+                        alt={copyText(photo.label)}
                         fill
                         className="object-cover"
                         draggable={false}
@@ -479,7 +481,7 @@ export default function Gallery3D() {
               <button
                 onClick={goPrev}
                 className="gl3d-nav-btn gl3d-nav-btn--left"
-                aria-label="Foto anterior"
+                aria-label={copyText("Foto anterior")}
                 disabled={!canGoPrev}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -489,7 +491,7 @@ export default function Gallery3D() {
               <button
                 onClick={goNext}
                 className="gl3d-nav-btn gl3d-nav-btn--right"
-                aria-label="Foto siguiente"
+                aria-label={copyText("Foto siguiente")}
                 disabled={!canGoNext}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -507,7 +509,7 @@ export default function Gallery3D() {
                     key={i}
                     onClick={() => goTo(i)}
                     className={`gl3d-dot ${i === currentIndex ? 'gl3d-dot--active' : ''}`}
-                    aria-label={`Ir a foto ${i + 1}`}
+                    aria-label={`${copyText("Ir a foto")} ${i + 1}`}
                   />
                 ))}
               </div>
@@ -522,14 +524,14 @@ export default function Gallery3D() {
           className="gl3d-lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label={`Vista completa de ${photos[fullscreenIndex].label}`}
+          aria-label={`${copyText("Vista completa")}: ${copyText(photos[fullscreenIndex].label)}`}
           onClick={closeFullscreen}
         >
           <button
             type="button"
             className="gl3d-lightbox-close"
             onClick={closeFullscreen}
-            aria-label="Cerrar pantalla completa"
+            aria-label={copyText("Cerrar pantalla completa")}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6L6 18" />
@@ -544,7 +546,7 @@ export default function Gallery3D() {
               e.stopPropagation();
               goFullscreenPrev();
             }}
-            aria-label="Foto anterior en pantalla completa"
+            aria-label={copyText("Foto anterior en pantalla completa")}
             disabled={fullscreenIndex === 0}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -559,7 +561,7 @@ export default function Gallery3D() {
             <div className="gl3d-lightbox-image-wrap">
               <Image
                 src={photos[fullscreenIndex].src}
-                alt={photos[fullscreenIndex].label}
+                alt={copyText(photos[fullscreenIndex].label)}
                 fill
                 className="object-contain"
                 sizes="100vw"
@@ -575,7 +577,7 @@ export default function Gallery3D() {
               e.stopPropagation();
               goFullscreenNext();
             }}
-            aria-label="Foto siguiente en pantalla completa"
+            aria-label={copyText("Foto siguiente en pantalla completa")}
             disabled={fullscreenIndex === photos.length - 1}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">

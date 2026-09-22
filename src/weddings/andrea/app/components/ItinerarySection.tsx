@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import ItineraryItemCard from './ItineraryItemCard';
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { useTheme } from '../context/ThemeContext';
@@ -13,6 +14,7 @@ interface ItineraryItem {
 }
 
 export default function ItinerarySection() {
+  const copyText = useCopy();
   const sectionRef = useRef<HTMLDivElement>(null);
   const { isNightMode, setIsNightMode } = useTheme();
   
@@ -295,7 +297,7 @@ export default function ItinerarySection() {
             <div className="w-24 h-24 md:w-32 md:h-32 relative">
               <Image 
                 src="/weddings/andrea/assets/clock.png" 
-                alt="Reloj decorativo" 
+                alt={copyText("Reloj decorativo")} 
                 fill
                 className="object-contain opacity-80 transition-opacity duration-500 hover:opacity-100"
               />
@@ -307,8 +309,7 @@ export default function ItinerarySection() {
           <h2 className={`text-3xl md:text-4xl lg:text-5xl font-light tracking-[0.1em] uppercase mb-8 garamond-300 relative transition-colors duration-500 ${
             isNightMode ? 'text-white' : 'text-[#8B7355]'
           }`}>
-            Itinerario 
-          </h2>
+            {copyText("Itinerario ")}</h2>
           {/* Decorative line below the main title */}
           <div className={`w-24 h-px mx-auto mb-6 transition-colors duration-500 ${
             isNightMode ? 'bg-white/60' : 'bg-[#C4985B]'

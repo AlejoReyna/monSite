@@ -1,7 +1,9 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState } from 'react';
 
 export default function GiftEnvelopeBannerSection() {
+  const copyText = useCopy();
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -27,13 +29,12 @@ export default function GiftEnvelopeBannerSection() {
       className={`gift-envelope-section${isVisible ? ' gift-envelope-section--visible' : ''}`}
     >
       <div className="gift-envelope-section__inner">
-        <p className="gift-envelope-section__eyebrow">Mesa de regalos</p>
+        <p className="gift-envelope-section__eyebrow">{copyText("Mesa de regalos")}</p>
         <p className="gift-envelope-section__presence">
-          <span>Su compañía es lo más valioso para nosotros</span>
+          <span>{copyText("Su compañía es lo más valioso para nosotros")}</span>
         </p>
         <p className="gift-envelope-section__text">
-          Si desean tener un detalle adicional, será sinceramente agradecido.
-        </p>
+          {copyText("Si desean tener un detalle adicional, será sinceramente agradecido. ")}</p>
         <span className="gift-envelope-section__line" />
         <div className="gift-envelope-section__options">
           {/* ── Left: envelope ── */}
@@ -44,16 +45,16 @@ export default function GiftEnvelopeBannerSection() {
                 <path d="M2 3 L36 30 L70 3" stroke="currentColor" strokeWidth="1.2" />
               </svg>
             </div>
-            <p className="gift-envelope-section__seal-label">Sobre en mano</p>
+            <p className="gift-envelope-section__seal-label">{copyText("Sobre en mano")}</p>
           </div>
 
 
           {/* ── Right: bank card ── */}
           <div className="gift-envelope-section__right">
             <div className="gift-envelope-section__bank-card">
-              <p className="gift-envelope-section__bank-title">Transferencia bancaria</p>
+              <p className="gift-envelope-section__bank-title">{copyText("Transferencia bancaria")}</p>
               <div className="gift-envelope-section__bank-row">
-                <span>Banco</span>
+                <span>{copyText("Banco")}</span>
                 <strong>BBVA</strong>
               </div>
               <div className="gift-envelope-section__bank-row">
@@ -61,11 +62,11 @@ export default function GiftEnvelopeBannerSection() {
                 <strong>0125 8001 5127 6602 40</strong>
               </div>
               <div className="gift-envelope-section__bank-row">
-                <span>Tarjeta</span>
+                <span>{copyText("Tarjeta")}</span>
                 <strong>4152 3141 2145 2463</strong>
               </div>
               <div className="gift-envelope-section__bank-row">
-                <span>Titular</span>
+                <span>{copyText("Titular")}</span>
                 <strong>Cindy Janeth Medina Sanchez</strong>
               </div>
             </div>

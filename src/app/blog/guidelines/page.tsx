@@ -1,9 +1,12 @@
+import { localizeMetadata } from "@/lib/request-language";
+import { getCopy, getRequestLanguage } from "@/lib/request-language";
+import { translateContent } from "@/lib/locale-copy";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Blocks from "@/components/blog/blocks";
 import type { Block } from "@/lib/blog/types";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: "Block guidelines",
   description:
     "The closed block vocabulary this blog is written in — each block rendered next to the rule that governs when to use it.",
@@ -168,60 +171,42 @@ const spec: { name: string; rule: string; demo: Block[] }[] = [
   },
 ];
 
-export default function GuidelinesPage() {
+export default async function GuidelinesPage() {
+  const localizedSpec = translateContent(spec, await getRequestLanguage());
+  const copyText = await getCopy();
   return (
     <>
       <header className="blog-masthead blog-shell">
-        <p className="blog-eyebrow">Alexis Reyna · Guidelines</p>
-        <h1>Block guidelines</h1>
+        <p className="blog-eyebrow">{copyText("Alexis Reyna · Guidelines")}</p>
+        <h1>{copyText("Block guidelines")}</h1>
         <p>
-          This blog has no rich text editor and no markdown. Posts are typed
-          arrays of blocks from a closed vocabulary of ten, so an invalid post
-          is a build error rather than a page that renders slightly wrong. Below
-          is every block, rendered by the real component, next to the rule that
-          governs it.
-        </p>
+          {copyText("This blog has no rich text editor and no markdown. Posts are typed arrays of blocks from a closed vocabulary of ten, so an invalid post is a build error rather than a page that renders slightly wrong. Below is every block, rendered by the real component, next to the rule that governs it. ")}</p>
       </header>
 
       <section className="blog-section blog-shell">
-        <h2 className="blog-section-title">Three rules above the vocabulary</h2>
+        <h2 className="blog-section-title">{copyText("Three rules above the vocabulary")}</h2>
         <div className="blog-prose">
           <p>
-            <strong>Rhythm belongs to the container.</strong> Blocks carry no
-            outer margin. One <code>{"> * + *"}</code> rule owns all vertical
-            spacing, so the gap between a paragraph and a table always equals
-            the gap between two paragraphs. The only exceptions are
-            relationships — a heading and the text beneath it tighten up,
-            because they are one unit.
-          </p>
+            <strong>{copyText("Rhythm belongs to the container.")}</strong> {copyText(" Blocks carry no outer margin. One ")}<code>{"> * + *"}</code> {copyText(" rule owns all vertical spacing, so the gap between a paragraph and a table always equals the gap between two paragraphs. The only exceptions are relationships — a heading and the text beneath it tighten up, because they are one unit. ")}</p>
           <p>
-            <strong>The measure is applied to text, not the container.</strong>{" "}
-            Prose caps at 68 characters. Capping the container instead would
-            clamp its children, and then a table could never reach full width
-            without negative-margin escapes that break when the gutter changes.
-          </p>
+            <strong>{copyText("The measure is applied to text, not the container.")}</strong>{" "}
+            {copyText("Prose caps at 68 characters. Capping the container instead would clamp its children, and then a table could never reach full width without negative-margin escapes that break when the gutter changes. ")}</p>
           <p>
-            <strong>Inline emphasis does not nest.</strong> A <code>strong</code>{" "}
-            cannot contain a <code>link</code>. When you reach for nested
-            emphasis, the honest fix is usually that the sentence wants to be
-            two sentences.
-          </p>
+            <strong>{copyText("Inline emphasis does not nest.")}</strong> {copyText("A")} <code>strong</code>{" "}
+            {copyText("cannot contain a ")}<code>link</code>{copyText(". When you reach for nested emphasis, the honest fix is usually that the sentence wants to be two sentences. ")}</p>
         </div>
       </section>
 
       <section className="blog-section blog-shell">
-        <h2 className="blog-section-title">The vocabulary</h2>
+        <h2 className="blog-section-title">{copyText("The vocabulary")}</h2>
         <p className="blog-section-note">
-          Ten blocks. Adding an eleventh has to be argued for — a constraint
-          that changes what you write has earned its place; one that only
-          prevents ugly output is better handled by a lint rule.
-        </p>
+          {copyText("Ten blocks. Adding an eleventh has to be argued for — a constraint that changes what you write has earned its place; one that only prevents ugly output is better handled by a lint rule. ")}</p>
 
-        {spec.map((entry) => (
+        {localizedSpec.map((entry) => (
           <div className="blog-spec" key={entry.name}>
             <div className="blog-spec-head">
               <span className="blog-spec-name">{entry.name}</span>
-              <span className="blog-spec-rule">{entry.rule}</span>
+              <span className="blog-spec-rule">{copyText(entry.rule)}</span>
             </div>
             <div className="blog-spec-demo">
               <Blocks blocks={entry.demo} />
@@ -232,9 +217,12 @@ export default function GuidelinesPage() {
 
       <div className="blog-shell" style={{ marginTop: "3rem" }}>
         <Link className="blog-back" href="/blog">
-          ← Back to writing
-        </Link>
+          {copyText("← Back to writing ")}</Link>
       </div>
     </>
   );
+}
+
+export async function generateMetadata() {
+  return localizeMetadata(baseMetadata);
 }

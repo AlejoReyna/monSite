@@ -9,7 +9,7 @@ model names, or progress percentages are fabricated.
 ## Interaction
 
 - The welcome menu is immediately usable by pointer, keyboard, or numbers 1–4.
-- On phones, one of twelve conversation openers (`openers` in
+- On phones, one of twenty conversation openers (`openers` in
   `src/lib/terminal/copy.ts`) sits above the welcome menu's buttons. Each page load shows
   the next one, kept in `localStorage` as `terminal_opener`; every language shows
   the same slot, and a tap asks it like typed text.
@@ -46,7 +46,7 @@ The shell is an inline-size query container. Body text uses
 `clamp(12px, 10px + .5cqi, 16px)`, so resizing the terminal changes its text scale.
 Touch layouts use a 13px body minimum and a 16px input minimum. Long output wraps;
 menu descriptions collapse in narrow windows. Windows and Ubuntu retain their
-own chrome and colors. English, Spanish, and Chinese copy is included.
+own chrome and colors. English and Spanish copy is included.
 
 The input has a unique label, output is a keyboard-scrollable region, and a
 separate live region announces waiting and completed replies without announcing

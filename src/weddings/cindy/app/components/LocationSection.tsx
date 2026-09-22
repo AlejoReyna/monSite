@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState } from 'react';
 import { MdDirections } from 'react-icons/md';
 import Image from 'next/image';
@@ -29,6 +30,7 @@ const locations = [
 ] as const;
 
 export default function LocationSection() {
+  const copyText = useCopy();
   const headerRef = useRef<HTMLDivElement>(null);
   const row0Ref = useRef<HTMLDivElement>(null);
   const row1Ref = useRef<HTMLDivElement>(null);
@@ -98,8 +100,7 @@ export default function LocationSection() {
           <div style={{ maxWidth: '72rem', margin: '0 auto' }} className="text-center">
             
             <h2 className={`loc-section-title${headerVisible ? ' loc-section-title--visible' : ''}`}>
-              Ubicaciones
-            </h2>
+              {copyText("Ubicaciones ")}</h2>
             <span className={`loc-section-rule${headerVisible ? ' loc-section-rule--visible' : ''}`} />
           </div>
         </div>
@@ -127,7 +128,7 @@ export default function LocationSection() {
                 <div className={`loc-image${visible ? ' loc-image--visible' : ''}`}>
                   <Image
                     src={loc.image}
-                    alt={loc.imageAlt}
+                    alt={copyText(loc.imageAlt)}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 55vw"
@@ -204,7 +205,7 @@ export default function LocationSection() {
                   style={{ '--btn-delay': `${btnDelay}ms` } as React.CSSProperties}
                 >
                   <MdDirections className="text-base" />
-                  <span className="loc-btn-label">Ver en Maps</span>
+                  <span className="loc-btn-label">{copyText("Ver en Maps")}</span>
                 </a>
               </div>
             );

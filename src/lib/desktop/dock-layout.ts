@@ -18,7 +18,6 @@ export const DOCK_SIZE_NAMES = Object.keys(DOCK_PRESETS) as DockSizeName[];
 export const DOCK_COPY: Record<Language, { dock: string; size: string; resize: string; settings: string } & Record<DockSizeName, string>> = {
   en: { dock: "Dock", size: "Dock Size", resize: "Drag to resize the Dock", settings: "Dock Settings…", small: "Small", medium: "Medium", large: "Large" },
   es: { dock: "Dock", size: "Tamaño del Dock", resize: "Arrastra para redimensionar el Dock", settings: "Ajustes del Dock…", small: "Pequeño", medium: "Mediano", large: "Grande" },
-  zh: { dock: "程序坞", size: "程序坞大小", resize: "拖动以调整程序坞大小", settings: "程序坞设置…", small: "小", medium: "中", large: "大" },
 };
 
 export const clampDockSize = (size: number): number =>

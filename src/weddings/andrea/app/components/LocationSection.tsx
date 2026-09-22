@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState } from 'react';
 import { MdDirections } from 'react-icons/md';
 import Image from 'next/image';
@@ -6,6 +7,7 @@ import sagradoCorazon from '../../assets/robada.jpg';
 import museum from '../../assets/museum.jpg';
 
 export default function LocationSection() {
+  const copyText = useCopy();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -93,8 +95,7 @@ export default function LocationSection() {
           
           {/* Main title */}
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light tracking-[0.3em] uppercase text-[#5c5c5c] mb-8 garamond-300 relative">
-            Ubicaciones
-          </h2>
+            {copyText("Ubicaciones ")}</h2>
 
           {/* Decorative line */}
           <div className="w-100 h-px mx-auto mb-6 bg-[#C4985B] opacity-60"></div>
@@ -129,7 +130,7 @@ export default function LocationSection() {
                 <div className="relative h-80 md:h-96 overflow-hidden">
                   <Image
                     src={sagradoCorazon}
-                    alt="Ceremonia Religiosa"
+                    alt={copyText("Ceremonia Religiosa")}
                     fill
                     className="object-cover transition-transform duration-700 scale-105"
                     sizes="(max-width: 768px) 100vw, 50vw"
@@ -147,8 +148,7 @@ export default function LocationSection() {
                 <div className="p-10 md:p-12 text-center relative">
                   {/* Title */}
                   <h3 className="text-3xl md:text-4xl font-light text-stone-800 mb-6 tracking-wide" style={{fontFamily: 'Georgia, serif'}}>
-                    Ceremonia religiosa
-                  </h3>
+                    {copyText("Ceremonia religiosa ")}</h3>
 
                   {/* Time (opcional) */}
                   <div className="mb-8"></div>
@@ -176,7 +176,7 @@ export default function LocationSection() {
                     >
                       <div className="absolute inset-0 bg-stone-100 translate-x-0 transition-transform duration-400"></div>
                       <MdDirections className="text-lg relative z-10 rotate-12 transition-transform duration-300" />
-                      <span className="font-light tracking-[0.1em] uppercase text-sm relative z-10">Ver en Maps</span>
+                      <span className="font-light tracking-[0.1em] uppercase text-sm relative z-10">{copyText("Ver en Maps")}</span>
                     </a>
                   </div>
                 </div>
@@ -199,7 +199,7 @@ export default function LocationSection() {
                 <div className="relative h-80 md:h-96 overflow-hidden">
                   <Image
                     src={museum}
-                    alt="Lugar de Recepción"
+                    alt={copyText("Lugar de Recepción")}
                     fill
                     className="object-cover transition-transform duration-700 scale-105"
                     sizes="(max-width: 768px) 100vw, 50vw"
@@ -217,8 +217,7 @@ export default function LocationSection() {
                 <div className="p-10 md:p-12 text-center relative">
                   {/* Title */}
                   <h3 className="text-3xl md:text-4xl font-light text-stone-800 mb-6 tracking-wide" style={{fontFamily: 'Georgia, serif'}}>
-                    Recepción
-                  </h3>
+                    {copyText("Recepción ")}</h3>
 
                   {/* Location */}
                   <div className="space-y-2 mb-10">
@@ -243,7 +242,7 @@ export default function LocationSection() {
                     >
                       <div className="absolute inset-0 bg-stone-100 translate-x-0 transition-transform duration-400"></div>
                       <MdDirections className="text-lg relative z-10 rotate-12 transition-transform duration-300" />
-                      <span className="font-light tracking-[0.1em] uppercase text-sm relative z-10">Ver en Maps</span>
+                      <span className="font-light tracking-[0.1em] uppercase text-sm relative z-10">{copyText("Ver en Maps")}</span>
                     </a>
                   </div>
                 </div>

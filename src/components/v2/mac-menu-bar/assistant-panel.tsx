@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, Square, X } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
@@ -42,7 +43,6 @@ function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
 
 function speechLang(language: string) {
   if (language === "es") return "es-MX";
-  if (language === "zh") return "zh-CN";
   return "en-US";
 }
 
@@ -76,6 +76,7 @@ async function playAudioBuffer(buffer: ArrayBuffer, signal: AbortSignal) {
 }
 
 export function AssistantPanel() {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const store = useDesktopStore();
   const open = store.openMenu === "assistant";
@@ -168,7 +169,7 @@ export function AssistantPanel() {
           title: ASSISTANT_NAME,
           subtitle: "Asistente del portafolio — no es Siri de Apple",
           placeholder: "Escribe una solicitud…",
-          send: "Enviar",
+          send: copyText("Enviar"),
           stop: "Detener",
           close: "Cerrar",
           listening: "Escuchando…",
@@ -186,29 +187,11 @@ export function AssistantPanel() {
             "Cambia el idioma a inglés",
           ],
         }
-      : language === "zh"
-        ? {
-            title: ASSISTANT_NAME,
-            subtitle: "作品集助手 — 不是 Apple Siri",
-            placeholder: "输入请求…",
-            send: "发送",
-            stop: "停止",
-            close: "关闭",
-            listening: "正在聆听…",
-            thinking: "思考中…",
-            executing: "执行中…",
-            speaking: "播报中…",
-            error: "出错了",
-            unavailable: "助手不可用（服务器缺少凭证）。",
-            micDenied: "麦克风被拒绝 — 仍可使用文字。",
-            tapToSend: "再点麦克风以发送",
-            suggestions: ["你做过哪些项目？", "打开项目", "带我去联系页", "把语言改成英语"],
-          }
-        : {
+      : {
             title: ASSISTANT_NAME,
             subtitle: "Portfolio assistant — not Apple Siri",
             placeholder: "Type a request…",
-            send: "Send",
+            send: copyText("Send"),
             stop: "Stop",
             close: "Close",
             listening: "Listening…",
@@ -294,7 +277,7 @@ export function AssistantPanel() {
         storeRef.current.setAssistantState("error");
         setLines((prev) => [
           ...prev,
-          { role: "system", text: data.error || (data.unavailable ? copy.unavailable : copy.error) },
+          { role: "system", text: data.unavailable ? copy.unavailable : copy.error },
         ]);
         return;
       }
@@ -421,7 +404,7 @@ export function AssistantPanel() {
             storeRef.current.setAssistantState("error");
             setLines((prev) => [
               ...prev,
-              { role: "system", text: data.error || (data.unavailable ? copy.unavailable : copy.error) },
+              { role: "system", text: data.unavailable ? copy.unavailable : copy.error },
             ]);
             return;
           }
@@ -485,8 +468,8 @@ export function AssistantPanel() {
           aria-hidden="true"
         />
         <div>
-          <strong>{copy.title}</strong>
-          <div>{copy.subtitle}</div>
+          <strong>{copyText(copy.title)}</strong>
+          <div>{copyText(copy.subtitle)}</div>
           <div>{stateLabel(store.assistantState)}</div>
           {store.assistantState === "listening" && <div>{copy.tapToSend}</div>}
         </div>
@@ -500,7 +483,7 @@ export function AssistantPanel() {
         ))}
         {interim && store.assistantState === "listening" && (
           <p>
-            <strong>You:</strong> <em>{interim}</em>
+            <strong>{copyText("You:")}</strong> <em>{interim}</em>
           </p>
         )}
       </div>
@@ -530,7 +513,7 @@ export function AssistantPanel() {
         <button type="submit">{copy.send}</button>
         <button
           type="button"
-          aria-label="Microphone"
+          aria-label={copyText("Microphone")}
           aria-pressed={store.assistantState === "listening"}
           onClick={onMicClick}
         >

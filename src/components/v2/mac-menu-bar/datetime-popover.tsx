@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLanguage } from "@/components/lang-context";
 import { useDesktopStore } from "@/lib/desktop/desktop-store";
@@ -21,6 +22,7 @@ const currentMinute = () => Math.floor(Date.now() / 60_000);
 const serverMinute = () => null;
 
 export function DateTimeControl() {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const { openMenu, setOpenMenu, preferences, updatePreferences } = useDesktopStore();
   const open = openMenu === "datetime";
@@ -30,7 +32,7 @@ export function DateTimeControl() {
   useOutsideClick(open, () => setOpenMenu(null), rootRef);
 
   const now = minute === null ? null : new Date(minute * 60_000);
-  const locale = language === "es" ? "es-MX" : language === "zh" ? "zh-CN" : "en-GB";
+  const locale = language === "es" ? "es-MX" : "en-GB";
   const label = now?.toLocaleString(locale, {
     weekday: "short",
     month: "short",
@@ -65,9 +67,7 @@ export function DateTimeControl() {
   const copy =
     language === "es"
       ? { today: "Volver a hoy", hour: "Formato", tz: "Zona horaria" }
-      : language === "zh"
-        ? { today: "回到今天", hour: "时间格式", tz: "时区" }
-        : { today: "Return to Today", hour: "Format", tz: "Timezone" };
+      : { today: "Return to Today", hour: "Format", tz: "Timezone" };
 
   return (
     <div className={styles.item} ref={rootRef}>
@@ -81,11 +81,11 @@ export function DateTimeControl() {
         {now && <time dateTime={now.toISOString()}>{label}</time>}
       </button>
       {open && (
-        <div className={`${styles.popover} ${styles.menuRight}`} role="dialog" aria-label="Calendar">
+        <div className={`${styles.popover} ${styles.menuRight}`} role="dialog" aria-label={copyText("Calendar")}>
           <div className={styles.calHeader}>
             <button
               type="button"
-              aria-label="Previous month"
+              aria-label={copyText("Previous month")}
               onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
             >
               ‹
@@ -93,14 +93,14 @@ export function DateTimeControl() {
             <span>{monthLabel}</span>
             <button
               type="button"
-              aria-label="Next month"
+              aria-label={copyText("Next month")}
               onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
             >
               ›
             </button>
           </div>
           <div className={styles.calGrid}>
-            {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+            {(language === "es" ? ["D", "L", "M", "M", "J", "V", "S"] : ["S", "M", "T", "W", "T", "F", "S"]).map((d, i) => (
               <span key={`${d}-${i}`} className={styles.calDow}>
                 {d}
               </span>

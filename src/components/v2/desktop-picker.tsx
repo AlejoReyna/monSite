@@ -1,10 +1,12 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { BookOpen, Folder, Globe, MoreHorizontal, Moon, Sparkles, Terminal, Mail, Github } from "lucide-react";
 import { useLanguage, type Language } from "@/components/lang-context";
+import { LanguageToggle } from "@/components/language-switcher";
 import { DesktopStoreProvider, useDesktopStore } from "@/lib/desktop/desktop-store";
 import { clampDockSize, DOCK_COPY, DOCK_PRESETS, DOCK_SIZE, DOCK_SIZE_NAMES, stepDockSize } from "@/lib/desktop/dock-layout";
 import DesktopContextMenu, { type ContextMenuEntry } from "./desktop-context-menu";
@@ -17,12 +19,12 @@ import styles from "./desktop-picker.module.css";
 type MobileView = "assistant" | "folders";
 
 const LANGUAGES: { id: Language; label: string; title: string }[] = [
-  { id: "en", label: "EN", title: "English" },
   { id: "es", label: "ES", title: "Español" },
-  { id: "zh", label: "中文", title: "中文" },
+  { id: "en", label: "EN", title: "English" },
 ];
 
 function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { macMobile?: boolean; mobileView?: MobileView; onMobileViewChange?: (view: MobileView) => void }) {
+  const copyText = useCopy();
   const { language, setLanguage } = useLanguage();
   const store = useDesktopStore();
   const dock = DOCK_COPY[language];
@@ -141,41 +143,27 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
   const copy =
     language === "es"
       ? {
-          projects: "Proyectos",
+          projects: copyText("Proyectos"),
           contact: "Contacto",
           view: "Vista",
           terminal: "Terminal",
           folders: "Carpetas",
           more: "Más",
           settings: "Ajustes",
-          language: "Idioma",
+          language: copyText("Idioma"),
           motion: "Reducir efectos",
           focus: "Modo Focus",
           story: "Mi historia",
         }
-      : language === "zh"
-        ? {
-            projects: "项目",
-            contact: "联系我",
-            view: "视图",
-            terminal: "终端",
-            folders: "文件夹",
-            more: "更多",
-            settings: "设置",
-            language: "语言",
-            motion: "降低效果",
-            focus: "Focus 模式",
-            story: "我的故事",
-          }
-        : {
-            projects: "Projects",
+      : {
+            projects: copyText("Projects"),
             contact: "Contact",
             view: "View",
             terminal: "Terminal",
             folders: "Folders",
             more: "More",
             settings: "Settings",
-            language: "Language",
+            language: copyText("Language"),
             motion: "Reduce effects",
             focus: "Focus mode",
             story: "My story",
@@ -289,6 +277,8 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
           >
             <Terminal />
           </button>
+          {/* Phones have no menu bar, so its language indicator sits in the Dock: one tap switches. */}
+          {macMobile && <LanguageToggle className={styles.language} />}
           {macMobile && (
             <button
               type="button"
@@ -327,11 +317,11 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
                 <button
                   key={option.id}
                   type="button"
-                  title={option.title}
+                  title={copyText(option.title)}
                   aria-pressed={language === option.id}
                   onClick={() => setLanguage(option.id)}
                 >
-                  {option.label}
+                  {copyText(option.label)}
                 </button>
               ))}
             </div>

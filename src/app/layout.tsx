@@ -5,6 +5,7 @@ import AppChrome from "@/components/app-chrome";
 
 import { LanguageProvider } from "@/components/lang-context";
 import { NavigationProvider } from "@/contexts/navigation-context";
+import { getRequestLanguage } from "@/lib/request-language";
 
 // Function to generate iOS meta tags for status bar styling
 function generateiOSMetaTags() {
@@ -75,7 +76,7 @@ const vt323 = VT323({
 const SITE_URL = "https://www.alexisreyna.dev";
 const OG_IMAGE = "/og-image.png";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: "Alexis Reyna — Fullstack Developer",
   description:
     "Fullstack Developer building modern, fast, and accessible web experiences with React, Next.js, TypeScript, Node.js and AI.",
@@ -103,6 +104,15 @@ export const metadata: Metadata = {
   other: generateiOSMetaTags(),
 };
 
+export async function generateMetadata(): Promise<Metadata> {
+  const language = await getRequestLanguage();
+  const title = language === "es" ? "Alexis Reyna — Desarrollador Full-stack" : "Alexis Reyna — Full-stack Developer";
+  const description = language === "es"
+    ? "Desarrollador full-stack de experiencias web modernas, rápidas y accesibles con React, Next.js, TypeScript, Node.js e IA."
+    : baseMetadata.description;
+  return { ...baseMetadata, title, description, openGraph: { ...baseMetadata.openGraph, title, description: description ?? undefined, locale: language === "es" ? "es_MX" : "en_US" } };
+}
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -110,13 +120,14 @@ export const viewport: Viewport = {
   themeColor: "#f9faf7",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const language = await getRequestLanguage();
   return (
-    <html lang="en">
+    <html lang={language}>
       <head>
         {/* Favicon */}
         <link rel="icon" href="/tags.png" type="image/png" />
@@ -129,10 +140,10 @@ export default function RootLayout({
         style={{
           backgroundColor: "var(--gic-off-white)",
           color: "var(--gic-dark-charcoal)",
-          fontFamily: `var(--font-geist-sans), "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif`,
+          fontFamily: "var(--font-geist-sans), sans-serif",
         }}
       >
-        <LanguageProvider>
+        <LanguageProvider initialLanguage={language}>
           <NavigationProvider>
             <a id="top" />
             <AppChrome>{children}</AppChrome>

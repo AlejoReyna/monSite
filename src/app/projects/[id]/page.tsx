@@ -1,3 +1,4 @@
+import { getCopy, getRequestLanguage } from "@/lib/request-language";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,6 +18,7 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: ProjectPageProps) {
+  const language = await getRequestLanguage();
   const { id } = await params;
   const project = getProjectById(id);
 
@@ -28,11 +30,12 @@ export async function generateMetadata({ params }: ProjectPageProps) {
 
   return {
     title: `${project.title} | Alexis Reyna`,
-    description: project.description.en,
+    description: project.description[language],
   };
 }
 
-function ProjectMedia({ project }: { project: V3Project }) {
+async function ProjectMedia({ project }: { project: V3Project }) {
+  const copyText = await getCopy();
   if (!project.media) return null;
 
   if (project.mediaType === "video") {
@@ -43,7 +46,7 @@ function ProjectMedia({ project }: { project: V3Project }) {
         loop
         playsInline
         preload="metadata"
-        aria-label={project.title}
+        aria-label={copyText(project.title)}
         style={{
           width: "100%",
           height: "100%",
@@ -59,7 +62,7 @@ function ProjectMedia({ project }: { project: V3Project }) {
   return (
     <Image
       src={project.media}
-      alt={project.title}
+      alt={copyText(project.title)}
       fill
       sizes="(min-width: 960px) 58vw, 100vw"
       style={{ objectFit: "contain" }}
@@ -70,6 +73,8 @@ function ProjectMedia({ project }: { project: V3Project }) {
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
+  const language = await getRequestLanguage();
+  const copyText = await getCopy();
   const { id } = await params;
   const project = getProjectById(id);
 
@@ -111,7 +116,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           >
             {project.badge.split("·").map((part) => (
               <span
-                key={part.trim()}
+                key={copyText(part.trim())}
                 style={{
                   border: "1px solid rgba(248,245,234,0.2)",
                   borderRadius: 999,
@@ -123,7 +128,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   textTransform: "uppercase",
                 }}
               >
-                {part.trim()}
+                {copyText(part.trim())}
               </span>
             ))}
           </div>
@@ -138,7 +143,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               textTransform: "uppercase",
             }}
           >
-            Project / {project.ghost}
+            {copyText("Project / ")}{project.ghost}
           </p>
 
           <h1
@@ -153,7 +158,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               textTransform: "uppercase",
             }}
           >
-            {project.title}
+            {copyText(project.title)}
           </h1>
 
           <p
@@ -165,7 +170,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               maxWidth: "38ch",
             }}
           >
-            {project.description.en}
+            {project.description[language]}
           </p>
 
           <div
@@ -197,8 +202,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 18 }}>
             <Link href="/" className="project-detail-link">
-              Back to work
-            </Link>
+              {copyText("Back to work ")}</Link>
             {project.links.map((link) => (
               <a
                 key={link.href}
@@ -207,7 +211,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 rel="noopener noreferrer"
                 className="project-detail-link"
               >
-                {link.label.en}
+                {link.label[language]}
               </a>
             ))}
           </div>
@@ -236,14 +240,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       >
         {previous ? (
           <Link className="project-detail-link" href={`/projects/${previous.id}`}>
-            Prev / {previous.title}
+            {copyText("Prev / ")}{copyText(previous.title)}
           </Link>
         ) : (
           <span />
         )}
         {next ? (
           <Link className="project-detail-link" href={`/projects/${next.id}`}>
-            Next / {next.title}
+            {copyText("Next / ")}{copyText(next.title)}
           </Link>
         ) : (
           <span />

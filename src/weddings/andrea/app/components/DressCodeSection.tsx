@@ -1,8 +1,10 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 export default function DressCodeSection() {
+  const copyText = useCopy();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -55,7 +57,7 @@ export default function DressCodeSection() {
   const DressCodeIcon = () => (
     <Image 
       src="/weddings/andrea/dresscode_icon.png" 
-      alt="Dress Code Icon" 
+      alt={copyText("Dress Code Icon")} 
       width={128}
       height={176}
       className="w-32 h-44 object-contain"
@@ -174,8 +176,7 @@ export default function DressCodeSection() {
                 fontFamily: 'Georgia, serif',
                 textShadow: '0 1px 2px rgba(255,255,255,0.5)'
               }}>
-                ETIQUETA FORMAL
-              </p>
+                {copyText("ETIQUETA FORMAL ")}</p>
               
               {/* Message */}
               <div className="space-y-6 text-center relative z-20">
@@ -183,22 +184,19 @@ export default function DressCodeSection() {
                   fontFamily: 'Georgia, serif',
                   textShadow: '0 1px 2px rgba(255,255,255,0.3)'
                 }}>
-                  Querida familia y amigos, el blanco está reservado para la novia. Les agradecemos elegir otros colores para que ella brille con todo su esplendor.
-                </p>
+                  {copyText("Querida familia y amigos, el blanco está reservado para la novia. Les agradecemos elegir otros colores para que ella brille con todo su esplendor. ")}</p>
                 
                 <p className="text-stone-700 text-base md:text-lg leading-relaxed max-w-2xl mx-auto" style={{
                   fontFamily: 'Georgia, serif',
                   textShadow: '0 1px 2px rgba(255,255,255,0.3)'
                 }}>
-                  Con mucho amor hemos planeado una celebración íntima. Les pedimos amablemente que este evento sea solo para adultos.
-                </p>
+                  {copyText("Con mucho amor hemos planeado una celebración íntima. Les pedimos amablemente que este evento sea solo para adultos. ")}</p>
                 
                 <p className="text-stone-800 text-2xl md:text-4xl font-bold tracking-wide mt-8" style={{
                   fontFamily: 'Georgia, serif',
                   textShadow: '0 1px 2px rgba(255,255,255,0.4)'
                 }}>
-                  NO NIÑOS
-                </p>
+                  {copyText("NO NIÑOS ")}</p>
               </div>
               
               

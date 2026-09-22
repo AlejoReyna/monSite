@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useState, useRef, useEffect } from 'react';
 import { withBasePath } from '../../lib/basePath';
 
@@ -9,6 +10,7 @@ interface SongPlayerProps {
 }
 
 const SongPlayer = ({ loaded, delay, allowFallbackVisibility = true }: SongPlayerProps) => {
+  const copyText = useCopy();
   const [isPlaying, setIsPlaying] = useState(false);
   const [forceVisible, setForceVisible] = useState(false);
   const [isInactive, setIsInactive] = useState(false);
@@ -108,7 +110,7 @@ const SongPlayer = ({ loaded, delay, allowFallbackVisibility = true }: SongPlaye
         <button
           onClick={togglePlay}
           className={`song-player-pill ${isInactive ? 'song-player-pill--inactive' : ''}`}
-          aria-label={isPlaying ? 'Pause music' : 'Play music'}
+          aria-label={isPlaying ? copyText("Pause music") : copyText("Play music")}
         >
           {/* Equalizer bars or music note — left side */}
           <div className="song-player-icon-area">

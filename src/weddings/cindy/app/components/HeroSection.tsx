@@ -1,4 +1,6 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
+import { useLanguage } from "@/components/lang-context";
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { withBasePath } from '../../lib/basePath';
@@ -30,6 +32,8 @@ interface HeroSectionProps {
 }
 
 const HeroSection = ({ entered = false, immediate = false, revealed = false }: HeroSectionProps) => {
+  const copyText = useCopy();
+  const { language } = useLanguage();
   // If immediate, start fully loaded — no animations needed.
   const [loaded, setLoaded] = useState(immediate);
 
@@ -52,7 +56,7 @@ const HeroSection = ({ entered = false, immediate = false, revealed = false }: H
 
   // Misma fecha que el CountdownTimer (22 de agosto de 2026)
   const weddingDate = new Date('2026-08-22T00:00:00');
-  const weddingDateLabel = weddingDate.toLocaleDateString('es-ES', {
+  const weddingDateLabel = weddingDate.toLocaleDateString(language === "es" ? "es-MX" : "en-US", {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -68,7 +72,7 @@ const HeroSection = ({ entered = false, immediate = false, revealed = false }: H
         <div className="hero-media">
           <Image
             src={HERO_PHOTO_ONE}
-            alt="Cindy y Jorge caminando por el campo"
+            alt={copyText("Cindy y Jorge caminando por el campo")}
             fill
             priority
             sizes="100vw"
@@ -141,8 +145,7 @@ const HeroSection = ({ entered = false, immediate = false, revealed = false }: H
             className={`hero-cta-btn border border-white/70 rounded-lg bg-[rgba(101,67,33,0.35)] backdrop-blur-sm ${immediate ? 'hero-cta-btn--immediate' : loaded ? 'hero-cta-btn--animate' : ''}`}
           >
             <span className={`hero-cta-label ${immediate ? 'hero-cta-label--immediate' : loaded ? 'hero-cta-label--visible' : ''}`}>
-              Confirma Tu Asistencia
-            </span>
+              {copyText("Confirma Tu Asistencia ")}</span>
           </DisabledRsvpButton>
 
           <div

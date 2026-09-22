@@ -1,3 +1,5 @@
+> Historical design draft. Language support was subsequently reduced to English and Spanish throughout the site; references to a third language below describe the previous design.
+
 # "Speak with an AI" — behavior plan
 
 | Field | Value |

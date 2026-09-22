@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import React, { useState } from 'react';
 import Image from 'next/image';
 import './projects.css';
@@ -9,6 +10,7 @@ import { projects, Project } from './Script/Projects';
 interface ProjectComponentProps {}
 
 const ProjectComponent: React.FC<ProjectComponentProps> = () => {
+  const copyText = useCopy();
     const [currentIndex, setCurrentIndex] = useState<number>(0);
 
     const goToPrevious = (): void => {
@@ -29,7 +31,7 @@ const ProjectComponent: React.FC<ProjectComponentProps> = () => {
         <div className="flex items-center justify-center min-h-screen w-full">
             <div className="flex items-center justify-between w-full px-4 md:px-8 lg:px-16">
                 <div className="cursor-pointer" onClick={goToPrevious}>
-                    <Image src="/legacy/images/left-arrow.png" className="arrow w-8 h-8 md:w-12 md:h-12" alt="Arrow to go backwards"
+                    <Image src="/legacy/images/left-arrow.png" className="arrow w-8 h-8 md:w-12 md:h-12" alt={copyText("Arrow to go backwards")}
                            width={48} height={48}/>
                 </div>
 
@@ -44,16 +46,15 @@ const ProjectComponent: React.FC<ProjectComponentProps> = () => {
                                 className="w-full h-full object-cover "
                             >
                                 <source src={currentProject.video} type="video/mp4"/>
-                                Your browser does not support the video tag.
-                            </video>
+                                {copyText("Your browser does not support the video tag. ")}</video>
                         </div>
                     </div>
 
                     <div className='flex opac-black p-5 h-100 text-white flex-col w-full md:w-1/2 items-center md:ml-8'>
                         <div className='projectTitle text-left mb-4 text-xl md:text-xl font-bold w-full'>
-                            {currentProject.title}
+                            {copyText(currentProject.title)}
                         </div>
-                        <p className="text-left text-sm md:text-base mb-4 w-full">{currentProject.info}</p>
+                        <p className="text-left text-sm md:text-base mb-4 w-full">{copyText(currentProject.info)}</p>
                         <div className="flex flex-col items-center w-full">
                             <a
                             href={currentProject.url}
@@ -62,7 +63,7 @@ const ProjectComponent: React.FC<ProjectComponentProps> = () => {
                             className="bg-black hover:bg-gray-700 text-white font-bold py-2 px-4 rounded w-full
                             max-w-[200px] text-center"
                             >
-                            <span className="text-sm">View deployment</span>
+                            <span className="text-sm">{copyText("View deployment")}</span>
                         </a>
 
                         <a
@@ -71,14 +72,14 @@ const ProjectComponent: React.FC<ProjectComponentProps> = () => {
                             rel="noopener noreferrer"
                             className="mt-2 bg-black hover:bg-gray-700 text-white font-bold py-2 px-4 rounded w-full max-w-[200px] text-center"
                         >
-                            <span className="text-sm">GitHub repository</span>
+                            <span className="text-sm">{copyText("GitHub repository")}</span>
                         </a>
                     </div>
                 </div>
             </div>
 
             <div className="cursor-pointer" onClick={goToNext}>
-                <Image src="/legacy/images/right-arrow.png" alt="Arrow to go forwards" className="arrow w-8 h-8 md:w-12 md:h-12"
+                <Image src="/legacy/images/right-arrow.png" alt={copyText("Arrow to go forwards")} className="arrow w-8 h-8 md:w-12 md:h-12"
                        width={48} height={48}/>
             </div>
         </div>

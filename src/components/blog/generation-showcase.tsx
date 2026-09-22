@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState } from "react";
 
 const ASSET_BASE = "/blog/artisanal-brew-assets";
@@ -96,6 +97,7 @@ export default function GenerationShowcase({
   title,
   titleId,
 }: GenerationShowcaseProps) {
+  const copyText = useCopy();
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [viewMode, setViewMode] = useState<"grid" | "single">("grid");
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
@@ -112,7 +114,7 @@ export default function GenerationShowcase({
           <div
             className="blog-asset-switcher"
             role="group"
-            aria-label="Modo de visualización"
+            aria-label={copyText("Modo de visualización")}
           >
             <button
               type="button"
@@ -120,25 +122,23 @@ export default function GenerationShowcase({
               aria-pressed={viewMode === "grid"}
               onClick={() => setViewMode("grid")}
             >
-              Vista Comparativa (3 Cols)
-            </button>
+              {copyText("Vista Comparativa (3 Cols) ")}</button>
             <button
               type="button"
               className={`blog-asset-tab ${viewMode === "single" ? "is-active" : ""}`}
               aria-pressed={viewMode === "single"}
               onClick={() => setViewMode("single")}
             >
-              Foco Detallado
-            </button>
+              {copyText("Foco Detallado ")}</button>
           </div>
           <button
             type="button"
             className="blog-gen-play-btn"
             onClick={() => setIsPlaying(!isPlaying)}
-            title={isPlaying ? "Pausar animación" : "Reproducir animación"}
+            title={isPlaying ? copyText("Pausar animación") : copyText("Reproducir animación")}
             aria-pressed={!isPlaying}
           >
-            {isPlaying ? "⏸ Pausar" : "▶ Reanudar"}
+            {isPlaying ? copyText("⏸ Pausar") : copyText("▶ Reanudar")}
           </button>
         </div>
       </div>
@@ -199,6 +199,7 @@ function CheckpointCard({
   isActive: boolean;
   onSelect: () => void;
 }) {
+  const copyText = useCopy();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   /**
    * Pausing must not restart the run: the render loop reads the flag through
@@ -659,19 +660,19 @@ function CheckpointCard({
           ref={canvasRef}
           className="blog-gen-canvas"
           role="img"
-          aria-label={`Simulación visual: ${item.description}`}
+          aria-label={`${copyText("Simulación visual")}: ${item.description}`}
         />
         <div className="blog-gen-canvas-overlay">
           <span className="blog-gen-sim-status">
-            {item.behaviorType === "untrained" && "⚠ Deriva sin control"}
-            {item.behaviorType === "early" && "⚡ Sobrepasa objetivo"}
-            {item.behaviorType === "trained" && "★ Deslizamiento inercial óptimo"}
+            {item.behaviorType === "untrained" && copyText("⚠ Deriva sin control")}
+            {item.behaviorType === "early" && copyText("⚡ Sobrepasa objetivo")}
+            {item.behaviorType === "trained" && copyText("★ Deslizamiento inercial óptimo")}
           </span>
         </div>
       </div>
 
       <div className="blog-gen-card-body">
-        <p className="blog-gen-card-desc">{item.description}</p>
+        <p className="blog-gen-card-desc">{copyText(item.description)}</p>
       </div>
     </button>
   );

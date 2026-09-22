@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState } from 'react';
 import { FaWhatsapp, FaCalendarPlus } from 'react-icons/fa';
 import DisabledRsvpButton from '@/weddings/shared/disabled-rsvp-button';
@@ -7,6 +8,7 @@ import { useStatusBarSection } from '../../hooks/useStatusBarManager';
 import { useTheme } from '../context/ThemeContext';
 
 export default function RSVPSection() {
+  const copyText = useCopy();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   
@@ -165,8 +167,7 @@ export default function RSVPSection() {
             <div className="text-center">
               {/* Confirma tu asistencia title */}
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-light tracking-[0.3em] uppercase text-white  garamond-300 relative">
-                CONFIRMA TU ASISTENCIA
-              </h2>
+                {copyText("CONFIRMA TU ASISTENCIA ")}</h2>
             
             </div>
 
@@ -175,12 +176,10 @@ export default function RSVPSection() {
               
               {/* Welcome message */}
               <p className="text-lg md:text-xl font-light text-white/90 tracking-wide mb-8 garamond-300">
-                Para nosotros es muy importante tu presencia es por eso que te pedimos confirmar tu asistencia antes del 15 de septiembre.
-              </p>
+                {copyText("Para nosotros es muy importante tu presencia es por eso que te pedimos confirmar tu asistencia antes del 15 de septiembre. ")}</p>
               
               <p className="text-lg md:text-xl font-light text-white/90 tracking-wide mb-8 garamond-300">
-                ¡Te esperamos!
-              </p>
+                {copyText("¡Te esperamos! ")}</p>
               
               
               {/* Buttons */}
@@ -190,7 +189,7 @@ export default function RSVPSection() {
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
                   <FaWhatsapp className="text-lg relative z-10 transform group-hover:scale-110 transition-transform duration-300" />
-                  <span className="relative z-10">Confirmar por WhatsApp</span>
+                  <span className="relative z-10">{copyText("Confirmar por WhatsApp")}</span>
                 </DisabledRsvpButton>
                 
                 <button 
@@ -199,7 +198,7 @@ export default function RSVPSection() {
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
                   <FaCalendarPlus className="text-lg relative z-10 transform group-hover:scale-110 transition-transform duration-300" />
-                  <span className="relative z-10">Agendar en Calendario</span>
+                  <span className="relative z-10">{copyText("Agendar en Calendario")}</span>
                 </button>
               </div>
             </div>

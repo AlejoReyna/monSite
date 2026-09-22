@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useState, useEffect } from 'react';
 
 interface TimeLeft {
@@ -15,6 +16,7 @@ interface CountdownTimerProps {
 }
 
 export default function CountdownTimer({ targetDate, className = "", variant = 'dark' }: CountdownTimerProps) {
+  const copyText = useCopy();
   // Este es nuestro "estado" - como una pizarra donde escribimos el tiempo restante
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
@@ -102,8 +104,7 @@ export default function CountdownTimer({ targetDate, className = "", variant = '
                 {formatNumber(timeLeft.days)}
               </div>
               <div className={`text-sm md:text-base ${isLight ? 'text-[#5e5e5a]/70' : 'text-[#F9F6EE]/70 [text-shadow:0_1px_4px_rgba(0,0,0,0.35)]'} mt-1 uppercase tracking-wider garamond-300`}>
-                Días
-              </div>
+                {copyText("Días ")}</div>
             </div>
           </div>
 
@@ -114,8 +115,7 @@ export default function CountdownTimer({ targetDate, className = "", variant = '
                 {formatNumber(timeLeft.hours)}
               </div>
               <div className={`text-sm md:text-base ${isLight ? 'text-[#5e5e5a]/70' : 'text-[#F9F6EE]/70 [text-shadow:0_1px_4px_rgba(0,0,0,0.35)]'} mt-1 uppercase tracking-wider garamond-300`}>
-                Horas
-              </div>
+                {copyText("Horas ")}</div>
             </div>
           </div>
 
@@ -126,8 +126,7 @@ export default function CountdownTimer({ targetDate, className = "", variant = '
                 {formatNumber(timeLeft.minutes)}
               </div>
               <div className={`text-sm md:text-base ${isLight ? 'text-[#5e5e5a]/70' : 'text-[#F9F6EE]/70 [text-shadow:0_1px_4px_rgba(0,0,0,0.35)]'} mt-1 uppercase tracking-wider garamond-300`}>
-                Minutos
-              </div>
+                {copyText("Minutos ")}</div>
             </div>
           </div>
 
@@ -138,8 +137,7 @@ export default function CountdownTimer({ targetDate, className = "", variant = '
                 {formatNumber(timeLeft.seconds)}
               </div>
               <div className={`text-sm md:text-base ${isLight ? 'text-[#5e5e5a]/70' : 'text-[#F9F6EE]/70 [text-shadow:0_1px_4px_rgba(0,0,0,0.35)]'} mt-1 uppercase tracking-wider garamond-300`}>
-                Segundos
-              </div>
+                {copyText("Segundos ")}</div>
             </div>
           </div>
         </div>

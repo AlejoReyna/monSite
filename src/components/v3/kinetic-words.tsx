@@ -11,9 +11,7 @@ export default function KineticWords() {
 
   const phrase = useMemo(
     () =>
-      (language === "zh"
-        ? "设计与代码并重 · 我构建快速、清晰且可扩展的网页产品 · 每一个决定都留下痕迹 · 每一次交互都值得用心 · 我编写有温度的软件 · 简单。"
-        : language === "es"
+      (language === "es"
         ? "Diseño y código a partes iguales · construyo productos web rápidos, claros y escalables · cada decisión deja una huella · cada interacción merece intención · escribo software que se siente · simple."
         : "Design and code in equal measure · I build web products that are fast, clear and scalable · every decision leaves a trace · every interaction deserves intention · I write software that feels · simple.")
         .split(" "),
@@ -29,9 +27,9 @@ export default function KineticWords() {
     <>
       <SectionHeader
         index="02"
-        tag={language === "zh" ? "第 02 节 / 动态文字" : language === "es" ? "sección 02 / kinetic text" : "section 02 / kinetic text"}
-        title={language === "zh" ? "宣言" : language === "es" ? "MANIFIESTO" : "MANIFESTO"}
-        caption={language === "zh" ? "每一个字都来之不易" : language === "es" ? "cada palabra se gana" : "every word is earned"}
+        tag={language === "es" ? "sección 02 / kinetic text" : "section 02 / kinetic text"}
+        title={language === "es" ? "MANIFIESTO" : "MANIFESTO"}
+        caption={language === "es" ? "cada palabra se gana" : "every word is earned"}
       />
 
       <div ref={ref} style={{ height: "300vh", position: "relative" }}>

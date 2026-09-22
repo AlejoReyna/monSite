@@ -1,10 +1,11 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import Link from "next/link";
 import { useRef } from "react";
 import { MoreHorizontal, Search } from "lucide-react";
 import { FaApple } from "react-icons/fa";
-import { useLanguage } from "@/components/lang-context";
+import { useLanguage, type Language } from "@/components/lang-context";
 import { useDesktopStore } from "@/lib/desktop/desktop-store";
 import { ICON_ARRANGE_COPY, ICON_SORT_MODES, isAutoSorted, type DesktopIconCommand } from "@/lib/desktop/icon-layout";
 import { ASSISTANT_NAME, type MenuId } from "@/lib/desktop/types";
@@ -14,6 +15,11 @@ import { DesktopDialogs } from "./dialogs";
 import styles from "./menu-bar.module.css";
 import { SpotlightSearch } from "./spotlight-search";
 import { useHoverSwitch, useMenuDismiss } from "./use-menu-dismiss";
+
+const LANGUAGE_OPTIONS: { id: Language; label: string }[] = [
+  { id: "es", label: "Español" },
+  { id: "en", label: "English" },
+];
 
 function Menu({
   id,
@@ -67,7 +73,8 @@ function Menu({
 }
 
 export default function MacMenuBar() {
-  const { language } = useLanguage();
+  const copyText = useCopy();
+  const { language, setLanguage } = useLanguage();
   const store = useDesktopStore();
   const rootRef = useRef<HTMLElement>(null);
   useMenuDismiss(store.openMenu, store.setOpenMenu, rootRef);
@@ -75,7 +82,7 @@ export default function MacMenuBar() {
   const t =
     language === "es"
       ? {
-          file: "Archivo",
+          file: copyText("Archivo"),
           go: "Ir",
           window: "Ventana",
           help: "Ayuda",
@@ -86,10 +93,10 @@ export default function MacMenuBar() {
           closeWindow: "Cerrar ventana",
           openProjects: "Abrir proyectos",
           closeActive: "Cerrar ventana activa",
-          projects: "Proyectos",
+          projects: copyText("Proyectos"),
           blog: "Blog",
           contact: "Contacto",
-          home: "Inicio",
+          home: copyText("Inicio"),
           terminal: "Terminal",
           tour: "Tour rápido",
           shortcuts: "Atajos de teclado",
@@ -105,41 +112,9 @@ export default function MacMenuBar() {
           reachable: "Alcanzable",
           unreachable: "No se puede alcanzar",
           checking: "Comprobando…",
+          language: "Idioma: español",
         }
-      : language === "zh"
-        ? {
-            file: "文件",
-            go: "前往",
-            window: "窗口",
-            help: "帮助",
-            about: "关于此作品集",
-            prefs: "偏好设置…",
-            showDesktop: store.desktopHidden ? "恢复窗口" : "显示桌面",
-            aboutApp: `关于 ${store.activeAppName}`,
-            closeWindow: "关闭窗口",
-            openProjects: "打开项目",
-            closeActive: "关闭活动窗口",
-            projects: "项目",
-            blog: "博客",
-            contact: "联系",
-            home: "首页",
-            terminal: "终端",
-            tour: "快速导览",
-            shortcuts: "键盘快捷键",
-            ask: `询问 ${ASSISTANT_NAME}`,
-            search: "搜索",
-            more: "更多",
-            focusOn: "开启 Focus",
-            focusOff: "关闭 Focus",
-            connection: "连接",
-            retry: "重试",
-            reduce: "降低效果",
-            calendar: "日历与时间",
-            reachable: "可达",
-            unreachable: "无法连接",
-            checking: "检查中…",
-          }
-        : {
+      : {
             file: "File",
             go: "Go",
             window: "Window",
@@ -151,10 +126,10 @@ export default function MacMenuBar() {
             closeWindow: "Close Window",
             openProjects: "Open Projects",
             closeActive: "Close Active Window",
-            projects: "Projects",
+            projects: copyText("Projects"),
             blog: "Blog",
             contact: "Contact",
-            home: "Home",
+            home: copyText("Home"),
             terminal: "Terminal",
             tour: "Quick Tour",
             shortcuts: "Keyboard Shortcuts",
@@ -170,6 +145,7 @@ export default function MacMenuBar() {
             reachable: "Reachable",
             unreachable: "Unable to Reach",
             checking: "Checking…",
+            language: "Language: English",
           };
 
   const canClose =
@@ -197,7 +173,7 @@ export default function MacMenuBar() {
 
   return (
     <>
-      <nav className={styles.bar} aria-label="Desktop" ref={rootRef} onKeyDown={(e) => e.stopPropagation()}>
+      <nav className={styles.bar} aria-label={copyText("Desktop")} ref={rootRef} onKeyDown={(e) => e.stopPropagation()}>
         <div className={styles.left}>
           <Menu id="apple" label={<FaApple aria-hidden="true" />} className={styles.appleTrigger}>
             <button type="button" role="menuitem" onClick={() => store.openAbout()}>
@@ -306,7 +282,7 @@ export default function MacMenuBar() {
                     role="menuitem"
                     onClick={() => store.bringForward(w.id)}
                   >
-                    <span>{w.title}</span>
+                    <span>{copyText(w.title)}</span>
                     {w.focused && <span className={styles.check}>●</span>}
                   </button>
                 ))}
@@ -449,6 +425,31 @@ export default function MacMenuBar() {
             </button>
           </Menu>
 
+          {/* The input menu: it shows the current language, as macOS shows the current input source. */}
+          <Menu
+            id="language"
+            label={language.toUpperCase()}
+            align="right"
+            triggerClassName={`${styles.trigger} ${styles.inputSource}`}
+            ariaLabel={t.language}
+          >
+            {LANGUAGE_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="menuitemradio"
+                lang={option.id}
+                aria-checked={language === option.id}
+                onClick={() => {
+                  setLanguage(option.id);
+                  store.setOpenMenu(null);
+                }}
+              >
+                <span>{option.label}</span>
+                {language === option.id && <span className={styles.check}>✓</span>}
+              </button>
+            ))}
+          </Menu>
           <button
             type="button"
             className={styles.iconBtn}

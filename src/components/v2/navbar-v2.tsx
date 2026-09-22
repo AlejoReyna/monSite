@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useNavigation } from "@/contexts/navigation-context";
@@ -8,6 +9,7 @@ import LanguageSwitcher from "@/components/language-switcher";
 import { t } from "@/lib/translations";
 
 export default function NavbarV2() {
+  const copyText = useCopy();
   const { navigateToSection } = useNavigation();
   const { language } = useLanguage();
 
@@ -90,7 +92,7 @@ export default function NavbarV2() {
           borderBottom: "1px solid transparent",
         }}
       >
-        <nav aria-label="Primary">
+        <nav aria-label={copyText("Primary")}>
           {/* ── Desktop ── */}
           <div
             className="nav-desktop"
@@ -153,7 +155,7 @@ export default function NavbarV2() {
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="nav-burger-btn"
-                aria-label="Toggle Menu"
+                aria-label={copyText("Toggle Menu")}
                 style={{
                   background: "transparent",
                   border: "none",
@@ -236,7 +238,7 @@ export default function NavbarV2() {
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="nav-burger-btn"
-                aria-label="Toggle Menu"
+                aria-label={copyText("Toggle Menu")}
                 style={{
                   background: "transparent",
                   border: "none",
@@ -305,7 +307,7 @@ export default function NavbarV2() {
       >
         <button
           onClick={() => setIsMenuOpen(false)}
-          aria-label="Close menu"
+          aria-label={copyText("Close menu")}
           style={{
             position: "absolute",
             top: "24px",
@@ -392,8 +394,7 @@ export default function NavbarV2() {
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
               }}>
-                Projects
-              </span>
+                {copyText("Projects ")}</span>
               <div style={{ 
                 display: "flex", 
                 flexDirection: "column", 
@@ -431,7 +432,7 @@ export default function NavbarV2() {
                     onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
                     onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
                   >
-                    {item.label}
+                    {copyText(item.label)}
                   </button>
                 ))}
               </div>

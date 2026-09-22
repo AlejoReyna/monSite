@@ -44,15 +44,14 @@ const PITCH_Y = ICON_GRID.height + ICON_GRID.gapY;
 const MAX_OVERLAP = 0.5;
 
 export const ICON_KIND_LABELS: Record<DesktopIconKind, Record<Language, string>> = {
-  folder: { en: "Folder", es: "Carpeta", zh: "文件夹" },
-  application: { en: "Application", es: "Aplicación", zh: "应用程序" },
-  web: { en: "Web Location", es: "Ubicación web", zh: "网页位置" },
+  folder: { en: "Folder", es: "Carpeta" },
+  application: { en: "Application", es: "Aplicación" },
+  web: { en: "Web Location", es: "Ubicación web" },
 };
 
 export const ICON_ARRANGE_COPY: Record<Language, { desktop: string; view: string; open: string; cleanUp: string; cleanUpBy: string; sortBy: string; none: string; grid: string; name: string; kind: string; restore: string }> = {
   en: { desktop: "Desktop", view: "View", open: "Open", cleanUp: "Clean Up", cleanUpBy: "Clean Up By", sortBy: "Sort By", none: "None", grid: "Snap to Grid", name: "Name", kind: "Kind", restore: "Restore Default Layout" },
   es: { desktop: "Escritorio", view: "Visualización", open: "Abrir", cleanUp: "Ordenar", cleanUpBy: "Ordenar por", sortBy: "Clasificar por", none: "Ninguno", grid: "Ajustar a la cuadrícula", name: "Nombre", kind: "Tipo", restore: "Restaurar disposición original" },
-  zh: { desktop: "桌面", view: "显示", open: "打开", cleanUp: "整理", cleanUpBy: "整理方式", sortBy: "排序方式", none: "无", grid: "吸附到网格", name: "名称", kind: "种类", restore: "恢复默认排列" },
 };
 
 /** Name and Kind keep icons arranged; dragging them snaps back, as on macOS. */

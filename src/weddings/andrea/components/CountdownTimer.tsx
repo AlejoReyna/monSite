@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useState, useEffect } from 'react';
 
 interface TimeLeft {
@@ -14,6 +15,7 @@ interface CountdownTimerProps {
 }
 
 export default function CountdownTimer({ targetDate, className = "" }: CountdownTimerProps) {
+  const copyText = useCopy();
   // Este es nuestro "estado" - como una pizarra donde escribimos el tiempo restante
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
@@ -99,8 +101,7 @@ export default function CountdownTimer({ targetDate, className = "" }: Countdown
                 {formatNumber(timeLeft.days)}
               </div>
               <div className="text-xs md:text-sm text-white/70 mt-1 uppercase tracking-wider garamond-300">
-                Días
-              </div>
+                {copyText("Días ")}</div>
             </div>
           </div>
 
@@ -111,8 +112,7 @@ export default function CountdownTimer({ targetDate, className = "" }: Countdown
                 {formatNumber(timeLeft.hours)}
               </div>
               <div className="text-xs md:text-sm text-white/70 mt-1 uppercase tracking-wider garamond-300">
-                Horas
-              </div>
+                {copyText("Horas ")}</div>
             </div>
           </div>
 
@@ -123,8 +123,7 @@ export default function CountdownTimer({ targetDate, className = "" }: Countdown
                 {formatNumber(timeLeft.minutes)}
               </div>
               <div className="text-xs md:text-sm text-white/70 mt-1 uppercase tracking-wider garamond-300">
-                Minutos
-              </div>
+                {copyText("Minutos ")}</div>
             </div>
           </div>
 
@@ -135,8 +134,7 @@ export default function CountdownTimer({ targetDate, className = "" }: Countdown
                 {formatNumber(timeLeft.seconds)}
               </div>
               <div className="text-xs md:text-sm text-white/70 mt-1 uppercase tracking-wider garamond-300">
-                Segundos
-              </div>
+                {copyText("Segundos ")}</div>
             </div>
           </div>
         </div>

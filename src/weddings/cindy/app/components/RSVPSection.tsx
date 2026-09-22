@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useRef } from 'react';
 import { useState } from 'react';
 import { withBasePath } from '../../lib/basePath';
@@ -6,6 +7,7 @@ import { withBasePath } from '../../lib/basePath';
 const WEB3FORMS_ACCESS_KEY = 'bc3c03b3-0e4c-480e-b5cd-e2a44d17c280';
 
 export default function RSVPSection() {
+  const copyText = useCopy();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -23,7 +25,7 @@ export default function RSVPSection() {
     try {
       const formData = new FormData();
       formData.append('access_key', WEB3FORMS_ACCESS_KEY);
-      formData.append('subject', 'Nuevo mensaje desde el RSVP de la boda');
+      formData.append('subject', copyText("Nuevo mensaje desde el RSVP de la boda"));
       formData.append('from_name', 'Cindy Wedding RSVP');
       formData.append('name', name);
       formData.append('email', email);
@@ -83,8 +85,7 @@ export default function RSVPSection() {
 
           {/* Headline */}
           <p className="rsvp-message">
-            Tu presencia hará aún más especial este día.
-          </p>
+            {copyText("Tu presencia hará aún más especial este día. ")}</p>
 
           {/* Form */}
           <form
@@ -94,8 +95,7 @@ export default function RSVPSection() {
             onSubmit={handleSubmit}
           >
             <p className="rsvp-form-title">
-              Nos hará muy felices leer tu mensaje en este momento único
-            </p>
+              {copyText("Nos hará muy felices leer tu mensaje en este momento único ")}</p>
 
             <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
             <input type="hidden" name="subject" value="Nuevo mensaje desde el RSVP de la boda" />
@@ -107,13 +107,13 @@ export default function RSVPSection() {
                   {/* Name + Email row */}
                   <div className="rsvp-row">
                     <div className="rsvp-field">
-                      <label className="rsvp-label">Nombre</label>
+                      <label className="rsvp-label">{copyText("Nombre")}</label>
                       <input
                         type="text"
                         name="name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Tu nombre completo"
+                        placeholder={copyText("Tu nombre completo")}
                         className="rsvp-input"
                         autoComplete="name"
                         required
@@ -121,7 +121,7 @@ export default function RSVPSection() {
                       />
                     </div>
                     <div className="rsvp-field">
-                      <label className="rsvp-label">Correo electrónico</label>
+                      <label className="rsvp-label">{copyText("Correo electrónico")}</label>
                       <input
                         type="email"
                         name="email"
@@ -138,12 +138,12 @@ export default function RSVPSection() {
 
                   {/* Message */}
                   <div className="rsvp-field">
-                    <label className="rsvp-label">Mensaje</label>
+                    <label className="rsvp-label">{copyText("Mensaje")}</label>
                     <textarea
                       name="message"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Escribe aquí tus buenos deseos..."
+                      placeholder={copyText("Escribe aquí tus buenos deseos...")}
                       className="rsvp-input rsvp-textarea"
                       required
                       disabled={formStatus === 'loading'}
@@ -159,7 +159,7 @@ export default function RSVPSection() {
                     disabled={formStatus === 'loading'}
                   >
                     <span className="rsvp-btn-text">
-                      {formStatus === 'loading' ? 'Enviando…' : 'Enviar mensaje'}
+                      {formStatus === 'loading' ? 'Enviando…' : copyText("Enviar mensaje")}
                     </span>
                     {formStatus !== 'loading' && (
                       <svg className="rsvp-btn-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">

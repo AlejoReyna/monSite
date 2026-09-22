@@ -591,9 +591,6 @@ export function DesktopStoreProvider({
           dismissUnlessAssistant(setOpenMenu);
           break;
         case "change_language":
-          if (detail.args?.language === "en" || detail.args?.language === "es" || detail.args?.language === "zh") {
-            setLanguage(detail.args.language);
-          }
           break;
         case "toggle_focus":
           toggleFocus(typeof detail.args?.enabled === "boolean" ? detail.args.enabled : undefined);

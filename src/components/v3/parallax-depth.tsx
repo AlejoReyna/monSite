@@ -1,11 +1,13 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useLanguage } from "@/components/lang-context";
 import SectionHeader from "./section-header";
 
 export default function ParallaxDepth() {
+  const copyText = useCopy();
   const ref = useRef<HTMLDivElement>(null);
   const { language } = useLanguage();
 
@@ -21,13 +23,7 @@ export default function ParallaxDepth() {
   const numScale = useTransform(smooth, [0, 1], [0.85, 1.15]);
 
   const services =
-    language === "zh"
-      ? [
-          { tag: "01", title: "Web", body: "Next.js · React · Vue · TypeScript" },
-          { tag: "02", title: "设计", body: "UX · UI · 系统 · 原型" },
-          { tag: "03", title: "云", body: "AWS · Docker · CI/CD · 数据" },
-        ]
-      : language === "es"
+    language === "es"
       ? [
           { tag: "01", title: "Web", body: "Next.js · React · Vue · TypeScript" },
           { tag: "02", title: "Diseño", body: "UX · UI · sistemas · prototipos" },
@@ -43,9 +39,9 @@ export default function ParallaxDepth() {
     <>
       <SectionHeader
         index="03"
-        tag={language === "zh" ? "第 03 节 / 视差层" : language === "es" ? "sección 03 / parallax layers" : "section 03 / parallax layers"}
-        title={language === "zh" ? "深度" : language === "es" ? "PROFUNDIDAD" : "DEPTH"}
-        caption={language === "zh" ? "每一层都有自己的速度" : language === "es" ? "cada capa a su propia velocidad" : "each layer at its own pace"}
+        tag={language === "es" ? "sección 03 / parallax layers" : "section 03 / parallax layers"}
+        title={language === "es" ? "PROFUNDIDAD" : "DEPTH"}
+        caption={language === "es" ? "cada capa a su propia velocidad" : "each layer at its own pace"}
       />
 
       <div ref={ref} style={{ height: "200vh", position: "relative" }}>
@@ -72,16 +68,10 @@ export default function ParallaxDepth() {
             }}
           >
             <span className="v3-depth-eyebrow" style={{ marginBottom: "1.5rem" }}>
-              {language === "zh" ? "服务 / 层" : language === "es" ? "servicios / capas" : "services / layers"}
+              {language === "es" ? "servicios / capas" : "services / layers"}
             </span>
             <h2 className="v3-depth-heading" style={{ marginBottom: "1.5rem", maxWidth: "16ch" }}>
-              {language === "zh" ? (
-                <>
-                  层与层<br />
-                  并不占据<br />
-                  <em>同一时间</em>
-                </>
-              ) : language === "es" ? (
+              {language === "es" ? (
                 <>
                   Las capas<br />
                   no ocupan el<br />
@@ -96,9 +86,7 @@ export default function ParallaxDepth() {
               )}
             </h2>
             <p className="v3-depth-body">
-              {language === "zh"
-                ? "设计、工程与基础设施以不同速度运转。平面之间的差异赋予产品深度。"
-                : language === "es"
+              {language === "es"
                 ? "Diseño, ingeniería e infraestructura se mueven a velocidades distintas. La diferencia entre planos es lo que da profundidad al producto."
                 : "Design, engineering and infrastructure move at different speeds. The difference between layers is what gives the product its depth."}
             </p>
@@ -139,7 +127,7 @@ export default function ParallaxDepth() {
                       marginTop: "0.5rem",
                     }}
                   >
-                    {s.title}
+                    {copyText(s.title)}
                   </h3>
                   <p
                     className="v3-serif"
@@ -181,7 +169,7 @@ export default function ParallaxDepth() {
                 marginBottom: "0.5rem",
               }}
             >
-              {language === "zh" ? "前景" : language === "es" ? "primer plano" : "foreground"}
+              {language === "es" ? "primer plano" : "foreground"}
             </span>
             <div className="v3-depth-big-num">03</div>
           </motion.div>

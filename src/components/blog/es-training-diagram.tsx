@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef } from "react";
 
 /**
@@ -36,6 +37,7 @@ const LOOP_STAGES: Stage[] = [
 ];
 
 function StageBox({ stage }: { stage: Stage }) {
+  const copyText = useCopy();
   const cx = stage.x + stage.w / 2;
   const cy = stage.y + stage.h / 2;
 
@@ -50,11 +52,11 @@ function StageBox({ stage }: { stage: Stage }) {
         className="blog-es-diagram__box"
       />
       <text x={cx} y={stage.sub ? cy - 6 : cy} className="blog-es-diagram__box-title">
-        {stage.title}
+        {copyText(stage.title)}
       </text>
       {stage.sub && (
         <text x={cx} y={cy + 14} className="blog-es-diagram__box-sub">
-          {stage.sub}
+          {copyText(stage.sub)}
         </text>
       )}
     </g>
@@ -62,6 +64,7 @@ function StageBox({ stage }: { stage: Stage }) {
 }
 
 function GenerationLoop() {
+  const copyText = useCopy();
   return (
     <svg
       className="blog-es-diagram__svg blog-es-diagram__svg--loop"
@@ -69,15 +72,9 @@ function GenerationLoop() {
       role="img"
       aria-labelledby="es-loop-title es-loop-desc"
     >
-      <title id="es-loop-title">Una generación de Evolution Strategies</title>
+      <title id="es-loop-title">{copyText("Una generación de Evolution Strategies")}</title>
       <desc id="es-loop-desc">
-        Los pesos theta se combinan con treinta y dos vectores de ruido
-        gaussiano, cada uno aplicado en las dos direcciones para formar sesenta
-        y cuatro individuos. Cada individuo se evalúa en tres episodios; los
-        sesenta y cuatro retornos se convierten en posiciones dentro del grupo,
-        se combinan con sus ruidos para estimar un gradiente y el resultado se
-        suma a theta. El ciclo se repite trescientas veces.
-      </desc>
+        {copyText("Los pesos theta se combinan con treinta y dos vectores de ruido gaussiano, cada uno aplicado en las dos direcciones para formar sesenta y cuatro individuos. Cada individuo se evalúa en tres episodios; los sesenta y cuatro retornos se convierten en posiciones dentro del grupo, se combinan con sus ruidos para estimar un gradiente y el resultado se suma a theta. El ciclo se repite trescientas veces. ")}</desc>
 
       <defs>
         <marker
@@ -117,17 +114,17 @@ function GenerationLoop() {
 
       <g className="blog-es-diagram__note" aria-hidden="true">
         <text x="414" y="128">σ = 0.1</text>
-        <text x="770" y="205">64 evaluaciones</text>
+        <text x="770" y="205">{copyText("64 evaluaciones")}</text>
         <text x="84" y="200">θ += 0.03 · ĝ</text>
       </g>
 
       <g className="blog-es-diagram__tag" aria-hidden="true">
         <rect x="655" y="22" width="195" height="24" rx="4" />
-        <text x="752" y="38">pixelCrewSim.js — caja negra</text>
+        <text x="752" y="38">{copyText("pixelCrewSim.js — caja negra")}</text>
       </g>
 
       <g className="blog-es-diagram__cycle" aria-hidden="true">
-        <text x="30" y="325">× 300 generaciones</text>
+        <text x="30" y="325">{copyText("× 300 generaciones")}</text>
       </g>
     </svg>
   );
@@ -143,6 +140,7 @@ const ROW_STEP = 32;
 const BAR_H = 16;
 
 function RankNormalise() {
+  const copyText = useCopy();
   const rows = SAMPLE_RETURNS.map((value, index) => ({
     value,
     // rankNormalise: best = +0.5, worst = -0.5, evenly spaced in between.
@@ -160,25 +158,17 @@ function RankNormalise() {
       aria-labelledby="es-rank-title es-rank-desc"
     >
       <title id="es-rank-title">
-        Retornos crudos convertidos en posiciones dentro de la generación
-      </title>
+        {copyText("Retornos crudos convertidos en posiciones dentro de la generación ")}</title>
       <desc id="es-rank-desc">
-        Ocho de los sesenta y cuatro individuos. A la izquierda, el retorno
-        promedio de cada uno: siete quedan entre 22 y 32 puntos, y el último se
-        hunde en 4.3. A la derecha, el peso que cada uno recibe tras
-        rankNormalise: valores repartidos de forma pareja entre más 0.5 y menos
-        0.5, así que el peor individuo pierde un puesto y no dieciocho puntos.
-      </desc>
+        {copyText("Ocho de los sesenta y cuatro individuos. A la izquierda, el retorno promedio de cada uno: siete quedan entre 22 y 32 puntos, y el último se hunde en 4.3. A la derecha, el peso que cada uno recibe tras rankNormalise: valores repartidos de forma pareja entre más 0.5 y menos 0.5, así que el peor individuo pierde un puesto y no dieciocho puntos. ")}</desc>
 
       <g className="blog-es-diagram__panel-label" aria-hidden="true">
         <text x="20" y="52">returns[k]</text>
         <text x="20" y="68" className="blog-es-diagram__panel-sub">
-          promedio de 3 episodios
-        </text>
+          {copyText("promedio de 3 episodios ")}</text>
         <text x="300" y="52">shaped[k]</text>
         <text x="300" y="68" className="blog-es-diagram__panel-sub">
-          posición dentro de la generación
-        </text>
+          {copyText("posición dentro de la generación ")}</text>
       </g>
 
       <line
@@ -251,8 +241,7 @@ function RankNormalise() {
 
       <g className="blog-es-diagram__note" aria-hidden="true">
         <text x="20" y="368">
-          el peor de la generación pierde un puesto, no 18 puntos
-        </text>
+          {copyText("el peor de la generación pierde un puesto, no 18 puntos ")}</text>
       </g>
     </svg>
   );
@@ -268,6 +257,7 @@ export default function EsTrainingDiagram({
   /** Off when the figure sits inside a row that already carries the bleed. */
   bleed?: boolean;
 }) {
+  const copyText = useCopy();
   const figureRef = useRef<HTMLElement>(null);
 
   /**
@@ -312,8 +302,7 @@ export default function EsTrainingDiagram({
         <figcaption>
           <span>{caption}</span>
           <span className="blog-es-diagram__scroll-hint" aria-hidden="true">
-            Desliza ↔
-          </span>
+            {copyText("Desliza ↔ ")}</span>
         </figcaption>
       )}
     </figure>

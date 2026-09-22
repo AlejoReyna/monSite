@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { cookies } from "next/headers";
-import type { Language } from "@/components/lang-context";
+import { resolveLanguage, type Language } from "@/lib/language";
 import {
   ASSISTANT_TOOLS,
   answerFromCurated,
@@ -25,10 +25,6 @@ function resolveKimi() {
     baseURL: process.env.KIMI_BASE_URL ?? "https://api.moonshot.ai/v1",
     model: process.env.KIMI_MODEL ?? "kimi-k2.6",
   };
-}
-
-function isLang(value: unknown): value is Language {
-  return value === "en" || value === "es" || value === "zh";
 }
 
 async function readQuota() {
@@ -81,7 +77,7 @@ export async function POST(req: NextRequest) {
 
   const message = (body.message || "").toString().trim().slice(0, 1200);
   if (!message) return NextResponse.json({ error: "message required" }, { status: 400 });
-  const language: Language = isLang(body.language) ? body.language : "en";
+  const language: Language = resolveLanguage(body.language);
 
   const quota = await readQuota();
   if (quota.remaining <= 0) {
@@ -100,7 +96,7 @@ export async function POST(req: NextRequest) {
     fetch: (url: RequestInfo, init?: RequestInit) => fetch(url, init),
   });
 
-  const system = buildAssistantSystemPrompt(language);
+  const system = buildAssistantSystemPrompt(language, message);
   const actions: Array<{ type: string; args?: Record<string, unknown> }> = [];
   let reply = "";
 
@@ -206,7 +202,7 @@ export async function POST(req: NextRequest) {
             reply = answerFromCurated(parsed.args.topic, language);
           }
         } else if (actions.length) {
-          reply = language === "es" ? "Listo." : language === "zh" ? "好的。" : "Done.";
+          reply = language === "es" ? "Listo." : "Done.";
         }
       }
     } else {

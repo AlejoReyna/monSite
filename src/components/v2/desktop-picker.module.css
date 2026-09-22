@@ -106,7 +106,7 @@
 
 /* Mobile keeps two independent controls across the top, as in the original layout. */
 .rail { display: contents; }
-.dock .more { display: none; }
+.dock .more, .dock .language { display: none; }
 
 /* Mobile uses the historic single-character composition and current dock. */
 @media (max-width: 1023px) {
@@ -210,6 +210,18 @@
   .macMobile .dock .terminal,
   .macMobile .dock .resizer { display: none; }
   .macMobile .dock .more { display: grid; background: #ffffff14; }
+  .macMobile .dock .language { display: grid; background: #ffffff14; font: 600 13px/1 -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: .04em; }
+}
+
+/* Below 360px the extra language tile would push the Dock into the view switcher: tighten both. */
+@media (max-width: 359px) {
+  .macMobile .dock { gap: 4px; padding: 4px; }
+  .macMobile .dock button,
+  .macMobile .dock a { width: 34px; height: 34px; }
+  .macMobile .dock button::before,
+  .macMobile .dock a::before { inset: -2px; }
+  .macMobile .dock svg { width: 20px; height: 20px; }
+  .viewTrack button { width: 40px; }
 }
 
 /* More: the menu bar is hidden below lg, so its language, motion and Focus controls live in this sheet. */

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,18 +16,17 @@ type UbuntuDesktopProps = {
 };
 
 export default function UbuntuDesktop({ onChangeView, onTerminal, changeLabel }: UbuntuDesktopProps) {
+  const copyText = useCopy();
   const { language } = useLanguage();
   const { navigateToSection } = useNavigation();
   const [time, setTime] = useState("");
   const labels = language === "es"
-    ? { activities: "Actividades", projects: "Proyectos", blog: "Blog", contact: "Contacto", terminal: "Terminal" }
-    : language === "zh"
-      ? { activities: "活动", projects: "项目", blog: "博客", contact: "联系", terminal: "终端" }
-      : { activities: "Activities", projects: "Projects", blog: "Blog", contact: "Contact", terminal: "Terminal" };
+    ? { activities: "Actividades", projects: copyText("Proyectos"), blog: "Blog", contact: "Contacto", terminal: "Terminal" }
+    : { activities: "Activities", projects: copyText("Projects"), blog: "Blog", contact: "Contact", terminal: "Terminal" };
 
   useEffect(() => {
     const update = () => setTime(new Date().toLocaleString(
-      language === "es" ? "es-MX" : language === "zh" ? "zh-CN" : "en-US",
+      language === "es" ? "es-MX" : "en-US",
       { weekday: "short", hour: "numeric", minute: "2-digit" },
     ));
     update();
@@ -42,7 +42,7 @@ export default function UbuntuDesktop({ onChangeView, onTerminal, changeLabel }:
         <button type="button" onClick={onChangeView} aria-label={changeLabel}><Palette size={14} />{changeLabel}<ChevronDown size={12} /></button>
       </div>
 
-      <nav className={styles.dock} aria-label="Ubuntu dock" onKeyDown={event => event.stopPropagation()}>
+      <nav className={styles.dock} aria-label={copyText("Ubuntu dock")} onKeyDown={event => event.stopPropagation()}>
         <button type="button" onClick={() => navigateToSection("inverater")} aria-label={labels.projects} data-label={labels.projects}><Folder /></button>
         <Link href="/blog" aria-label={labels.blog} data-label={labels.blog}><Globe2 /></Link>
         <button type="button" onClick={() => navigateToSection("contact")} aria-label={labels.contact} data-label={labels.contact}><Mail /></button>
@@ -62,7 +62,7 @@ export default function UbuntuDesktop({ onChangeView, onTerminal, changeLabel }:
 
       <div className={styles.desktopLabel} aria-hidden="true">
         <span>Ubuntu</span>
-        <small>Alexis Reyna / Portfolio</small>
+        <small>{copyText("Alexis Reyna / Portfolio")}</small>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -58,6 +59,7 @@ const techStack = [
 ] as const;
 
 export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: boolean }) {
+  const copyText = useCopy();
   let letterIndex = 0;
 
   // `step` walks 0 → NETWORKS.length + 1, one tick every 1.5s. Network `i`
@@ -131,8 +133,8 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
         <img
           className={`${styles.techLogo} ${"tint" in tech && tech.tint ? styles.techLogoTint : ""}`}
           src={tech.logo}
-          alt={tech.label}
-          title={tech.label}
+          alt={copyText(tech.label)}
+          title={copyText(tech.label)}
           loading="lazy"
         />
       </motion.li>
@@ -173,8 +175,7 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
         animate={isActive ? "show" : "hidden"}
       >
         <motion.span className={styles.deployLabel} variants={item}>
-          Deployed on
-        </motion.span>
+          {copyText("Deployed on ")}</motion.span>
         <div
           className={styles.deployNetworkRow}
           aria-label={NETWORKS.map((n) => `${n.chain} ${n.name}`).join(", ")}
@@ -229,15 +230,14 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as const }}
             >
-              Three testnets
-            </motion.span>
+              {copyText("Three testnets ")}</motion.span>
           )}
         </AnimatePresence>
 
         <motion.ul
           className={`${styles.techRow} ${styles.techRowTop}`}
           variants={logoGroup}
-          aria-label="Artisanal Brew tech stack"
+          aria-label={copyText("Artisanal Brew tech stack")}
         >
           {renderTechItems()}
         </motion.ul>
@@ -271,14 +271,11 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
           </motion.h2>
 
           <motion.p className={styles.lede} variants={item}>
-            Stake CAFE while it roasts, and watch a friendly pixel crew run
-            wallet-signed test missions on-chain.
-          </motion.p>
+            {copyText("Stake CAFE while it roasts, and watch a friendly pixel crew run wallet-signed test missions on-chain. ")}</motion.p>
 
           <motion.div className={styles.ctas} variants={item}>
             <a className={styles.cta} href={DEPLOYMENT_URL} target="_blank" rel="noreferrer">
-              Visit
-            </a>
+              {copyText("Visit ")}</a>
             <a className={`${styles.cta} ${styles.ctaGhost}`} href={REPO_URL} target="_blank" rel="noreferrer">
               GitHub
             </a>
@@ -287,7 +284,7 @@ export default function ThisCafeteriaGateway({ isActive = false }: { isActive?: 
           <motion.ul
             className={`${styles.techRow} ${styles.techRowBottom}`}
             variants={logoGroup}
-            aria-label="Artisanal Brew tech stack"
+            aria-label={copyText("Artisanal Brew tech stack")}
           >
             {renderTechItems()}
           </motion.ul>

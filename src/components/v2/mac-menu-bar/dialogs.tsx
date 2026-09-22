@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import {
   useCallback,
   useEffect,
@@ -105,6 +106,7 @@ function ModalShell({
 }
 
 export function DesktopDialogs() {
+  const copyText = useCopy();
   const { language, setLanguage } = useLanguage();
   const {
     aboutOpen,
@@ -138,7 +140,7 @@ export function DesktopDialogs() {
           aboutBody:
             "Portafolio interactivo estilo macOS de Alexis Reyna. Navega proyectos, blog y contacto desde la barra de menús, el dock o Orbit.",
           prefs: "Preferencias",
-          language: "Idioma",
+          language: copyText("Idioma"),
           motion: "Reducir movimiento",
           voice: `${ASSISTANT_NAME} — voz`,
           hour: "Formato de hora",
@@ -168,48 +170,12 @@ export function DesktopDialogs() {
           close: "Cerrar",
           done: "Listo",
         }
-      : language === "zh"
-        ? {
-            aboutTitle: "关于此作品集",
-            aboutBody:
-              "Alexis Reyna 的 macOS 风格互动作品集。可通过菜单栏、程序坞或 Orbit 访问项目、博客与联系方式。",
-            prefs: "偏好设置",
-            language: "语言",
-            motion: "减少动态效果",
-            voice: `${ASSISTANT_NAME} — 语音`,
-            hour: "时间格式",
-            sounds: "可选 UI 音效",
-            on: "开",
-            off: "关",
-            h12: "12 小时",
-            h24: "24 小时",
-            tourTitle: "快速导览",
-            tourBody: [
-              "通过 Apple · 文件 · 前往 打开项目、博客与联系。",
-              "Spotlight（放大镜）可搜索页面、项目与命令。",
-              `${ASSISTANT_NAME}（光球）支持文字或麦克风。`,
-              "Focus 可在 25 分钟内暂停装饰动画。",
-              "可拖动桌面图标；右键或“显示”菜单可重新整理。",
-              "拖动程序坞的分隔线可放大或缩小；右键点击程序坞可选择大小。",
-            ],
-            shortcutsTitle: "键盘快捷键",
-            shortcuts: [
-              "Esc — 关闭菜单、窗口或面板",
-              "方向键 / Enter — 浏览 Spotlight",
-              "点击外部 — 关闭当前弹出层",
-              "⌘ / Shift + 点击 — 多选桌面图标",
-              "Shift + F10 — 打开桌面图标菜单",
-              "方向键 — 在分隔线上调整程序坞大小",
-            ],
-            close: "关闭",
-            done: "完成",
-          }
-        : {
+      : {
             aboutTitle: "About This Portfolio",
             aboutBody:
               "Alexis Reyna’s interactive macOS-style portfolio. Reach projects, blog, and contact from the menu bar, dock, or Orbit.",
             prefs: "Preferences",
-            language: "Language",
+            language: copyText("Language"),
             motion: "Reduce motion",
             voice: `${ASSISTANT_NAME} voice`,
             hour: "Time format",
@@ -243,9 +209,8 @@ export function DesktopDialogs() {
   const dock = DOCK_COPY[language];
 
   const langs: { id: Language; label: string }[] = [
-    { id: "en", label: "English" },
     { id: "es", label: "Español" },
-    { id: "zh", label: "中文" },
+    { id: "en", label: "English" },
   ];
 
   return (
@@ -273,7 +238,7 @@ export function DesktopDialogs() {
                 aria-pressed={language === l.id}
                 onClick={() => setLanguage(l.id)}
               >
-                {l.label}
+                {copyText(l.label)}
               </button>
             ))}
           </div>

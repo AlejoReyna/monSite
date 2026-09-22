@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveLanguage } from "@/lib/language";
 
 const RATE_WINDOW_MS = 60_000;
 const RATE_LIMIT = 30;
@@ -38,8 +39,7 @@ export async function POST(req: NextRequest) {
     const text = (body.text || "").trim().slice(0, 1500);
     if (!text) return NextResponse.json({ error: "text required" }, { status: 400 });
     const voice = VOICES.has(body.voice || "") ? body.voice : "eve";
-    const language =
-      body.language === "zh" ? "zh" : body.language === "es" ? "es-MX" : "en";
+    const language = resolveLanguage(body.language) === "es" ? "es-MX" : "en";
 
     const res = await fetch("https://api.x.ai/v1/tts", {
       method: "POST",

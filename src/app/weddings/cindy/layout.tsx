@@ -1,8 +1,9 @@
+import { localizeMetadata } from "@/lib/request-language";
 import type { Metadata } from "next";
 import "@/weddings/cindy/globals.css";
 import BackToPortfolio from "@/components/weddings/back-to-portfolio";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: "Cindy & Jorge — Nuestra boda",
   description: "Celebra con nosotros nuestra boda el 22 de agosto de 2026",
   icons: {
@@ -22,4 +23,8 @@ export default function CindyWeddingLayout({
       <BackToPortfolio />
     </div>
   );
+}
+
+export async function generateMetadata() {
+  return localizeMetadata(baseMetadata);
 }

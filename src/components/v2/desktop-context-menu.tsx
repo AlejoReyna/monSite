@@ -1,5 +1,6 @@
 "use client";
 
+import { useCopy } from "@/components/use-copy";
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import styles from "./desktop-context-menu.module.css";
 
@@ -22,6 +23,7 @@ export default function DesktopContextMenu({ host, x, y, label, entries, focusFi
   focusFirst: boolean;
   onClose: () => void;
 }) {
+  const copyText = useCopy();
   const menuRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const focusSubmenu = useRef(false);
@@ -131,13 +133,13 @@ export default function DesktopContextMenu({ host, x, y, label, entries, focusFi
       const open = submenu === entry.id;
       return <div key={entry.id} className={styles.submenuWrap} data-submenu={entry.id}>
         <button type="button" role="menuitem" aria-haspopup="menu" aria-expanded={open} disabled={entry.disabled} data-entry={entry.id} className={styles.item} onPointerEnter={hover} onClick={() => openSubmenu(entry.id, true)}>
-          <span className={styles.check} aria-hidden="true" /><span>{entry.label}</span><span className={styles.chevron} aria-hidden="true">›</span>
+          <span className={styles.check} aria-hidden="true" /><span>{copyText(entry.label)}</span><span className={styles.chevron} aria-hidden="true">›</span>
         </button>
-        {open && <div role="menu" aria-label={entry.label} className={`${styles.menu} ${styles.submenu}`}>{render(entry.entries)}</div>}
+        {open && <div role="menu" aria-label={copyText(entry.label)} className={`${styles.menu} ${styles.submenu}`}>{render(entry.entries)}</div>}
       </div>;
     }
     return <button key={entry.id} type="button" role={entry.checked === undefined ? "menuitem" : "menuitemradio"} aria-checked={entry.checked} disabled={entry.disabled} className={styles.item} onPointerEnter={hover} onClick={() => { entry.onSelect(); close(); }}>
-      <span className={styles.check} aria-hidden="true">{entry.checked ? "✓" : ""}</span><span>{entry.label}</span>
+      <span className={styles.check} aria-hidden="true">{entry.checked ? "✓" : ""}</span><span>{copyText(entry.label)}</span>
     </button>;
   });
 

@@ -1,4 +1,5 @@
 "use client"
+import { useCopy } from "@/components/use-copy";
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useTheme } from '../context/ThemeContext';
@@ -9,6 +10,7 @@ interface NavigationItem {
 }
 
 const Navbar = () => {
+  const copyText = useCopy();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -18,12 +20,12 @@ const Navbar = () => {
   const { isNightMode } = useTheme();
   
   const navigationItems: NavigationItem[] = [
-    { id: 'galeria', label: 'Galería' },
-    { id: 'itinerario', label: 'Itinerario' },
-    { id: 'ubicacion', label: 'Ubicación' },
-    { id: 'dresscode', label: 'Dress Code' },
-    { id: 'regalos', label: 'Mesa de regalos' },
-    { id: 'rsvp', label: 'Confirmar' }
+    { id: 'galeria', label: copyText("Galería") },
+    { id: 'itinerario', label: copyText("Itinerario") },
+    { id: 'ubicacion', label: copyText("Ubicación") },
+    { id: 'dresscode', label: copyText("Dress Code") },
+    { id: 'regalos', label: copyText("Mesa de regalos") },
+    { id: 'rsvp', label: copyText("Confirmar") }
   ];
 
   useEffect(() => {
@@ -197,7 +199,7 @@ const Navbar = () => {
                   href={`#${item.id}`}
                   className={`text-xs garamond-300 tracking-[0.25em] transition-all duration-500 relative group px-2 py-1 ${getTextStyle()}`}
                 >
-                  {item.label.toUpperCase()}
+                  {copyText(item.label).toUpperCase()}
                   <span className={`absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-[1px] group-hover:w-3/4 transition-all duration-500 ${getLineStyle()}`}></span>
                 </a>
                 {/* Separador decorativo entre elementos (excepto el último) */}
@@ -239,7 +241,7 @@ const Navbar = () => {
                   }}
                   className={`garamond-300 tracking-[0.1em] sm:tracking-[0.15em] transition-colors duration-500 px-1 ${getTextStyle()}`}
                 >
-                  {item.label.toUpperCase()}
+                  {copyText(item.label).toUpperCase()}
                 </a>
                 {index < 3 && (
                   <span className={`ml-2 sm:ml-3 transition-colors duration-500 ${
@@ -255,7 +257,7 @@ const Navbar = () => {
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`ml-4 p-2 transition-colors duration-500 ${getTextStyle()}`}
-            aria-label="Menú adicional"
+            aria-label={copyText("Menú adicional")}
           >
             <div className="flex flex-col space-y-1">
               <div className={`w-4 h-0.5 transition-all duration-300 ${getLineStyle()} ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></div>
@@ -284,7 +286,7 @@ const Navbar = () => {
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`p-2 transition-colors duration-500 ${getTextStyle()}`}
-            aria-label="Menú de navegación"
+            aria-label={copyText("Menú de navegación")}
           >
             <div className="flex flex-col space-y-1.5">
               <div className={`w-6 h-0.5 transition-all duration-300 ${getLineStyle()} ${
@@ -320,12 +322,11 @@ const Navbar = () => {
           {/* Header del menú */}
           <div className="flex items-center justify-between mb-8 border-b border-[#543c24]/10 pb-6">
             <h2 className="text-sm garamond-300 tracking-[0.2em] text-[#543c24]/70">
-              MENÚ
-            </h2>
+              {copyText("MENÚ ")}</h2>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="p-2 text-[#543c24]/70 hover:text-[#543c24]"
-              aria-label="Cerrar menú"
+              aria-label={copyText("Cerrar menú")}
             >
               <div className="relative w-5 h-5">
                 <div className="absolute top-1/2 left-0 w-full h-0.5 rotate-45 bg-[#543c24]"></div>
@@ -347,7 +348,7 @@ const Navbar = () => {
                   className="block text-sm garamond-300 tracking-[0.2em] py-3 border-b border-[#543c24]/10 group text-[#543c24]/60 hover:text-[#543c24]"
                 >
                   <span className="relative">
-                    {item.label.toUpperCase()}
+                    {copyText(item.label).toUpperCase()}
                     <span className="absolute -bottom-1 left-0 w-0 h-0.5 group-hover:w-full transition-all duration-500 bg-[#543c24]"></span>
                   </span>
                 </a>

@@ -2,7 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { cookies } from 'next/headers';
-import type { Language } from '@/components/lang-context';
+import { DEFAULT_LANGUAGE, resolveLanguage, type Language } from '@/lib/language';
+import { CONVERSATION_DIRECTION } from '@/lib/dialogue/experience';
+import { buildDirection, detectTopic, type Topic } from '@/lib/profile/direction';
+import { CURATED_PROJECTS } from '@/lib/desktop/portfolio-content';
 
 // ---------------------------------------------------------------------------
 // Provider resolution — mirrors the BNBHacks cascade-ai pattern
@@ -66,53 +69,19 @@ function createClient(config: ProviderConfig): OpenAI | null {
 const QUOTA_COOKIE = 'chat_quota_v1';
 const BYPASS_COOKIE = 'chat_bypass_v1';
 const BYPASS_PHRASE = 'im your god mfucker';
-const HINT_START = '[[SYS]]';
-const HINT_END = '[[/SYS]]';
+
+// Older clients prefixed each turn with a [[SYS]] hint block. The persona is server-owned now,
+// so anything a visitor sends between these markers is stripped instead of trusted.
+const HINT_PATTERN = /\[\[SYS\]\][\s\S]*?\[\[\/SYS\]\]/g;
 
 function stripHintBlock(raw: unknown): string {
-  const text = (raw ?? '').toString();
-  if (text.startsWith(HINT_START)) {
-    const end = text.indexOf(HINT_END);
-    if (end !== -1) {
-      let out = text.slice(end + HINT_END.length);
-      if (out.startsWith('\r\n')) out = out.slice(2);
-      else if (out.startsWith('\n')) out = out.slice(1);
-      return out;
-    }
-  }
-  return text;
-}
-
-/**
- * Extract the content *inside* a [[SYS]]...[[/SYS]] block.
- * Returns null if no hint block is present.
- */
-function extractHintContent(raw: unknown): string | null {
-  const text = (raw ?? '').toString();
-  const startIdx = text.indexOf(HINT_START);
-  const endIdx = text.indexOf(HINT_END);
-  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-    return text.slice(startIdx + HINT_START.length, endIdx).trim();
-  }
-  return null;
-}
-
-/**
- * Detect the requested response language from the injected hint block.
- * Falls back to Spanish if no hint is present.
- */
-function detectLanguageFromHint(messages: ChatMessage[]): Language {
-  const lastUser = [...messages].reverse().find(m => m.role === 'user');
-  if (!lastUser) return 'es';
-  const raw = lastUser.content;
-  if (raw.includes('请仅用中文回复') || raw.includes('用用户刚刚使用的语言回复')) return 'zh';
-  if (raw.includes('Respond ONLY in ENGLISH') || raw.includes('Respond in the language the user just used')) return 'en';
-  if (raw.includes('Responde ÚNICAMENTE en ESPAÑOL') || raw.includes('Responde en el idioma que el usuario acaba de usar')) return 'es';
-  return 'es';
+  return (raw ?? '').toString().replace(HINT_PATTERN, '').trim();
 }
 
 const MAX_PROMPTS = 20;
 const WINDOW_MS = 2.5 * 60 * 60 * 1000; // 2.5h -> 9_000_000 ms
+const MAX_TURNS = 8;
+const MAX_TURN_CHARS = 1200;
 
 type Quota = { remaining: number; resetAt: number };
 
@@ -136,38 +105,30 @@ function serializeQuota(q: Quota) {
 }
 
 /**
- * Developer persona para Responses API
- * — breve, directo, tuteo, y con tus rutas de portfolio/contacto
+ * The projects a visitor can actually open on this site, so the model never invents a route.
+ * Only a turn about the projects themselves needs each summary; every other turn just needs links.
  */
-const PORTFOLIO_CONTEXT = `
-PORTFOLIO PANELS (alexisrs.dev):
-1. Hero — AI chat terminal (this conversation)
-2. This Cafetería — Blockchain agentic commerce platform (Solidity, .NET, React)
-3. Plebes — Social platform for community
-4. NoNamedBot — Discord/Telegram bot project
-5. Wedding Service — Wedding planning & coordination platform
-6. Contact — "Let's talk" form
-
-PROJECTS: Link users to scroll down or visit specific panels.
-If they ask "what have you built?" → mention these projects with brief descriptions.
-`;
-
-const DEVELOPER_PERSONA: Record<Language, string> = {
-  es: `Eres Alexis, desarrollador full-stack mexicano, nacido en Montemorelos, Nuevo León. Tono breve, directo y amable; tuteo; respuesta primero, tecnologías React/Next.js/TS/Node/PostgreSQL/Rails/AWS/Docker/Linux; si piden proyectos -> /portfolio; contacto -> /contacto o alexis.reynasz@hotmail.com; no inventes; idioma del usuario o español por defecto.\nFormato: texto plano, sin markdown (sin **, sin #, sin listas con -). Escribe como en un chat informal.\n${PORTFOLIO_CONTEXT}`,
-  en: `You are Alexis, a Mexican full-stack developer from Montemorelos, Nuevo León. Tone: brief, direct, and friendly; use "you"; answer first, then 1–3 bullets if they add value; technologies React/Next.js/TS/Node/PostgreSQL/Rails/AWS/Docker/Linux; projects -> /portfolio; contact -> /contacto or alexis.reynasz@hotmail.com; don't make things up; user's language or English by default.\nFormat: plain text only, no markdown (no **, no #, no lists with -). Write as in a casual chat.\n${PORTFOLIO_CONTEXT}`,
-  zh: `你是 Alexis，一名来自墨西哥 Nuevo León 州 Montemorelos 的全栈开发者。语气简短、直接、友好；使用"你"称呼；先给出回答，然后视情况补充 1–3 个要点；技术栈 React/Next.js/TS/Node/PostgreSQL/Rails/AWS/Docker/Linux; 若询问项目 -> /portfolio；若联系 -> /contacto 或 alexis.reynasz@hotmail.com；不要编造；使用用户的语言，默认西班牙语。\n格式：纯文本，不使用 markdown（不用 **、#、- 列表）。像在聊天中一样书写。\n${PORTFOLIO_CONTEXT}`,
-};
+function projectCatalog(lang: Language, topic: Topic): string {
+  const heading = lang === 'es'
+    ? 'PROYECTOS ABIERTOS EN ESTE SITIO (usa estos enlaces, no inventes rutas):'
+    : 'PROJECTS OPENABLE ON THIS SITE (use these links, never invent a route):';
+  const detailed = topic === 'projects';
+  const list = CURATED_PROJECTS
+    .map(project => detailed
+      ? `- ${project.title} (${project.category}) — ${project.summary[lang]} → ${project.href}`
+      : `- ${project.title} (${project.category}) → ${project.href}`)
+    .join('\n');
+  return `${heading}\n${list}`;
+}
 
 const NAME_NOTE: Record<Language, string> = {
-  es: 'El usuario se llama {userName}. Usa su nombre naturalmente.',
-  en: "The user's name is {userName}. Use it naturally.",
-  zh: '用户名为 {userName}。自然地使用这个名字。',
+  es: 'El visitante se llama {userName}. Usa su nombre con naturalidad.',
+  en: "The visitor's name is {userName}. Use it naturally.",
 };
 
 const NO_CONTENT: Record<Language, string> = {
   es: 'No obtuve contenido.',
   en: 'No content received.',
-  zh: '未获取到内容。',
 };
 
 const ERROR_MESSAGES: Record<Language, Record<string, string>> = {
@@ -175,6 +136,7 @@ const ERROR_MESSAGES: Record<Language, Record<string, string>> = {
     apiKeyMissing: 'API key no configurada (provider: {provider})',
     invalidJson: 'JSON inválido en el cuerpo del request',
     messagesRequired: 'Mensajes requeridos (array)',
+    systemRoleRejected: 'Los mensajes de sistema los define el servidor',
     quotaExceeded: 'Has alcanzado el límite de {max} prompts en 2h 30m.',
     rateLimit: 'Rate limit alcanzado. Intenta más tarde.',
     genericError: 'Falló la respuesta en vivo. Intenta de nuevo.',
@@ -187,6 +149,7 @@ const ERROR_MESSAGES: Record<Language, Record<string, string>> = {
     apiKeyMissing: 'API key not configured (provider: {provider})',
     invalidJson: 'Invalid JSON in request body',
     messagesRequired: 'Messages required (array)',
+    systemRoleRejected: 'System instructions are defined by the server',
     quotaExceeded: 'You have reached the limit of {max} prompts in 2h 30m.',
     rateLimit: 'Rate limit reached. Try again later.',
     genericError: 'Live response failed. Try again.',
@@ -195,22 +158,10 @@ const ERROR_MESSAGES: Record<Language, Record<string, string>> = {
     internalError: 'Internal server error',
     bypassActivated: 'Bypass activated: no prompt limit for this session.',
   },
-  zh: {
-    apiKeyMissing: '未配置 API 密钥（provider: {provider}）',
-    invalidJson: '请求体中的 JSON 无效',
-    messagesRequired: '需要消息（数组）',
-    quotaExceeded: '你已达到 {max} 条消息的 2 小时 30 分钟限制。',
-    rateLimit: '已达到速率限制。请稍后再试。',
-    genericError: '实时回复失败。请重试。',
-    invalidApiKey: 'API 密钥无效',
-    modelNotAvailable: '你的账户无法使用该模型',
-    internalError: '服务器内部错误',
-    bypassActivated: 'Bypass 已激活：本次会话无消息数量限制。',
-  },
 };
 
 function localize(key: string, lang: Language, vars: Record<string, string> = {}): string {
-  const template = ERROR_MESSAGES[lang]?.[key] ?? ERROR_MESSAGES.es[key] ?? key;
+  const template = ERROR_MESSAGES[lang]?.[key] ?? ERROR_MESSAGES.en[key] ?? key;
   return template.replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? `{${name}}`);
 }
 
@@ -219,51 +170,61 @@ interface ChatMessage {
   content: string;
 }
 
-/**
- * Helper function to get output_text from Responses API
- */
-function getOutputText(response: { output_text?: string }, lang: Language): string {
-  return response.output_text || NO_CONTENT[lang];
-}
+type Turn = { role: 'user' | 'assistant'; content: string };
 
 export async function POST(req: NextRequest) {
   // 0) Validaciones de entorno
   const config = resolveProviderConfig();
   if (!config.apiKey) {
     return NextResponse.json(
-      { error: localize('apiKeyMissing', 'es', { provider: config.provider }) },
+      { error: localize('apiKeyMissing', DEFAULT_LANGUAGE, { provider: config.provider }) },
       { status: 503 }
     );
   }
 
   // 1) Parse body primero (necesario para evaluar bypass incluso si ya no hay cuota)
-  let body: { messages?: ChatMessage[]; userName?: string; stream?: boolean };
+  let body: { messages?: ChatMessage[]; userName?: string; stream?: boolean; language?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json(
-      { error: localize('invalidJson', 'es') },
+      { error: localize('invalidJson', DEFAULT_LANGUAGE) },
       { status: 400 }
     );
   }
 
   const { messages, userName, stream: wantStream } = body ?? {};
+  const lang = resolveLanguage(body?.language);
+
   if (!Array.isArray(messages)) {
     return NextResponse.json(
-      { error: localize('messagesRequired', 'es') },
+      { error: localize('messagesRequired', lang) },
       { status: 400 }
     );
   }
 
-  const lang = detectLanguageFromHint(messages);
+  // 2) La persona es del servidor: un mensaje de sistema del cliente se rechaza, no se ignora.
+  if (messages.some(message => message?.role === 'system' || message?.role === 'developer')) {
+    return NextResponse.json(
+      { error: localize('systemRoleRejected', lang) },
+      { status: 400 }
+    );
+  }
 
-  // 2) Bypass secreto: si el último mensaje de usuario es la frase mágica, activa bypass y responde
-  const lastUser = [...messages].reverse().find(m => m.role === 'user');
-  const lastUserContent = stripHintBlock(lastUser?.content).trim().toLowerCase();
-  if (lastUserContent === BYPASS_PHRASE) {
+  // 3) Turnos limpios: sin bloques [[SYS]], recortados y sin entradas vacías.
+  const turns: Turn[] = messages
+    .filter((message): message is ChatMessage & Turn => message?.role === 'user' || message?.role === 'assistant')
+    .slice(-MAX_TURNS)
+    .map(message => ({ role: message.role, content: stripHintBlock(message.content).slice(0, MAX_TURN_CHARS) }))
+    .filter(turn => turn.content.length > 0);
+
+  const lastUserTurn = turns.findLast(turn => turn.role === 'user');
+
+  // 4) Bypass secreto: si el último mensaje de usuario es la frase mágica, activa bypass y responde
+  if (lastUserTurn?.content.toLowerCase() === BYPASS_PHRASE) {
     const res = NextResponse.json({
       success: true,
-      model: 'gpt-5-nano',
+      model: config.model,
       message: localize('bypassActivated', lang),
     });
     res.cookies.set(BYPASS_COOKIE, '1', {
@@ -276,7 +237,7 @@ export async function POST(req: NextRequest) {
     return res;
   }
 
-  // 3) Enforce cuota por sesión salvo que exista bypass activo
+  // 5) Enforce cuota por sesión salvo que exista bypass activo
   const cookieStore = await cookies();
   const hasBypass = cookieStore.get(BYPASS_COOKIE)?.value === '1';
   let quota = (await readQuota()) ?? initQuota();
@@ -293,28 +254,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 3) Recortar historial para ahorrar tokens (últimas 4-8 mensajes)
-  const SHORT_HISTORY = messages.slice(-8); // últimas 8 entradas
-  // Truncar el último mensaje si es muy largo (≤1200 chars)
-  const last = SHORT_HISTORY[SHORT_HISTORY.length - 1];
-  if (last?.content && last.content.length > 1200) {
-    last.content = last.content.slice(0, 1200);
-  }
-
-  // 4) Construir input para Responses API
-  let developerContent = DEVELOPER_PERSONA[lang];
+  // 6) Instrucciones del servidor: persona + foco del tema + dossier del CV + catálogo de proyectos.
+  const topic = detectTopic(lastUserTurn?.content ?? '', lang);
+  let direction = `${buildDirection(CONVERSATION_DIRECTION, lang, topic)}\n\n${projectCatalog(lang, topic)}`;
   if (userName) {
-    developerContent += `\n\n${NAME_NOTE[lang].replace('{userName}', userName)}`;
+    direction += `\n\n${NAME_NOTE[lang].replace('{userName}', userName)}`;
   }
-
-  // Convertir mensajes del historial a formato de texto, filtrando system messages
-  const conversationHistory = SHORT_HISTORY
-    .filter(msg => msg.role !== 'system')
-    .map(msg =>
-      `${msg.role === 'user' ? 'Usuario' : 'Alexis'}: ${msg.content}`
-    ).join('\n\n');
-
-  const input = `${developerContent}\n\n${conversationHistory}`;
 
   try {
     const client = createClient(config);
@@ -332,22 +277,10 @@ export async function POST(req: NextRequest) {
     const streamRequested = wantStream === true || accept.includes('text/event-stream');
 
     if (config.provider === 'kimi') {
-      // 5a) Kimi uses chat.completions (OpenAI-compatible)
-      // Extract the hint from the last user message and promote it to the system role
-      const lastUserMsg = SHORT_HISTORY.filter(m => m.role === 'user').pop();
-      const hintContent = extractHintContent(lastUserMsg?.content);
-      const systemContent = hintContent
-        ? `${developerContent}\n\n${hintContent}`
-        : developerContent;
-
+      // 7a) Kimi uses chat.completions (OpenAI-compatible)
       const kimiMessages: OpenAI.ChatCompletionMessageParam[] = [
-        { role: 'system', content: systemContent },
-        ...SHORT_HISTORY
-          .filter(msg => msg.role !== 'system')
-          .map(msg => ({
-            role: msg.role as 'user' | 'assistant',
-            content: stripHintBlock(msg.content),
-          })),
+        { role: 'system', content: direction },
+        ...turns,
       ];
 
       // Disable K2.6 "thinking" for snappier portfolio chat, and stream tokens
@@ -423,19 +356,24 @@ export async function POST(req: NextRequest) {
       const completion = await client.chat.completions.create(
         kimiParams as OpenAI.ChatCompletionCreateParamsNonStreaming,
       );
-      text = completion.choices[0]?.message?.content ?? NO_CONTENT[lang];
+      text = completion.choices[0]?.message?.content?.trim() || NO_CONTENT[lang];
       usage = completion.usage ?? null;
     } else {
-      // 5b) OpenAI Responses API (non-streaming JSON for now)
+      // 7b) OpenAI Responses API — the persona travels as `instructions`, never inside a turn.
       const resp = await client.responses.create({
         model: config.model,
-        input,
+        instructions: direction,
+        input: turns,
       });
-      text = getOutputText(resp, lang);
+      text = resp.output_text?.trim() || NO_CONTENT[lang];
       usage = resp.usage ?? null;
     }
 
-    // 6) Decrementar cuota y setear cookie (solo si NO hay bypass)
+    // 8) Decrementar cuota antes de responder, para que el cliente reciba el saldo real.
+    if (!hasBypass) {
+      quota.remaining -= 1;
+    }
+
     const res = NextResponse.json({
       success: true,
       model: config.model,
@@ -446,7 +384,6 @@ export async function POST(req: NextRequest) {
     });
 
     if (!hasBypass) {
-      quota.remaining -= 1;
       // Cookie httpOnly para "sesión/cuota"
       res.cookies.set(QUOTA_COOKIE, serializeQuota(quota), {
         httpOnly: true,
@@ -500,7 +437,7 @@ export async function GET() {
   const config = resolveProviderConfig();
   if (!config.apiKey) {
     return NextResponse.json(
-      { status: 'unhealthy', error: localize('apiKeyMissing', 'es', { provider: config.provider }) },
+      { status: 'unhealthy', error: localize('apiKeyMissing', DEFAULT_LANGUAGE, { provider: config.provider }) },
       { status: 503 }
     );
   }
