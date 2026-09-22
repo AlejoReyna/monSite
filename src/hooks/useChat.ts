@@ -42,7 +42,8 @@ export function useChat(userName?: string) {
     const controller = new AbortController();
     activeRef.current = controller;
     const startedAt = Date.now();
-    const turnId = crypto.randomUUID();
+    // randomUUID exists only in secure contexts; a phone opening the dev server over the LAN is not one.
+    const turnId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const userMessage: ChatMessage = {
       id: `user-${turnId}`, role: 'user', content: content.trim(), timestamp: new Date(), pending: true,
     };

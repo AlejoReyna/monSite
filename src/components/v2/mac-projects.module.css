@@ -208,7 +208,7 @@
     right: 16px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-content: start;
-    gap: 24px 16px;
+    gap: 12px;
     padding: 8px;
     overflow: auto;
     transition: filter .2s ease, opacity .2s ease;
@@ -217,8 +217,11 @@
   .desktopFolders .appArt img { width: 58px; height: 58px; border-radius: 13px; }
   .desktopFolders .transparentArt { height: 75px; }
   .desktopFolders .transparentArt img { width: 75px; height: 75px; border-radius: 0; }
-  .desktopFolders .folderButton { min-height: 104px; }
-  .desktopFolders .folderButton strong { font-size: 14px; margin-top: 10px; }
+  /* Minimal cards: a quiet surface and a hairline edge around each project; the icon and name stay as they were. */
+  .desktopFolders .folderButton { justify-content: center; min-height: 124px; padding: 10px; border-color: #ffffff14; border-radius: 16px; background: #ffffff08; }
+  .desktopFolders .folderButton:hover, .desktopFolders .folderButton:active { background: #ffffff10; }
+  /* The label clips its overflow, so without flex-shrink: 0 a short screen squeezes it and cuts its descenders. */
+  .desktopFolders .folderButton strong { flex-shrink: 0; font-size: 14px; margin-top: 10px; text-shadow: none; }
   .desktopFolders[inert] { filter: blur(5px); opacity: .45; pointer-events: none; }
 }
 @media (prefers-reduced-motion: reduce) { .desktopFolders, .desktopFolders[data-animate] .folderButton { transition: none; } }

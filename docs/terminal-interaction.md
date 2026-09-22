@@ -9,6 +9,10 @@ model names, or progress percentages are fabricated.
 ## Interaction
 
 - The welcome menu is immediately usable by pointer, keyboard, or numbers 1–4.
+- On phones, one of twelve conversation openers (`openers` in
+  `src/lib/terminal/copy.ts`) sits above the welcome menu's buttons. Each page load shows
+  the next one, kept in `localStorage` as `terminal_opener`; every language shows
+  the same slot, and a tap asks it like typed text.
 - `/projects`, `/about`, `/contact`, `/ai`, `/menu`, `/help`, `/clear`, and `/exit`
   run locally. Shell aliases include `ls` and `whoami`. Ordinary text starts or
   continues the AI conversation. Unknown slash commands show local feedback.
@@ -17,7 +21,8 @@ model names, or progress percentages are fabricated.
 - Enter submits; Shift+Enter inserts a newline. Up/Down recall input history at
   the first/last line and restore the current draft. Tab completes an unambiguous
   slash prefix. A visible Back to menu control remains above the output in every
-  section, including the AI conversation. Returning to the menu preserves drafts
+  section, including the AI conversation; on phones it sits in white in the title
+  bar's right corner, so the output keeps the full height. Returning to the menu preserves drafts
   and stops any active reply. The composer has no command shortcut bar.
 - Streaming shows actual output and elapsed time. Esc, Ctrl+C, and the stop
   button interrupt a reply. Ctrl+C respects selected text. Ctrl+L or `/clear`
@@ -27,6 +32,13 @@ model names, or progress percentages are fabricated.
   the last unsuccessful turn instead of duplicating it.
 - A single scrollback viewport respects visitors reading earlier output. A
   latest-output button returns to the end. The composer stays outside scrollback.
+- Local sections (About, Projects, Help, the AI intro) open at their first line
+  instead of scrolled to their end, so the short phone terminal never starts
+  mid-paragraph; a section that fits still ends at the bottom. AI replies keep
+  following the output.
+- On touch screens, tapping a menu option, example, or retry leaves the composer
+  unfocused, so the on-screen keyboard opens only when the visitor taps the input.
+  Typed commands keep the keyboard open.
 
 ## Responsive layout and access
 

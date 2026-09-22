@@ -108,6 +108,7 @@
 .turn { margin-block: 1em; }
 .localOutput { margin: .55em 0 0 3ch; }
 .localOutput:empty { display: none; }
+.aboutPhoto { display: block; width: min(100%, 200px); height: auto; margin: 1em 0; border: 1px solid var(--term-line); border-radius: 10px; background: #ffffff08; }
 .projectList { display: grid; gap: .15em; margin-top: .65em; }
 .projectList button { display: flex; align-items: baseline; gap: 1ch; padding: .25em 0; border: 0; background: none; color: #80c9df; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
 .projectList button:hover { text-decoration: underline; text-underline-offset: .2em; }
@@ -203,6 +204,10 @@
 .compact .windowControls { gap: 10px; }
 .compact .windowControls button { position: relative; }
 .compact .windowControls button::before { content: ""; position: absolute; inset: -8px -4px; }
+/* Back to menu sits in the title bar's right corner; its tap area reaches past the bar's bottom edge. */
+.titlebarNavigation { display: flex; align-self: stretch; margin-left: auto; }
+.titlebarNavigation button { position: relative; z-index: 1; padding: 0; border: 0; background: none; color: #fff; font: 13px/1 var(--term-font); white-space: nowrap; cursor: pointer; }
+.titlebarNavigation button::before { content: ""; position: absolute; inset: 0 -8px -8px; }
 .compact .workspace { --terminal-size: 13px; line-height: 1.45; }
 .compact .scrollback { padding: 8px 12px; scroll-padding-block: 8px; }
 .compact .welcome { margin: 0; }
@@ -210,13 +215,17 @@
 .compact .welcomeBody { margin: 0; }
 .compact .welcomeBody strong { font-size: 14px; }
 .compact .welcomeBody p:last-child { margin-top: 4px; color: var(--term-muted); }
-.compact .menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin-top: 6px; }
-.compact .menu button { min-height: 34px; align-items: center; padding: 4px 8px; border: 1px solid var(--term-line); border-radius: 6px; background: #ffffff04; font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
+.compact .menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin-top: 4px; }
+/* A two-line label ("Talk to Alexis AI version") wraps evenly and barely outgrows the one-line tiles. */
+.compact .menu button { min-height: 34px; align-items: center; padding: 3px 8px; border: 1px solid var(--term-line); border-radius: 6px; background: #ffffff04; font-size: 12px; line-height: 1.2; overflow-wrap: anywhere; text-wrap: balance; }
 .compact .menu button[data-selected="true"] { border-color: #8ad69b66; background: #8ad69b0a; }
 .compact .menuMarker, .compact .menuNumber, .compact .menuHint, .compact .keyboardHint { display: none; }
+/* This page load's conversation opener, one line above the launcher; a tap asks it. */
+.opener { display: flex; align-items: baseline; gap: 1ch; width: 100%; margin-top: 4px; padding: 4px 2px; border: 0; background: none; color: var(--term-text); text-align: left; cursor: pointer; }
+.opener > span { color: var(--term-accent); }
 .compact .localOutput { margin-left: 0; }
 .compact .composer { padding: 0 12px 4px; }
-.compact .inputRow { align-items: center; gap: 6px; padding-block: 0; }
+.compact .inputRow { align-items: center; gap: 6px; padding-block: 0; border-top: 0; }
 .compact .inputRow > .prompt { padding-top: 0; }
 .compact .inputRow textarea { min-height: 26px; font-size: 13px; line-height: 1.35; padding-block: 4px; max-height: min(128px, 22svh); }
 .compact .send { width: 32px; height: 32px; border-radius: 6px; }
@@ -224,7 +233,6 @@
 .compact .statusLine { font-size: 10px; gap: 6px; padding-top: 2px; flex-wrap: wrap; }
 .compact .statusRight { max-width: 55%; margin-left: auto; }
 .compact .contactForm input, .compact .contactForm textarea { font-size: 16px; }
-.compact .sectionNavigation button,
 .compact .projectList button, .compact .helpList button,
 .compact .examples button, .compact .retry { min-height: 44px; }
 @media (prefers-reduced-motion: reduce) { .cursor, .activityMark { animation: none; } }

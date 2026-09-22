@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import Image from "next/image";
 import { ArrowUp, Folder, Maximize2, Minimize2, Minus, Square, X } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
 import { ContactEmailForm } from "@/components/contact-gateway";
@@ -30,6 +31,20 @@ type ChatInterfaceProps = {
 
 type LocalEntry = { id: string; timestamp: Date; command: string; kind: TerminalCommand | "unknown" | "opened"; output?: string };
 const stripHint = (content: string) => content.replace(/^\[\[SYS\]\][\s\S]*?\[\[\/SYS\]\]\r?\n?/, "");
+// randomUUID exists only in secure contexts; a phone opening the dev server over the LAN is not one.
+const newId = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+// One conversation opener per page load, shared by every mount; each reload moves on to the next one.
+let pageOpener: number | undefined;
+const readOpener = () => {
+  if (pageOpener === undefined) {
+    let last = -1;
+    try { last = Number(window.localStorage.getItem("terminal_opener") ?? -1); } catch {}
+    pageOpener = Number.isInteger(last) && last >= 0 ? (last + 1) % TERMINAL_COPY.en.openers.length : 0;
+    try { window.localStorage.setItem("terminal_opener", String(pageOpener)); } catch {}
+  }
+  return pageOpener;
+};
+const unchanging = () => () => {};
 
 export default function ChatInterface({
   className, terminalClassName, variant = "card", theme = "default", onClose, onMinimize,
@@ -38,6 +53,9 @@ export default function ChatInterface({
 }: ChatInterfaceProps) {
   const { language } = useLanguage();
   const copy = TERMINAL_COPY[language];
+  // The portrait sits between the first paragraph of About and the rest.
+  const [aboutLead, ...aboutRest] = TERMINAL_ABOUT[language].split("\n\n");
+  const opener = useSyncExternalStore(unchanging, readOpener, () => null);
   const chat = useChat();
   const [mode, setMode] = useState<"shell" | "assistant">("shell");
   const [input, setInput] = useState("");
@@ -53,6 +71,7 @@ export default function ChatInterface({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const followOutput = useRef(true);
+  const revealId = useRef<string | null>(null);
   const contactRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const busy = chat.isLoading;
@@ -81,7 +100,14 @@ export default function ChatInterface({
     if (!viewport) return;
     // Keep the welcome screen at its beginning; only follow actual output.
     if (!chat.messages.length && !localEntries.length && !busy && !chat.error) return;
-    if (followOutput.current) viewport.scrollTop = viewport.scrollHeight;
+    // A section opens at its first line. Following it to the end left the short phone terminal
+    // showing only the last lines of About, Projects or Help; a section that fits still ends at the bottom.
+    const section = revealId.current ? viewport.querySelector(`[data-entry="${revealId.current}"]`) : null;
+    revealId.current = null;
+    if (section) {
+      viewport.scrollTop += section.getBoundingClientRect().top - viewport.getBoundingClientRect().top - 12;
+      followOutput.current = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 48;
+    } else if (followOutput.current) viewport.scrollTop = viewport.scrollHeight;
     else setUnread(true);
   }, [chat.messages, localEntries, busy, chat.error]);
 
@@ -92,14 +118,19 @@ export default function ChatInterface({
     field.style.height = `${Math.min(field.scrollHeight, 128)}px`;
   }, [input]);
 
-  const focusInput = () => requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
+  // On touch screens a focused composer raises the keyboard over the output that was just opened,
+  // so a tap leaves it closed; typed commands keep the keyboard the visitor is already using.
+  const focusInput = (typed = true) => {
+    if (!typed && window.matchMedia("(pointer: coarse)").matches) return;
+    requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
+  };
   const scrollToLatest = () => {
     followOutput.current = true;
     setUnread(false);
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   };
   const addEntry = (command: string, kind: LocalEntry["kind"], output?: string) => {
-    const id = crypto.randomUUID();
+    const id = newId();
     setLocalEntries(previous => [...previous, { id, timestamp: new Date(), command, kind, output }]);
     return id;
   };
@@ -160,6 +191,7 @@ export default function ChatInterface({
         focusContact();
         return;
       }
+      revealId.current = id;
     } else {
       if (mode !== "assistant") {
         addEntry("/ai", "/ai");
@@ -168,7 +200,7 @@ export default function ChatInterface({
       const payload = buildEnhancedHint(detectEnhancedIntent(value, language), language) + "\n" + value;
       void chat.sendMessage(payload);
     }
-    focusInput();
+    focusInput(fromComposer);
   };
 
   const handleInputKey = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -221,10 +253,14 @@ export default function ChatInterface({
 
   const prompt = (assistant = false) => <span className={styles.prompt} aria-hidden="true">{assistant ? "❯" : theme === "windows" ? "C:\\ALEXIS>" : <><span>➜</span><span className={styles.directory}>~</span></>}</span>;
   const renderLocal = (entry: LocalEntry) => (
-    <div className={styles.turn} key={entry.id}>
+    <div className={styles.turn} key={entry.id} data-entry={entry.id}>
       <div className={styles.commandLine}>{prompt()}<span className={entry.kind === "/ai" ? styles.assistantTitle : undefined}>{entry.kind === "/ai" ? copy.ai : entry.command}</span></div>
       <div className={`${styles.localOutput} ${entry.kind === "/ai" ? styles.assistantOutput : ""}`}>
-        {entry.kind === "/about" && <p>{TERMINAL_ABOUT[language]}</p>}
+        {entry.kind === "/about" && <>
+          <p>{aboutLead}</p>
+          <Image className={styles.aboutPhoto} src="/alexis-portrait.jpg" alt={copy.aboutPhoto} width={1200} height={1600} sizes="200px" />
+          <p>{aboutRest.join("\n\n")}</p>
+        </>}
         {entry.kind === "/projects" && <>
           <p className={styles.muted}>{copy.projectsIntro}</p>
           <div className={styles.projectList}>
@@ -256,6 +292,10 @@ export default function ChatInterface({
     </div>
   );
 
+  // Phones carry the way back in the title bar's right corner, leaving the output the terminal's full height.
+  const navInTitlebar = compact && !isSheet;
+  const backToMenu = !menuId && <button type="button" onClick={() => execute("/menu")}>{copy.backToMenu}</button>;
+
   const shell = <>
     {!isSheet && <div className={styles.titlebar} data-drag-handle="" onDoubleClick={onToggleMaximize}>
       <div className={styles.windowControls} onPointerDown={event => event.stopPropagation()} onDoubleClick={event => event.stopPropagation()}>
@@ -264,11 +304,10 @@ export default function ChatInterface({
         <button type="button" onClick={onToggleMaximize} disabled={!onToggleMaximize} aria-label={maximized ? copy.restore : copy.maximize} title={maximized ? copy.restore : copy.maximize} aria-pressed={maximized}>{maximized ? <Minimize2 size={9} /> : <Maximize2 size={9} />}</button>
       </div>
       <div className={styles.title}><Folder size={13} aria-hidden="true" /><span>{titleOverride ?? (compact ? (mode === "assistant" ? copy.assistant : copy.shell) : `alexis — portfolio — ${mode === "assistant" ? "AI" : "shell"}`)}</span></div>
+      {navInTitlebar && backToMenu && <div className={styles.titlebarNavigation} onPointerDown={event => event.stopPropagation()} onDoubleClick={event => event.stopPropagation()}>{backToMenu}</div>}
     </div>}
     <div className={styles.workspace}>
-      {!menuId && <div className={styles.sectionNavigation}>
-        <button type="button" onClick={() => execute("/menu")}>{copy.backToMenu}</button>
-      </div>}
+      {!navInTitlebar && backToMenu && <div className={styles.sectionNavigation}>{backToMenu}</div>}
       <div className={styles.scrollback} ref={scrollRef} tabIndex={0} role="region" aria-label={copy.transcript} data-carousel-scrollable="true" onScroll={event => {
         const element = event.currentTarget;
         followOutput.current = element.scrollHeight - element.scrollTop - element.clientHeight < 48;
@@ -277,6 +316,7 @@ export default function ChatInterface({
         {welcome && <div className={styles.welcome}>
           <div className={styles.commandLine}>{prompt()}<span>./portfolio</span></div>
           <div className={styles.welcomeBody}><strong>{copy.title}</strong><p>{compact ? copy.compactWelcome : copy.welcome}</p>{!compact && <p className={styles.muted}>{copy.intro}</p>}</div>
+          {compact && menuId === "welcome" && opener !== null && <button type="button" className={styles.opener} onClick={() => execute(copy.openers[opener])}><span aria-hidden="true">›</span>{copy.openers[opener]}</button>}
           {renderMenu("welcome")}
         </div>}
         {entries.map(item => item.source === "local" ? renderLocal(item.entry) : <div key={item.entry.id} className={styles.turn}>
@@ -291,7 +331,7 @@ export default function ChatInterface({
           <p>{chat.isRateLimit ? copy.rateLimit : chat.error === "timeout" ? copy.timeout : copy.error}</p>
           {chat.error !== "timeout" && <details><summary>{copy.details}</summary><p>{chat.error}</p></details>}
         </div>}
-        {canRetry && <button type="button" className={styles.retry} onClick={() => { scrollToLatest(); void chat.retry(); focusInput(); }}>↻ {copy.retry}</button>}
+        {canRetry && <button type="button" className={styles.retry} onClick={() => { scrollToLatest(); void chat.retry(); focusInput(false); }}>↻ {copy.retry}</button>}
       </div>
       {unread && <button type="button" className={styles.latest} onClick={scrollToLatest}>{copy.latest}</button>}
       <div className={styles.composer}>
