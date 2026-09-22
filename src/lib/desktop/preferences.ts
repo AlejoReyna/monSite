@@ -1,6 +1,12 @@
 "use client";
 
 import {
+  DEFAULT_DOCK_LAYOUT,
+  DOCK_STORAGE_KEY,
+  sanitizeDockLayout,
+  type DockLayout,
+} from "./dock-layout";
+import {
   DEFAULT_ICON_LAYOUT,
   ICON_LAYOUT_STORAGE_KEY,
   sanitizeIconLayout,
@@ -63,6 +69,34 @@ export function saveIconLayout(layout: DesktopIconLayout): void {
   } catch {
     /* ignore quota / private mode */
   }
+}
+
+// The Dock size shares the icon arrangement's lifetime: it is part of how this visit's desktop is
+// laid out, not a setting to carry over to the next one.
+export function loadDockLayout(): DockLayout {
+  if (typeof window === "undefined") return DEFAULT_DOCK_LAYOUT;
+  try {
+    const raw = window.sessionStorage.getItem(DOCK_STORAGE_KEY);
+    return raw ? sanitizeDockLayout(JSON.parse(raw)) : DEFAULT_DOCK_LAYOUT;
+  } catch {
+    return DEFAULT_DOCK_LAYOUT;
+  }
+}
+
+export function saveDockLayout(layout: DockLayout): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(DOCK_STORAGE_KEY, JSON.stringify(layout));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+/** Set on <html> so the Dock, the desktop icon layer and the windows that keep clear of it all read
+    the same size — they live in sibling trees, and a drag repaints through this without a render. */
+export function applyDockSize(size: number): void {
+  if (typeof document === "undefined") return;
+  document.documentElement.style.setProperty("--mac-dock-size", `${size}px`);
 }
 
 export function applyMotionPreference(reduced: boolean): void {

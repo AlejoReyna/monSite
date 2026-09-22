@@ -75,31 +75,6 @@ async function playAudioBuffer(buffer: ArrayBuffer, signal: AbortSignal) {
   }
 }
 
-export function AssistantOrbButton() {
-  const { openMenu, setOpenMenu, assistantState } = useDesktopStore();
-  const open = openMenu === "assistant";
-  return (
-    <button
-      type="button"
-      className={styles.iconBtn}
-      aria-label={ASSISTANT_NAME}
-      aria-expanded={open}
-      onClick={() => setOpenMenu(open ? null : "assistant")}
-    >
-      <span
-        className={`${styles.orb} ${
-          assistantState === "listening"
-            ? styles.orbListening
-            : assistantState === "thinking" || assistantState === "executing"
-              ? styles.orbThinking
-              : ""
-        }`.trim()}
-        aria-hidden="true"
-      />
-    </button>
-  );
-}
-
 export function AssistantPanel() {
   const { language } = useLanguage();
   const store = useDesktopStore();
@@ -595,7 +570,6 @@ export function AssistantControl() {
 
   return (
     <div className={styles.item} style={{ position: "relative" }} ref={rootRef}>
-      <AssistantOrbButton />
       <AssistantPanel />
     </div>
   );

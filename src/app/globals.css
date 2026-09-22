@@ -8,6 +8,15 @@
   --accent-3: #a78bfa; /* violet-400 */
 }
 
+/* macOS Dock size, in one place because the Dock, the desktop icon layer and the windows that keep
+   clear of it live in sibling trees. dock-layout.ts owns the number; preferences.ts writes it onto
+   <html> when the visitor resizes the Dock. The gutter is the Dock's whole footprint: tile plus its
+   padding, border and the gap below it, with a little air above. */
+:root {
+  --mac-dock-size: 48px;
+  --mac-dock-gutter: calc(var(--mac-dock-size) * 1.42 + 20px);
+}
+
 /* Custom CSS properties for theming */
 :root {
   --color-background: var(--background);

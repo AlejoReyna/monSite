@@ -1,6 +1,6 @@
 /* Desktop icons and the Finder window are separate layers: the icons stay mounted
    behind the terminal (z 30) while the window opens above it. */
-.desktopSurface, .surface { position: absolute; inset: 30px 0 88px; pointer-events: none; color: #f3f3f4; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; }
+.desktopSurface, .surface { position: absolute; inset: 30px 0 var(--mac-dock-gutter, 88px); pointer-events: none; color: #f3f3f4; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; }
 .desktopSurface { z-index: 25; }
 .surface { z-index: 35; }
 .surfaceFullScreen { position: fixed; inset: 0; z-index: 100; }
@@ -14,17 +14,15 @@
 /* Project artwork is transparent and should not inherit the black rounded app tile. */
 .transparentArt { height: 60px; }
 .transparentArt img { width: 60px; height: 60px; border-radius: 0; box-shadow: none; object-fit: contain; background: transparent; }
-.pixelArtAsset img, .artisanalArt img { image-rendering: pixelated; }
-/* The Artisanal source is a five-frame strip; cover keeps the middle robot in view. */
-.artisanalArt img { object-fit: cover; }
+.pixelArtAsset img { image-rendering: pixelated; }
 /* The existing BSC wordmark is cropped to its left-hand rhomboid. */
 .bscArt img { object-fit: cover; object-position: left center; }
 /* Cindy & Jorge's source monogram is black; invert it for contrast on the dark desktop. */
 .cindyArt img { filter: invert(1); }
 /* Credly badge is a transparent round medal, not a square app icon. */
 .badgeArt img { border-radius: 0; box-shadow: none; object-fit: contain; background: transparent; }
-/* Brand-mark icons (Inverater, Plebes, Artisanal Brew) reuse the app slot inside the pixel Finder grid. */
-.grid .appArt { width: auto; height: auto; }.grid .appArt img { width: 56px; height: 56px; border-radius: 12px; }
+/* In the Finder grid every icon sits in the same 76px box, so the names line up. */
+.grid .appArt { width: 76px; height: 76px; }.grid .appArt img { width: 56px; height: 56px; border-radius: 12px; }
 .grid .transparentArt img { width: 73px; height: 73px; border-radius: 0; }
 /* The layer spans the desktop but lets clicks through to the wallpaper; each icon is placed from
    icon-layout.ts via --icon-right/--icon-top (see desktop-icons.tsx). */
@@ -39,17 +37,13 @@
   .desktopFolders .folderButton[data-selected] > span:first-child { border-radius: 6px; background: #0000004d; box-shadow: 0 0 0 3px #0000004d; }
   .desktopFolders .folderButton[data-selected] strong { padding: 0 5px; border-radius: 4px; background: #0a64d6; text-shadow: none; }
   /* Drag image: shares the desktop's coordinates but sits above windows and the Dock. */
-  .dragGhost { inset: 30px 0 88px; z-index: 45; will-change: transform; }
+  .dragGhost { inset: 30px 0 var(--mac-dock-gutter, 88px); z-index: 45; will-change: transform; }
   .dragGhost .folderButton { pointer-events: none; opacity: .6; }
 }
 
-/* Pixel Finder. Outlines are box-shadows offset along one axis, so the empty
-   corner squares read as rounded pixel corners. Chrome uses 3px art pixels,
-   glyphs 2px and folders 4px; Press Start 2P stays crisp at 8px steps. */
+/* Finder in the macOS dark appearance, framed like Mail and Terminal: 16px corners, a hairline
+   border and a soft shadow, with a toolbar in the lighter window chrome. */
 .window {
-  --pixel-font: var(--font-press-start), "Courier New", ui-monospace, monospace;
-  --frame: #5b5b64;
-  --ink: #050608;
   pointer-events: auto;
   position: absolute;
   top: 50%;
@@ -60,86 +54,152 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: #1c1c20;
-  /* Frame, then four offset copies that give the hard 6px shadow the same notched corners. */
-  box-shadow: 0 -3px var(--frame), 3px 0 var(--frame), 0 3px var(--frame), -3px 0 var(--frame), 6px 3px var(--ink), 6px 9px var(--ink), 3px 6px var(--ink), 9px 6px var(--ink);
-  font-family: var(--pixel-font);
-  -webkit-font-smoothing: none;
-  animation: appear .24s steps(4, end);
+  border: 1px solid #606060;
+  border-radius: 16px;
+  color: #ffffffd9;
+  background: #1e1e1e;
+  box-shadow: 0 18px 45px #0006, inset 0 0 0 1px #ffffff06;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  animation: appear .2s ease-out;
+  /* The layout follows the window, not the viewport, so a resized window reflows like Finder. */
+  container-type: inline-size;
 }
-.expanded { top: 0; left: 0; width: 100%; height: 100%; transform: none; box-shadow: none; }
-.toolbar { min-height: 50px; flex-shrink: 0; display: flex; align-items: center; gap: 14px; padding: 0 15px; border-bottom: 3px solid #0d0d10; background: #2a2a2f; box-shadow: inset 0 3px #3b3b42; user-select: none; }
-.traffic { display: flex; align-items: center; gap: 6px; margin-right: 12px; }
-.traffic button { display: block; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.expanded { top: 0; left: 0; width: 100%; height: 100%; border-radius: 0; transform: none; box-shadow: none; }
+.toolbar { min-height: 50px; flex-shrink: 0; display: flex; align-items: center; gap: 14px; padding: 0 15px; border-bottom: 1px solid #000000b3; background: #2a2a2a; user-select: none; }
+.traffic { display: flex; align-items: center; gap: 9px; margin-right: 12px; }
+.traffic button { display: grid; place-items: center; width: 14px; height: 14px; padding: 0; border-radius: 50%; cursor: pointer; }
 .traffic svg, .navigation svg, .detailText a svg { display: block; }
-.traffic [data-pixel="g"] { opacity: 0; }
-.traffic:hover [data-pixel="g"], .traffic button:focus-visible [data-pixel="g"] { opacity: 1; }
-.navigation { display: flex; align-items: center; color: #d2d2d5; }
-.navigation button { display: grid; place-items: center; padding: 5px; border: 0; color: inherit; background: transparent; cursor: pointer; }
-.navigation button:hover { background: #ffffff17; box-shadow: 0 -2px #ffffff17, 2px 0 #ffffff17, 0 2px #ffffff17, -2px 0 #ffffff17; }
-.toolbar > strong { position: absolute; left: 50%; transform: translateX(-50%); color: #ececef; font: 8px/1 var(--pixel-font); white-space: nowrap; }
-.body { display: flex; flex: 1; min-height: 0; }
-.content { flex: 1; min-width: 0; overflow: auto; background: #1c1c20; overscroll-behavior: contain; scrollbar-color: #56565e #151518; }
-.content::-webkit-scrollbar { width: 12px; }
-.content::-webkit-scrollbar-track { background: #151518; }
-.content::-webkit-scrollbar-thumb { border: 3px solid #151518; background: #56565e; }
+/* The glyphs stay hidden until the lights are hovered, as on macOS. */
+.traffic svg { opacity: 0; stroke-width: 3; }
+.traffic:hover svg, .traffic button:focus-visible svg { opacity: 1; }
+.close { color: #65130e; background: #ff5f57; border: 1px solid #df4744; }
+.minimize { color: #795600; background: #ffbd00; border: 1px solid #dda000; }
+.zoom { color: #075d12; background: #28c840; border: 1px solid #1eac32; }
+.navigation { display: flex; align-items: center; color: #ffffffd9; }
+.navigation button { display: grid; place-items: center; width: 30px; height: 28px; padding: 0; border: 0; border-radius: 6px; color: inherit; background: transparent; cursor: pointer; }
+.navigation button:hover { background: #ffffff17; }
+.navigation button:active { background: #ffffff24; }
+.toolbar > strong { position: absolute; left: 50%; transform: translateX(-50%); max-width: calc(100% - 250px); overflow: hidden; text-overflow: ellipsis; color: #ffffffd9; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.body { display: flex; flex: 1; min-width: 0; min-height: 0; }
+.content { flex: 1; min-width: 0; min-height: 0; overflow: auto; background: #1e1e1e; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #ffffff40 transparent; }
 .grid { display: grid; grid-template-columns: repeat(5, minmax(98px, 1fr)); align-content: start; gap: 26px 16px; padding: 27px 28px 34px; }
 .grid .folderButton { gap: 10px; padding: 8px 4px; border: 0; border-radius: 0; }
 .grid .folderButton:hover { background: transparent; }
-.grid .folderButton strong { display: -webkit-box; margin-top: 0; padding: 2px 4px; font: 8px/12px var(--pixel-font); white-space: normal; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.grid .folderButton:hover strong { background: #0a60c8; box-shadow: 0 -2px #0a60c8, 2px 0 #0a60c8, 0 2px #0a60c8, -2px 0 #0a60c8; }
-.pixelIcon { display: block; filter: drop-shadow(4px 4px 0 #00000059); }
-.grid .folderButton:hover .pixelIcon { translate: 0 -4px; }
-.detail { padding: 24px 27px 30px; }
-/* --pixel-art is a dithered PNG at 1/4 size (see PixelCover); nearest-neighbour upscaling keeps 4px blocks. */
-.cover { display: grid; place-items: center; height: 180px; padding: 0 16px; background: var(--pixel-art, none) 0 0 / var(--pixel-art-size, auto) no-repeat, #172525; box-shadow: 0 -3px var(--ink), 3px 0 var(--ink), 0 3px var(--ink), -3px 0 var(--ink); image-rendering: pixelated; }
-.cover > span { --mark-pixel: 3px; color: #fff; font: 24px/1.25 var(--pixel-font); text-align: center; overflow-wrap: anywhere; text-shadow: 0 calc(var(--mark-pixel) * -1) var(--ink), var(--mark-pixel) 0 var(--ink), 0 var(--mark-pixel) var(--ink), calc(var(--mark-pixel) * -1) 0 var(--ink), calc(var(--mark-pixel) * 2) calc(var(--mark-pixel) * 2) var(--ink); }
-.detailText { padding: 24px 3px 3px; }
-.detailText > small { display: flex; align-items: center; gap: 10px; color: #a3a3ab; font: 8px/1 var(--pixel-font); text-transform: uppercase; }
-.detailText > small::before { content: ""; width: 8px; height: 8px; flex-shrink: 0; background: var(--folder-color); box-shadow: 0 0 0 2px var(--ink); }
-.detailText h2 { margin: 16px 0 12px; color: #f5f5f6; font: 16px/1.5 var(--pixel-font); text-shadow: 2px 2px var(--ink); }
-.detailText p { max-width: 60ch; margin: 0; color: #bdbdc3; font: 20px/1.2 var(--font-vt323), ui-monospace, monospace; -webkit-font-smoothing: antialiased; }
-.detailText ul { display: flex; flex-wrap: wrap; gap: 12px; padding: 2px; margin: 20px 0 26px; list-style: none; }
-.detailText li { padding: 6px 8px; color: #d0d0d4; background: #26262b; box-shadow: 0 -2px #4b4b53, 2px 0 #4b4b53, 0 2px #4b4b53, -2px 0 #4b4b53; font: 8px/1 var(--pixel-font); }
-.detailText a { display: inline-flex; align-items: center; gap: 12px; padding: 12px 14px; color: #fff; background: #0a84ff; box-shadow: inset 0 3px #5cb0ff, inset 0 -3px #0561c2, 0 -3px var(--ink), 3px 0 var(--ink), 0 3px var(--ink), -3px 0 var(--ink), 0 6px var(--ink); font: 8px/1 var(--pixel-font); text-decoration: none; text-transform: uppercase; }
-.detailText a:hover { background: #2b95ff; }
-.detailText a:active { translate: 0 3px; box-shadow: inset 0 3px #0561c2, 0 -3px var(--ink), 3px 0 var(--ink), 0 3px var(--ink), -3px 0 var(--ink); }
-.status { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 29px; padding: 8px 16px; border-top: 3px solid #0d0d10; color: #8f8f97; background: #242429; box-shadow: inset 0 3px #2e2e34; font: 8px/1.5 var(--pixel-font); }
-.status span { min-width: 0; }
-/* Monetta: an App Store-style page (icon header, info row, screenshots) in the same pixel language. */
-.appHeader { display: flex; align-items: center; gap: 24px; }
-.appIcon { flex-shrink: 0; filter: drop-shadow(6px 6px 0 #00000059); }
-.appHeader .detailText { min-width: 0; padding: 0 3px 6px; }
-.appHeader .detailText p { margin-bottom: 18px; }
-.appInfo { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 26px 0 0; padding: 16px 0; border-block: 3px solid #0d0d10; }
+.grid .folderButton strong { display: -webkit-box; margin-top: 0; padding: 1px 6px; border-radius: 4px; font-size: 12px; font-weight: 400; line-height: 15px; white-space: normal; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+/* Hover shows Finder's selection: a grey plate behind the icon and an accent pill behind the name. */
+.grid .folderButton > span:first-child { border-radius: 8px; }
+.grid .folderButton:hover > span:first-child { background: #ffffff14; box-shadow: 0 0 0 4px #ffffff14; }
+.grid .folderButton:hover strong { color: #fff; background: #0a64d6; }
+.detail { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 30px; min-height: 100%; padding: 24px 27px 30px; box-sizing: border-box; }
+/* Previews sit on a dark rounded panel, like Quick Look. */
+.cover { position: relative; min-width: 0; min-height: 310px; overflow: hidden; border-radius: 12px; background: #0c0c0d; box-shadow: 0 0 0 1px #ffffff14, 0 12px 30px #00000059; }
+.cover img { object-fit: cover; }
+.cover .coverContain { padding: 18%; object-fit: contain; }
+.coverVideo { width: 100%; height: 100%; display: block; border: 0; background: transparent; object-fit: contain; }
+.detail > .detailText { align-self: center; }
+.detailText { min-width: 0; padding: 3px; }
+.detailText > small { display: flex; align-items: center; gap: 8px; color: #ffffff8c; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+/* A Finder tag dot in the project's colour. */
+.detailText > small::before { content: ""; width: 9px; height: 9px; flex-shrink: 0; border-radius: 50%; background: var(--folder-color); box-shadow: inset 0 0 0 1px #00000033; }
+.detailText h2 { margin: 10px 0; color: #fff; font-size: 26px; font-weight: 700; line-height: 1.15; letter-spacing: -.015em; }
+.detailText p { max-width: 60ch; margin: 0; color: #ffffffb3; font-size: 14px; line-height: 1.55; }
+.detailText ul { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 18px 0 24px; list-style: none; }
+.detailText li { padding: 4px 10px; border-radius: 999px; color: #ffffffc7; background: #ffffff12; box-shadow: inset 0 0 0 1px #ffffff14; font-size: 12px; line-height: 16px; }
+/* A project with a work history fills the window: the preview spans its full height and only the
+   text column scrolls. */
+.detailLong { height: 100%; }
+.detailLong > .detailText, .detailLong > .appDetails { align-self: stretch; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #ffffff40 transparent; }
+.detailText .role { margin: -4px 0 12px; color: #ffffff8c; font-size: 13px; }
+.detailText .role strong { color: #fff; font-weight: 700; }
+/* Stacked facts (role, then wedding date) sit close together. */
+.detailText .role + .role { margin-top: -8px; }
+/* An unreleased app says so up front: an amber pill where released work shows its category. */
+.detailText > small.devStatus { width: fit-content; padding: 3px 9px; border-radius: 999px; color: #ffcf70; background: #ffb0201f; box-shadow: inset 0 0 0 1px #ffb02047; }
+.detailText > small.devStatus::before { background: #ffb020; }
+.highlights { margin: 22px 0 0; padding-top: 18px; border-top: 1px solid #ffffff1a; }
+.highlights h3 { margin: 0 0 10px; color: #ffffff8c; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.highlights ol { display: grid; gap: 9px; margin: 0; padding: 0 0 0 18px; list-style: disc; }
+.detailText .highlights li { padding: 0 0 0 4px; border-radius: 0; color: #ffffffb3; background: none; box-shadow: none; font-size: 13px; line-height: 1.5; }
+.highlights li::marker { color: var(--folder-color); }
+.detailText a { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 14px 0 16px; border-radius: 999px; color: #fff; background: #0a84ff; box-shadow: inset 0 1px #ffffff33, 0 1px 2px #0000004d; font-size: 13px; font-weight: 600; text-decoration: none; }
+.detailText a:hover { background: #2a93ff; }
+.detailText a:active { background: #0070e8; }
+/* Monetta uses the same 40/60 media-to-information split as every project. */
+.appMedia { min-width: 0; display: flex; flex-direction: column; padding: 14px; overflow: hidden; border-radius: 12px; background: #0c0c0d; box-shadow: 0 0 0 1px #ffffff14, 0 12px 30px #00000059; }
+.appMedia h3 { margin: 0 0 12px; color: #ffffff8c; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.appVideo { min-height: 0; flex: 1; height: auto; border-radius: 8px; }
+.appDetails { min-width: 0; align-self: center; }
+.appHeader { display: flex; align-items: center; gap: 20px; }
+/* The macOS app icon shape: corners at about 22% of the width and a soft drop shadow. */
+.appIcon { flex-shrink: 0; width: 88px; height: 88px; border-radius: 20px; box-shadow: 0 0 0 1px #0000001f, 0 4px 12px #00000066; }
+.appHeader .detailText { min-width: 0; padding: 0 3px; }
+.appHeader .detailText h2 { margin: 6px 0 2px; }
+.appHeader .detailText p { margin-bottom: 14px; color: #ffffff8c; font-size: 15px; }
+.appInfo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; margin: 24px 0 0; padding: 14px 0; border-block: 1px solid #ffffff1a; }
 .appInfo div { min-width: 0; padding: 0 10px; text-align: center; }
-.appInfo div + div { border-left: 3px solid #2e2e34; }
-.appInfo dt { color: #8f8f97; font: 8px/1.5 var(--pixel-font); text-transform: uppercase; }
-.appInfo dd { margin: 8px 0 0; color: #ececef; font: 20px/1.1 var(--font-vt323), ui-monospace, monospace; -webkit-font-smoothing: antialiased; }
-.appPreview h3 { margin: 24px 0 14px; color: #a3a3ab; font: 8px/1 var(--pixel-font); text-transform: uppercase; }
-/* Padding keeps the tiles' outlines and shadows inside the horizontal scroller. */
-.shots { display: flex; gap: 18px; overflow-x: auto; padding: 3px 9px 12px 3px; scrollbar-color: #56565e #151518; }
-.shot { flex: 0 0 auto; width: 152px; height: 328px; background: var(--pixel-art, none) 0 0 / var(--pixel-art-size, auto) no-repeat, #26262b; box-shadow: 0 -3px var(--ink), 3px 0 var(--ink), 0 3px var(--ink), -3px 0 var(--ink), 6px 3px var(--ink), 6px 9px var(--ink), 3px 6px var(--ink), 9px 6px var(--ink); image-rendering: pixelated; }
-@media (max-width: 610px) {
-  .appHeader { align-items: flex-start; gap: 16px; }
-  .appIcon { width: 84px; height: 84px; }
-  .appInfo { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
-  .appInfo div:nth-child(odd) { border-left: 0; }
-  .shot { width: 120px; height: 260px; }
+.appInfo div + div { border-left: 1px solid #ffffff1a; }
+.appInfo div:nth-child(odd) { border-left: 0; }
+.appInfo dt { color: #ffffff66; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.appInfo dd { margin: 4px 0 0; color: #ffffffd9; font-size: 15px; font-weight: 600; }
+.appDescription { padding-top: 20px; }
+/* Size the grid from the window's actual width.
+   A single scroll area holds the whole detail page; intrinsic portrait media must
+   never determine the height of a compact window's first row. */
+@container (max-width: 609px) {
+  .toolbar { gap: 8px; padding-inline: 12px; }
+  .traffic { flex-shrink: 0; margin-right: 0; }
+  .navigation { flex-shrink: 0; }
+  .toolbar > strong { position: static; min-width: 0; max-width: none; transform: none; }
+  .titleContext { display: none; }
+  .grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 88px), 1fr)); gap: 20px 12px; padding: 20px 12px; }
+  .grid .folderButton strong { display: block; overflow: visible; }
+  .detail { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 20px; min-height: 0; padding: 16px; }
+  .cover { height: clamp(140px, 32svh, 260px); min-height: 0; }
+  .coverVideo { min-height: 0; }
+  .cover > .coverVideo { position: absolute; inset: 0; }
+  .cover img { object-fit: contain; }
+  .detail > .detailText, .appDetails { align-self: auto; }
+  .detailLong { height: auto; }
+  .detailLong > .detailText, .detailLong > .appDetails { overflow: visible; }
+  .detailText { padding: 0; overflow-wrap: anywhere; }
+  .detailText h2 { font-size: 24px; }
+  .detailText a { min-height: 44px; height: auto; padding-block: 10px; line-height: 1.3; }
+  .detailText a svg { flex-shrink: 0; }
+  /* Expose the app's identity and primary action before the preview on phones. */
+  .appDetails { display: contents; }
+  .appHeader { order: -1; align-items: flex-start; gap: 12px; }
+  .appIcon { width: 48px; height: 48px; border-radius: 11px; }
+  .appHeader .detailText { flex: 1; padding: 0; }
+  .appHeader .detailText p { font-size: 14px; }
+  .appMedia { height: clamp(180px, 36svh, 300px); padding: 12px; }
+  .appMedia h3 { margin-bottom: 8px; }
+  .appVideo { flex: 1 1 0; height: 0; }
+  .appInfo { margin: 0; }
+  .appInfo dd { font-size: 14px; overflow-wrap: anywhere; }
+  .appDescription { padding-top: 0; }
 }
-/* The pixel faces have no CJK glyphs; keep the fallback characters legible. */
-.window:lang(zh) { -webkit-font-smoothing: antialiased; }
-.window:lang(zh) .toolbar > strong, .window:lang(zh) .status, .window:lang(zh) .detailText a, .window:lang(zh) .appInfo dt, .window:lang(zh) .appPreview h3 { font-size: 12px; }
-.window:lang(zh) .detailText p, .window:lang(zh) .appInfo dd { font: 14px/1.8 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
 @keyframes appear { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
-@media (max-width: 780px) { .window { width: calc(100% - 24px); }.window.expanded { width: 100%; height: 100%; }.toolbar > strong { left: 45%; }.grid { grid-template-columns: repeat(4, minmax(84px, 1fr)); gap: 22px 10px; padding: 24px 18px; } }
-@media (max-width: 610px) { .surfaceFullScreen { inset: calc(66px + env(safe-area-inset-top, 0px)) 0 env(safe-area-inset-bottom, 0px); }.toolbar { gap: 8px; padding: 0 12px; }.traffic { margin-right: 4px; }.toolbar > strong { position: static; min-width: 0; transform: none; overflow: hidden; text-overflow: ellipsis; }.grid { grid-template-columns: repeat(3, minmax(80px, 1fr)); gap: 22px 9px; padding: 22px 14px; }.detail { padding: 17px; }.cover { height: 152px; }.cover > span { --mark-pixel: 2px; font-size: 16px; }.status span:last-child { display: none; }.desktopFolders { right: 5px; grid-template-columns: repeat(2, 108px); gap: 8px 2px; } }
+@container (min-width: 610px) and (max-width: 779px) {
+  .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 @media (prefers-reduced-motion: reduce) { .window { animation: none; } }
 
 /* The same folders are interactive in Folders and decorative behind Terminal. */
 @media (max-width: 1023px) {
-  /* Windows open below the Dock row. */
+  /* Windows and icons use the full width below the separate top controls. */
   .desktopSurface, .surface:not(.surfaceFullScreen) { inset: calc(66px + env(safe-area-inset-top, 0px)) 0 max(10px, env(safe-area-inset-bottom, 0px)); }
+  .surface:not(.surfaceFullScreen) { right: max(10px, env(safe-area-inset-right, 0px)); left: max(10px, env(safe-area-inset-left, 0px)); }
+  .surfaceFullScreen { inset: calc(66px + env(safe-area-inset-top, 0px)) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+  .window { top: 0; left: 0; width: 100%; height: 100%; transform: none; border-radius: 14px; }
+  .window.expanded { border-radius: 0; }
+  .toolbar { min-height: 52px; }
+  /* Retain the traffic lights, with separate 28 × 44px touch targets. */
+  .traffic { gap: 14px; padding-inline: 7px; }
+  .traffic button { position: relative; }
+  .traffic button::before { content: ""; position: absolute; inset: -15px -7px; }
+  .traffic svg { opacity: 1; }
+  .navigation button { width: 36px; height: 44px; }
   .desktopFolders {
     pointer-events: auto;
     display: grid;

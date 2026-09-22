@@ -12,7 +12,7 @@ type MobileMacStageProps = {
   theme?: "mac" | "default";
 };
 
-/** Mobile composition from 916cb21: one GIF, lower terminal, separate dock. */
+/** Mobile composition: character backdrop, readable terminal, separate dock. */
 export default function MobileMacStage({
   view = "assistant",
   open = true,
@@ -70,11 +70,9 @@ export default function MobileMacStage({
         data-expanded={expanded}
         data-keyboard={viewport.bottom > 100}
       >
-        <a className={styles.credit} href="https://www.instagram.com/jayivee._/" target="_blank" rel="noopener noreferrer">
-          Artist: @jayivee._
-        </a>
         {active && (
           <ChatInterface
+            compact
             theme={theme}
             variant="panel"
             className="!w-full !h-full max-w-none"
