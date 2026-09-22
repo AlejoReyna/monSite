@@ -1,0 +1,15 @@
+/* Resize handles hug a window's inside edge (windows clip their overflow); corners sit above edges
+   so a diagonal grab wins where they overlap. Desktop-only: windows render them from 1024px. */
+.resizeHandle { position: absolute; z-index: 20; touch-action: none; }
+.resizeHandle[data-edge="n"], .resizeHandle[data-edge="s"] { left: 12px; right: 12px; height: 6px; cursor: ns-resize; }
+.resizeHandle[data-edge="e"], .resizeHandle[data-edge="w"] { top: 12px; bottom: 12px; width: 6px; cursor: ew-resize; }
+.resizeHandle[data-edge="n"] { top: 0; }
+.resizeHandle[data-edge="s"] { bottom: 0; }
+.resizeHandle[data-edge="e"] { right: 0; }
+.resizeHandle[data-edge="w"] { left: 0; }
+.resizeHandle[data-edge$="e"][data-edge^="n"], .resizeHandle[data-edge$="e"][data-edge^="s"],
+.resizeHandle[data-edge$="w"][data-edge^="n"], .resizeHandle[data-edge$="w"][data-edge^="s"] { z-index: 21; width: 16px; height: 16px; }
+.resizeHandle[data-edge="ne"] { top: 0; right: 0; cursor: nesw-resize; }
+.resizeHandle[data-edge="sw"] { bottom: 0; left: 0; cursor: nesw-resize; }
+.resizeHandle[data-edge="nw"] { top: 0; left: 0; cursor: nwse-resize; }
+.resizeHandle[data-edge="se"] { bottom: 0; right: 0; cursor: nwse-resize; }

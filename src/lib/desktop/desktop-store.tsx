@@ -14,6 +14,7 @@ import {
 } from "react";
 import { useLanguage } from "@/components/lang-context";
 import { useNavigation } from "@/contexts/navigation-context";
+import { clampDockSize, DEFAULT_DOCK_LAYOUT } from "./dock-layout";
 import {
   applyIconCommand,
   DEFAULT_ICON_LAYOUT,
@@ -22,10 +23,13 @@ import {
   type IconLayoutContext,
 } from "./icon-layout";
 import {
+  applyDockSize,
   applyFocusModeClass,
   applyMotionPreference,
+  loadDockLayout,
   loadIconLayout,
   loadPreferences,
+  saveDockLayout,
   saveIconLayout,
   savePreferences,
 } from "./preferences";
@@ -63,6 +67,8 @@ export type DesktopStoreValue = {
   assistantState: AssistantState;
   setAssistantState: (state: AssistantState) => void;
   selectedProjectId: string | null;
+  /** Bumps on every request to open a specific project, so asking again for the same one re-opens it. */
+  projectRequest: number;
   setSelectedProjectId: (id: string | null) => void;
   openProjects: (opts?: OpenProjectsOpts) => void;
   closeProjects: () => void;
@@ -98,6 +104,12 @@ export type DesktopStoreValue = {
   arrangeIcons: (command: DesktopIconCommand) => void;
   /** The icon layer reports its icons and size so menu commands can compute positions. */
   registerIconContext: (context: IconLayoutContext) => void;
+  /** Dock tile edge in px (see dock-layout.ts). */
+  dockSize: number;
+  /** Commits a size and saves it; also ends a preview, so a cancelled drag snaps back. */
+  setDockSize: (size: number) => void;
+  /** Repaints the Dock at `size` without committing — the handle's live feedback while dragging. */
+  previewDockSize: (size: number) => void;
 };
 
 const DesktopStoreContext = createContext<DesktopStoreValue | null>(null);
@@ -130,6 +142,7 @@ export function DesktopStoreProvider({
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [mailOpen, setMailOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [projectRequest, setProjectRequest] = useState(0);
   const [internalTerminal, setInternalTerminal] = useState(true);
   const terminalOpen = terminalOpenProp ?? internalTerminal;
   const setTerminalOpen = useCallback(
@@ -209,7 +222,10 @@ export function DesktopStoreProvider({
     setDesktopHidden(false);
     setProjectsOpen(true);
     setFocusedWindowId("finder");
-    if (opts?.projectId) setSelectedProjectId(opts.projectId);
+    if (opts?.projectId) {
+      setSelectedProjectId(opts.projectId);
+      setProjectRequest(value => value + 1);
+    }
     dismissUnlessAssistant(setOpenMenu);
   }, []);
 
@@ -356,6 +372,33 @@ export function DesktopStoreProvider({
     iconContext.current = context;
   }, []);
 
+  // Same story as the icon layout: the default renders on the server, the saved size lands after
+  // hydration. Dragging the handle repaints through the CSS variable alone, so it never re-renders
+  // the desktop; the ref keeps the committed size away from that stale-state trap.
+  const [dockSize, setDockSizeState] = useState(DEFAULT_DOCK_LAYOUT.size);
+  const dockSizeRef = useRef(DEFAULT_DOCK_LAYOUT.size);
+
+  useEffect(() => {
+    dockSizeRef.current = loadDockLayout().size;
+    setDockSizeState(dockSizeRef.current);
+    applyDockSize(dockSizeRef.current);
+  }, []);
+
+  const previewDockSize = useCallback((size: number) => {
+    applyDockSize(clampDockSize(size));
+  }, []);
+
+  const setDockSize = useCallback((size: number) => {
+    const next = clampDockSize(size);
+    // Applied even when nothing changed: a cancelled drag ends on the committed size and has a
+    // preview to undo.
+    applyDockSize(next);
+    if (next === dockSizeRef.current) return;
+    dockSizeRef.current = next;
+    setDockSizeState(next);
+    saveDockLayout({ size: next });
+  }, []);
+
   const windows = useMemo<DesktopWindow[]>(() => {
     const list: DesktopWindow[] = [
       {
@@ -421,6 +464,7 @@ export function DesktopStoreProvider({
       assistantState,
       setAssistantState,
       selectedProjectId,
+      projectRequest,
       setSelectedProjectId,
       openProjects,
       closeProjects,
@@ -476,6 +520,9 @@ export function DesktopStoreProvider({
       iconMotion,
       arrangeIcons,
       registerIconContext,
+      dockSize,
+      setDockSize,
+      previewDockSize,
     }),
     [
       windows,
@@ -495,6 +542,7 @@ export function DesktopStoreProvider({
       assistantAvailable,
       assistantState,
       selectedProjectId,
+      projectRequest,
       openProjects,
       closeProjects,
       openTerminal,
@@ -516,6 +564,9 @@ export function DesktopStoreProvider({
       iconMotion,
       arrangeIcons,
       registerIconContext,
+      dockSize,
+      setDockSize,
+      previewDockSize,
     ],
   );
 

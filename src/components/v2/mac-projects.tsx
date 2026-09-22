@@ -1,28 +1,31 @@
 "use client";
 
-import Image, { getImageProps } from "next/image";
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import Image from "next/image";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { ArrowUpRight, ChevronLeft, Maximize2, Minimize2, Minus, X } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
-import { PixelArt, PIXEL_ARROWS, PIXEL_TRAFFIC, pixelLayer } from "@/components/pixel-art";
 import { animateGenie } from "@/lib/desktop/genie";
+import { useWindowFrame } from "@/lib/desktop/use-window-frame";
 import DesktopIcons, { type DesktopIconItem } from "./desktop-icons";
+import WindowResizeHandles from "./window-resize-handles";
 import styles from "./mac-projects.module.css";
 
 const projects = [
-  { id: "inverater", title: "Inverater", category: "Proptech", color: "#9aab78", image: null, mark: "inverater.", tags: ["Infrastructure", "Product engineering"], href: "https://www.inverater.com", description: { en: "Real-estate investing made accessible. My work spans infrastructure, hosting and product engineering, keeping the platform running while shipping its next chapter.", es: "Inversión inmobiliaria accesible. Mi trabajo abarca infraestructura, hosting e ingeniería de producto, manteniendo la plataforma mientras construyo su siguiente etapa.", zh: "让房地产投资更易参与。我的工作涵盖基础设施、托管和产品工程，维护平台运行并持续开发新功能。" } },
-  { id: "plebes", title: "Plebes DAO", category: "Community / Web3", color: "#ac9ee2", image: "/plebes_bg.png", mark: "PLEBES", tags: ["ICP", "Motoko", "Figma", "UI/UX"], href: "https://plebes.xyz", description: { en: "Community-driven DAO on Internet Computer. Full design, branding and user experience built from scratch.", es: "DAO impulsada por la comunidad en Internet Computer. Diseño completo, branding y experiencia de usuario desde cero.", zh: "基于 Internet Computer 的社区驱动型 DAO。从零开始完成设计、品牌与用户体验。" } },
-  { id: "cafeteria", title: "Artisanal Brew", category: "Coffee / Web3", color: "#d0a17b", image: "/blog/artisanal-brew-assets/layer-0.webp", mark: "ARTISANAL BREW", tags: ["Blazor", ".NET", "Solidity", "PostgreSQL"], href: "https://cafe.alexisrs.dev", description: { en: "A pixel-art coffee experience with multichain integrations across Ethereum, BNB Chain and Solana. Built with Blazor and .NET.", es: "Una experiencia de café con pixel art e integraciones en Ethereum, BNB Chain y Solana. Construida con Blazor y .NET.", zh: "像素艺术咖啡体验，集成 Ethereum、BNB Chain 和 Solana。使用 Blazor 与 .NET 构建。" } },
-  { id: "wedding", title: "Andrea & Aldo", category: "Wedding / Interactive", color: "#d5a4b2", image: "/andrea_hero.jpeg", mark: "A & A", tags: ["Next.js", "Google Maps", "Framer Motion"], href: "/weddings/andrea", description: { en: "An interactive wedding invitation with an RSVP flow, schedule and maps. A personal digital keepsake for a shared celebration.", es: "Invitación de boda interactiva con RSVP, itinerario y mapas. Un recuerdo digital personal para una celebración compartida.", zh: "互动婚礼邀请函，包含 RSVP、日程与地图。为共同庆祝留下专属数字纪念。" } },
-  { id: "wedding-cindy", title: "Cindy & Jorge", category: "Wedding / Interactive", color: "#c9b7a4", image: "/cindy_hero.jpg", mark: "C & J", tags: ["Next.js", "3D Gallery", "Google Maps", "Framer Motion"], href: "/weddings/cindy", description: { en: "An immersive wedding invitation with animated storytelling, a 3D gallery, itinerary, maps and RSVP experience.", es: "Invitación de boda inmersiva con narrativa animada, galería 3D, itinerario, mapas y experiencia RSVP.", zh: "沉浸式婚礼邀请函，包含动画叙事、3D 相册、日程、地图与 RSVP 体验。" } },
-  { id: "nonamedbot", title: "NoNamedBot", category: "AI / Trading agent", color: "#86b8ad", image: null, mark: ">_ NoNamedBot", tags: ["Python", "pandas", "TWAK", "Next.js"], href: "https://github.com/AlejoReyna/no-named-yet-bot", description: { en: "An autonomous BNB Chain trading agent built for BNB Hack. Python scores tokens with regime-aware guardrails; TWAK executes self-custody swaps.", es: "Agente autónomo de trading en BNB Chain para BNB Hack. Python evalúa tokens con controles de riesgo y TWAK ejecuta swaps de autocustodia.", zh: "为 BNB Hack 构建的自主 BNB Chain 交易代理。Python 在风险防护下评估代币，TWAK 执行自托管交换。" } },
+  { id: "inverater", title: "Inverater", color: "#9aab78", image: "/inverater/icon.png", video: "/project-previews/inverater.mp4", containImage: true, tags: ["Stripe", "STP / SPEI", "Ruby on Rails", "Go", "SQL Server", "AWS", "Docker", "NGINX"], href: "https://www.inverater.com", description: { en: "A proptech platform affiliated with Corporación Quimbo that lets anyone take part in real-estate crowdfunding from $1,000 MXN; investors get their capital back plus returns once the project is built. The business model is backed by a trust (fideicomiso), and the company runs banking infrastructure that gives users their own CLABE accounts for deposits and withdrawals.", es: "Proyecto proptech afiliado a Corporación Quimbo que ofrece la oportunidad de ser partícipe de un crowdfunding inmobiliario: se puede invertir desde $1,000 MXN y el cliente recibe su inversión más rendimientos cuando el proyecto ya se ha construido. El modelo de negocio está respaldado por un fideicomiso y la empresa cuenta con infraestructura bancaria para proporcionar cuentas CLABE a sus usuarios y permitirles hacer depósitos o retiros.", zh: "隶属于 Quimbo 集团（Corporación Quimbo）的房地产科技项目，让用户以最低 1,000 墨西哥比索参与房地产众筹；项目建成后，投资者收回本金并获得收益。其商业模式由信托（fideicomiso）提供保障，公司还拥有银行基础设施，为用户提供 CLABE 账户，用于存款和取款。" }, role: { en: "Full-Stack Software Engineer / DevOps · Oct 2024 – Sep 2026", es: "Full-Stack Software Engineer / DevOps · Oct 2024 – Sep 2026", zh: "全栈软件工程师 / DevOps · 2024 年 10 月 – 2026 年 9 月" }, highlights: { en: ["Took over the MVP delivered by an outside agency and, with two fellow developers, built the production system the company runs on today — starting on the front end, moving to the back end, and finally owning both the code and DevOps.", "Built manual sales end to end: referral checkout links payable by Stripe or bank transfer to an STP CLABE, recorded in the database automatically.", "Migrated checkout to STP/SPEI and built the platform's payment and deposit experiences.", "Created a white-label theming system so partner brands can run the platform under their own colours and assets.", "Helped move the backend from Ruby on Rails to Go microservices and helped build Inverpay, connecting Inverater's users to its database.", "Wrote the SQL Server stored procedures behind Inverpay, cutting response times by more than 50%.", "Integrated Truora's KYC API (national ID, face photo, proof of address) for regulatory compliance.", "Planned and ran the AWS infrastructure (EC2, RDS, S3, ElastiCache, CodeDeploy) with NGINX over TLS, Docker and CI/CD, plus DNS and SSL certificates auto-renewed with Let’s Encrypt.", "Moved the whole infrastructure from AWS to an Atlantic.net VPS, cutting hosting costs by 57.5%."], es: ["Tomé el MVP entregado por un equipo externo y, con dos compañeros, construí el sistema de producción con el que opera la empresa hoy: empecé en front-end, pasé a back-end y terminé a cargo del código y de DevOps.", "Construí la venta manual: links de compra para referidos, pagables con Stripe o por transferencia a una CLABE de STP, que se registran solos en la base de datos.", "Migré el checkout a STP/SPEI y desarrollé las experiencias de pago y depósito de la plataforma.", "Creé un sistema de marca blanca para que socios operen la plataforma con sus propios colores y assets.", "Participé en la migración del backend de Ruby on Rails a microservicios en Go y ayudé a construir Inverpay, conectando los usuarios de Inverater con su base de datos.", "Escribí los procedimientos almacenados de SQL Server para Inverpay, reduciendo los tiempos de respuesta en más de 50%.", "Integré la API KYC de Truora (INE, fotografía facial y comprobante de domicilio) para cumplir con la normativa.", "Diseñé y operé la infraestructura en AWS (EC2, RDS, S3, ElastiCache, CodeDeploy) con NGINX sobre TLS, Docker y CI/CD, además de DNS y certificados SSL renovados automáticamente con Let’s Encrypt.", "Migré toda la infraestructura de AWS a un VPS en Atlantic.net, reduciendo el costo de hosting 57.5%."], zh: ["接手外部团队交付的 MVP，与两位开发同事共同打造了公司如今运行的生产系统：从前端起步，转向后端，最终同时负责代码与 DevOps。", "从零构建人工销售功能：为推荐用户生成购买链接，可通过 Stripe 或转账至 STP CLABE 支付，并自动写入数据库。", "将结账流程迁移至 STP/SPEI，并开发了平台的支付与存款体验。", "打造白标主题系统，让合作品牌以自己的配色和素材运营平台。", "参与将后端从 Ruby on Rails 迁移到 Go 微服务，并协助构建 Inverpay，将 Inverater 用户与其数据库打通。", "为 Inverpay 编写 SQL Server 存储过程，将响应时间缩短 50% 以上。", "集成 Truora 的 KYC API（身份证、面部照片、住址证明），满足监管要求。", "规划并运维 AWS 基础设施（EC2、RDS、S3、ElastiCache、CodeDeploy），配置基于 TLS 的 NGINX、Docker 与 CI/CD，并管理 DNS 及通过 Let’s Encrypt 自动续期的 SSL 证书。", "将全部基础设施从 AWS 迁移至 Atlantic.net VPS，托管成本降低 57.5%。"] } },
+  { id: "plebes", title: "Plebes DAO", color: "#ac9ee2", image: "/plebes_bg.png", video: "/plebes_video.mp4", containImage: false, tags: ["ICP", "ckBTC", "Swapzone", "Motoko", "Figma", "UI/UX"], href: "https://plebes.xyz", description: { en: "An NFT DAO on the Internet Computer (ICP) blockchain, driven by its community. I worked on the front end: the landing page, the deposit flow and the payments integration that opened the platform to far more users.", es: "DAO de NFT en la blockchain Internet Computer (ICP), impulsada por su comunidad. Trabajé en el front-end: la página de inicio, el flujo de depósito y la integración de pagos que abrió la plataforma a muchos más usuarios.", zh: "基于 Internet Computer（ICP）区块链、由社区驱动的 NFT DAO。我负责前端：首页、存款流程，以及让平台向更多用户开放的支付集成。" }, role: { en: "Frontend Developer · Dec 2024 – Jun 2025", es: "Frontend Developer · Dic 2024 – Jun 2025", zh: "前端开发工程师 · 2024 年 12 月 – 2025 年 6 月" }, highlights: { en: ["Redesigned the plebes.xyz landing page, replacing a cluttered site with a minimal single-page design and a public view of the total crypto assets raised.", "Redesigned the /deposit UI as a guided four-step flow that walks users through depositing.", "Integrated the Swapzone API to accept crypto from 30+ blockchains and convert it to ckBTC on ICP; funds can be withdrawn and converted back to tokens on other chains.", "That integration lowered the minimum deposit from $80 to $5, which is what made the platform work for far more users.", "The project received a $5,000 developer grant from the DFINITY Foundation, which maintains the Internet Computer blockchain."], es: ["Rediseñé la página de inicio de plebes.xyz: sustituí un sitio recargado por un diseño minimalista de una sola página y publiqué una vista pública del total de criptoactivos recaudados.", "Rediseñé la UI de la ruta /deposit como un proceso guiado de cuatro pasos que acompaña al usuario mientras deposita.", "Integré la API de Swapzone para recibir criptomonedas de más de 30 blockchains y convertirlas a ckBTC dentro de ICP; los fondos se pueden retirar y reconvertir a tokens de otras chains.", "Con esa integración el depósito mínimo bajó de $80 a $5 dólares, lo que hizo funcionar la plataforma para muchos más usuarios.", "El proyecto recibió una beca para desarrolladores de $5,000 dólares de la Fundación DFINITY, responsable de la blockchain Internet Computer."], zh: ["重新设计 plebes.xyz 首页，用极简的单页设计取代原本繁杂的网站，并公开展示已募集的加密资产总额。", "将 /deposit 页面重新设计为四步引导流程，陪伴用户完成存款。", "集成 Swapzone API，接收来自 30 多条区块链的加密货币并在 ICP 上兑换为 ckBTC；资金可提取并兑换回其他链上的代币。", "这项集成将最低存款从 80 美元降至 5 美元，让平台真正适用于更多用户。", "该项目获得了维护 Internet Computer 区块链的 DFINITY 基金会 5,000 美元开发者资助。"] } },
+  { id: "cafeteria", title: "Artisanal Brew", color: "#d0a17b", image: "/blog/artisanal-brew-assets/layer-0.webp", video: "/project-previews/artisanal-brew.mp4", containImage: false, tags: ["C#", ".NET", "Blazor", "PostgreSQL", "Solidity", "OpenZeppelin", "Azure"], href: "https://cafe.alexisrs.dev", description: { en: "A production online store with Ethereum payments. Checkout uses testnet tokens, so buying is free: connect a wallet, pay on-chain, and the order goes through once the payment is verified.", es: "Tienda en línea en producción con pagos en Ethereum. El checkout usa tokens de testnet, así que comprar es gratis: conectas tu billetera, pagas en la cadena y el pedido se procesa en cuanto se verifica el pago.", zh: "已上线的在线商店，支持以太坊支付。结账使用测试网代币，因此购买是免费的：连接钱包、链上付款，付款验证后订单即被处理。" }, role: { en: "Full-Stack Developer · Apr 2026 – Present", es: "Full-Stack Developer · Abr 2026 – Presente", zh: "全栈开发工程师 · 2026 年 4 月 – 至今" }, highlights: { en: ["Designed and launched the production store in C# and .NET / ASP.NET Core, with interactive server-side rendering through Blazor.", "Designed and integrated RESTful APIs with ASP.NET Core controllers, modelled the relational data with Entity Framework Core on PostgreSQL, and built authentication with ASP.NET Core Identity.", "Built the whole payment flow: the Blazor front end starts settlement from the connected wallet and the .NET back end verifies the transaction on-chain before processing the order.", "Wrote the Solidity smart contracts on the Sepolia testnet on top of OpenZeppelin's audited libraries: two ERC-20 tokens (CAFE and COFFEE) and an ERC-4626 liquid-staking vault that issues a transferable position (stCAFE) and distributes rewards with per-user checkpoints.", "Deployed it first on Microsoft Azure (Container Apps, Azure Database for PostgreSQL, Blob Storage, Service Bus, Key Vault), then migrated it to a Linux VPS on Atlantic.net."], es: ["Diseñé y lancé la tienda en producción con C# y .NET / ASP.NET Core, con renderizado interactivo en servidor mediante Blazor.", "Diseñé e integré APIs RESTful con controladores de ASP.NET Core, modelé los datos relacionales con Entity Framework Core sobre PostgreSQL e implementé la autenticación con ASP.NET Core Identity.", "Implementé el flujo de pago completo: Blazor inicia la liquidación con la billetera conectada y el back-end de .NET verifica la transacción en la cadena antes de procesar el pedido.", "Desarrollé los contratos inteligentes en Solidity sobre la red de pruebas Sepolia con las bibliotecas auditadas de OpenZeppelin: dos tokens ERC-20 (CAFE y COFFEE) y un vault de liquid staking ERC-4626 que emite una posición transferible (stCAFE) y reparte recompensas con checkpoints por usuario.", "La desplegué primero en Microsoft Azure (Container Apps, Azure Database for PostgreSQL, Blob Storage, Service Bus y Key Vault) y después la migré a un VPS Linux en Atlantic.net."], zh: ["使用 C# 与 .NET / ASP.NET Core 设计并上线这家商店，通过 Blazor 实现服务端交互式渲染。", "基于 ASP.NET Core 控制器设计并集成 RESTful API，使用 Entity Framework Core 在 PostgreSQL 上建模关系数据，并通过 ASP.NET Core Identity 实现身份验证。", "实现完整的支付流程：Blazor 前端通过已连接的钱包发起结算，.NET 后端在处理订单前于链上验证交易。", "基于 OpenZeppelin 经审计的库，在 Sepolia 测试网上用 Solidity 编写智能合约：两个 ERC-20 代币（CAFE 和 COFFEE），以及一个 ERC-4626 流动性质押金库，发行可转让的仓位（stCAFE）并按用户检查点分配奖励。", "先部署在 Microsoft Azure（Container Apps、Azure Database for PostgreSQL、Blob Storage、Service Bus、Key Vault），后迁移至 Atlantic.net 的 Linux VPS。"] } },
+  { id: "wedding", title: "Andrea & Aldo", color: "#d5a4b2", image: "/andrea_hero.jpeg", video: "/wedding_preview.mp4", containImage: false, tags: ["Next.js", "React", "Google Maps", "WhatsApp"], href: "/weddings/andrea", description: { en: "An interactive wedding invitation for a celebration in Montemorelos, Nuevo León: everything a guest needs, from the countdown and schedule to directions, dress code, gifts and RSVP, in one page built for the phone.", es: "Invitación de boda interactiva para una celebración en Montemorelos, Nuevo León: todo lo que un invitado necesita, de la cuenta regresiva y el itinerario a la ubicación, el código de vestimenta, los regalos y la confirmación, en una sola página pensada para el celular.", zh: "为在新莱昂州蒙特莫雷洛斯举办的婚礼打造的互动邀请函：倒计时、日程、路线、着装要求、礼物与出席确认，宾客所需的一切都在一个为手机设计的页面中。" }, weddingDate: { en: "October 18, 2025", es: "18 de octubre de 2025", zh: "2025 年 10 月 18 日" }, role: { en: "Designer & Front-end Developer", es: "Diseñador y desarrollador front-end", zh: "设计与前端开发" }, highlights: { en: ["Designed and built the whole invitation in Next.js and React, phone-first.", "A countdown to the big day, a photo carousel and a section for the couple's parents.", "Ceremony and reception schedule, with buttons that open Google Maps directions to each venue.", "Dress code and gift registry, with bank-transfer details and a link to the Amazon registry.", "RSVP over WhatsApp and a button to add the event to the guest's calendar.", "Automatic night mode that follows the system, and the phone's status bar changes colour with each section."], es: ["Diseñé y desarrollé la invitación completa en Next.js y React, pensada primero para el celular.", "Una cuenta regresiva al gran día, una galería en carrusel y la sección de los padres de los novios.", "Itinerario de la ceremonia y la recepción, con botones que abren la ruta en Google Maps para cada lugar.", "Código de vestimenta y mesa de regalos, con datos para transferencia y un enlace a la mesa de Amazon.", "Confirmación de asistencia por WhatsApp y un botón para agregar el evento al calendario.", "Modo nocturno automático según el sistema, y la barra de estado del celular cambia de color con cada sección."], zh: ["使用 Next.js 与 React 设计并开发整份邀请函，以手机体验为先。", "婚礼倒计时、照片轮播，以及新人父母的专属板块。", "仪式与婚宴日程，每个场地都有按钮可直接在 Google 地图中打开路线。", "着装要求与礼物清单，提供转账信息及 Amazon 礼物清单链接。", "通过 WhatsApp 确认出席，并可一键将活动加入日历。", "跟随系统自动切换夜间模式，手机状态栏颜色随各板块变化。"] } },
+  { id: "wedding-cindy", title: "Cindy & Jorge", color: "#c9b7a4", image: "/cindy_hero.jpg", video: "/project-previews/cindy-jorge.mp4", containImage: false, tags: ["Next.js", "React", "CSS 3D", "Web3Forms", "Google Maps"], href: "/weddings/cindy", description: { en: "An immersive wedding invitation that opens like a sealed envelope, with the couple's song playing, a 3D photo gallery and everything guests need: schedule, directions, dress code, hotels, gifts and RSVP.", es: "Invitación de boda inmersiva que se abre como un sobre sellado, con la canción de los novios de fondo, una galería 3D y todo lo que los invitados necesitan: itinerario, ubicación, código de vestimenta, hoteles, regalos y confirmación.", zh: "一份沉浸式婚礼邀请函：像拆开封蜡信封一样开启，伴随新人的歌曲，配有 3D 相册，并提供宾客所需的一切：日程、路线、着装要求、酒店、礼物与出席确认。" }, weddingDate: { en: "August 22, 2026", es: "22 de agosto de 2026", zh: "2026 年 8 月 22 日" }, role: { en: "Designer & Front-end Developer", es: "Diseñador y desarrollador front-end", zh: "设计与前端开发" }, highlights: { en: ["Designed and built the whole invitation in Next.js and React, phone-first.", "An entrance screen with an envelope and a monogrammed wax seal: opening it starts the couple's song, with a player to pause it.", "A 3D perspective gallery built in CSS, browsed with arrows or by swiping.", "Schedule, Google Maps locations for the ceremony and reception, dress code and recommended hotels near the venue.", "Gift details inside an envelope, and an RSVP form that sends responses through Web3Forms.", "The phone's status bar changes colour with each section, and the envelope doesn't reappear on reload."], es: ["Diseñé y desarrollé la invitación completa en Next.js y React, pensada primero para el celular.", "Una pantalla de entrada con un sobre y un sello de lacre con el monograma: al abrirlo empieza la canción de los novios, con un reproductor para pausarla.", "Una galería 3D en perspectiva hecha con CSS, que se recorre con flechas o deslizando el dedo.", "Itinerario, ubicación de la ceremonia y la recepción en Google Maps, código de vestimenta y hoteles recomendados cerca del evento.", "Datos para regalos en un sobre, y un formulario de confirmación de asistencia que envía las respuestas con Web3Forms.", "La barra de estado del celular cambia de color con cada sección, y el sobre no vuelve a aparecer al recargar la página."], zh: ["使用 Next.js 与 React 设计并开发整份邀请函，以手机体验为先。", "入场画面是一只带有字母组合封蜡的信封：拆开后新人的歌曲开始播放，并可通过播放器暂停。", "用 CSS 打造的 3D 透视相册，可点击箭头或滑动浏览。", "日程、仪式与婚宴场地的 Google 地图位置、着装要求，以及场地附近的推荐酒店。", "信封中的礼物信息，以及通过 Web3Forms 提交的出席确认表单。", "手机状态栏颜色随各板块变化，刷新页面后信封不会再次出现。"] } },
+  { id: "nonamedbot", title: "NoNamedBot", category: "AI / Trading agent", color: "#86b8ad", image: "/bnb_logo.webp", video: "/project-previews/nonamedbot.mp4", containImage: true, tags: ["Python", "pandas", "TWAK", "Next.js"], href: "https://github.com/AlejoReyna/no-named-yet-bot", description: { en: "An autonomous BNB Chain trading agent built for BNB Hack. Python scores tokens with regime-aware guardrails; TWAK executes self-custody swaps.", es: "Agente autónomo de trading en BNB Chain para BNB Hack. Python evalúa tokens con controles de riesgo y TWAK ejecuta swaps de autocustodia.", zh: "为 BNB Hack 构建的自主 BNB Chain 交易代理。Python 在风险防护下评估代币，TWAK 执行自托管交换。" } },
 ];
 
 // Monetta ships as an app, so the desktop shows its App Store icon and Finder an App Store-style page.
 // Projects keep their folder detail pages but can use brand icons on desktop/Finder.
 const INVERATER_ICON = "/inverater/icon-clean.png";
 const PLEBES_ICON = "/plebes-icon-clean.png";
-// Transparent 5-frame hero sprite (320x64); object-fit cover crops to the middle robot frame.
-const ARTISANAL_ICON = "/blog/artisanal-brew-robot.png";
+// High-res crop of the concept art (not the 64px animation sprite), so the desktop
+// icon stays crisp instead of blowing up a tiny pixel-art frame.
+const ARTISANAL_ICON = "/blog/artisanal-brew-robot-icon.png";
 const ANDREA_ICON = "/weddings/andrea/assets/logos/IMG_0340.PNG";
 const CINDY_ICON = "/weddings/cindy/cindy-jorge-monogram.png";
 const NONAMEDBOT_ICON = "/bnb_logo.webp";
@@ -35,175 +38,32 @@ const AWS_BADGE = {
 const MONETTA = {
   id: "monetta",
   title: "Monetta",
-  category: "E-commerce / Mobile app",
   color: "#b98b4c",
   icon: "/monetta/icon.png",
+  video: "/project-previews/monetta.mp4",
+  poster: "/monetta/home.jpg",
   href: "https://monetta.mx",
-  tags: ["Flutter", "Riverpod", "Shopify", "Firebase"],
+  tags: ["Flutter", "Dart", "Riverpod", "Shopify", "Firebase"],
   subtitle: { en: "Original bags, wallets & watches", es: "Bolsas, carteras y relojes originales", zh: "正品包袋、钱包与手表" },
-  description: { en: "A native iOS and Android shopping app for monetta.mx, a Mexican boutique of original imported bags, wallets and watches. The catalog streams live from Shopify, and an on-device engine learns what each shopper likes and explains its picks.", es: "App nativa de compras para iOS y Android de monetta.mx, boutique mexicana de bolsas, carteras y relojes originales importados. El catálogo llega en vivo desde Shopify y un motor en el dispositivo aprende qué le gusta a cada cliente y explica sus recomendaciones.", zh: "为 monetta.mx 打造的 iOS 与 Android 原生购物应用，这是一家销售进口正品包袋、钱包和手表的墨西哥精品店。商品目录实时来自 Shopify，端侧推荐引擎会学习每位顾客的喜好并解释推荐理由。" },
+  status: { en: "In development", es: "En desarrollo", zh: "开发中" },
+  description: { en: "A native iOS and Android shopping app for monetta.mx, a Mexican boutique of original imported bags, wallets and watches — currently in development and not yet in the App Store or Google Play. The catalog streams live from Shopify, and an on-device engine learns what each shopper likes and explains its picks.", es: "App nativa de compras para iOS y Android de monetta.mx, boutique mexicana de bolsas, carteras y relojes originales importados. Está en desarrollo y todavía no se publica en App Store ni Google Play. El catálogo llega en vivo desde Shopify y un motor en el dispositivo aprende qué le gusta a cada cliente y explica sus recomendaciones.", zh: "为 monetta.mx 打造的 iOS 与 Android 原生购物应用，这是一家销售进口正品包袋、钱包和手表的墨西哥精品店。应用目前仍在开发中，尚未在 App Store 或 Google Play 上架。商品目录实时来自 Shopify，端侧推荐引擎会学习每位顾客的喜好并解释推荐理由。" },
+  role: { en: "Flutter Developer · In development", es: "Flutter Developer · En desarrollo", zh: "Flutter 开发工程师 · 开发中" },
+  highlights: { en: ["I'm building Monetta's cross-platform mobile client for iOS and Android with Flutter and Dart, showing the same products as the web store.", "I'm designing a mobile interface that follows the design patterns of brands in the same line of business.", "Checkout uses Shopify's Shop platform as the payment gateway, supporting Stripe, Apple Pay / Google Pay, PayPal, cards, Kueski Pay and Mercado Pago."], es: ["Estoy desarrollando para Monetta un cliente móvil multiplataforma para iOS y Android con Flutter y Dart, que muestra los mismos productos disponibles en la tienda web.", "Construyo una interfaz móvil que sigue los patrones de diseño de marcas del mismo giro que la empresa.", "El pago usa la plataforma Shop de Shopify como pasarela, con Stripe, Apple Pay / Google Pay, PayPal, tarjeta, Kueski Pay y Mercado Pago."], zh: ["正在使用 Flutter 与 Dart 为 Monetta 开发 iOS 与 Android 跨平台移动客户端，展示与网店相同的商品。", "打造遵循同行业品牌设计模式的移动端界面。", "结账采用 Shopify 的 Shop 平台作为支付网关，支持 Stripe、Apple Pay / Google Pay、PayPal、银行卡、Kueski Pay 和 Mercado Pago。"] },
   info: [
     { label: { en: "Platforms", es: "Plataformas", zh: "平台" }, value: "iOS · Android" },
     { label: { en: "Built with", es: "Hecha con", zh: "技术" }, value: "Flutter" },
     { label: { en: "Backend", es: "Backend", zh: "后端" }, value: "Shopify · Firebase" },
     { label: { en: "Region", es: "Región", zh: "地区" }, value: { en: "Mexico", es: "México", zh: "墨西哥" } },
   ],
-  screenshots: [
-    { src: "/monetta/home.jpg", label: { en: "Monetta home screen", es: "Pantalla de inicio de Monetta", zh: "Monetta 首页" } },
-    { src: "/monetta/product.jpg", label: { en: "Monetta product page", es: "Página de producto de Monetta", zh: "Monetta 商品页面" } },
-    { src: "/monetta/bag.jpg", label: { en: "Monetta shopping bag", es: "Bolsa de compras de Monetta", zh: "Monetta 购物袋" } },
-  ],
 };
 
-const FOLDER = [pixelLayer([
-  ".oooooo...........",
-  "ollllllo..........",
-  "obbbbbbbooooooooo.",
-  "obbbbbbbbbbbbbbbbo",
-  "obbbbbbbbbbbbbbbbo",
-  "oooooooooooooooooo",
-  "ohhhhhhhhhhhhhhhho",
-  "offffffffffffffffo",
-  "offffffffffffffffo",
-  "offffffffffffffffo",
-  "ommmmmmmmmmmmmmmmo",
-  "ommmmmmmmmmmmmmmmo",
-  "osssssssssssssssso",
-  ".oooooooooooooooo.",
-], { o: "#0d2b45", l: "#8ad2f5", b: "#4aa3d8", h: "#c8efff", f: "#7ad0f6", m: "#65c2ef", s: "#3f9dd3" })];
-// Hand-pixelled from the App Store icon: gold serif M and droplet on white.
-const MONETTA_ICON = [pixelLayer([
-  "....oooooooooooooooooooo....",
-  "..oowwwwwwwwwwwwwwwwwwwwoo..",
-  ".owwwwwwwwwwwwwwwwwwwwwwwwo.",
-  ".owwwwwwwwwwwwwwwwwwwwwwwwo.",
-  "owwwwwwwwwwwwwwwwwwwwwwwwwwo",
-  "owwwwwwwwwwwwwwwwwwwwwwwwwwo",
-  "owwwwwwwwwwwwwwwwwwwwwwwwwwo",
-  "owwwwwmdddwwwwwwwwdddmwwwwwo",
-  "owwwwwwwddwwwwwwwwddmwwwwwwo",
-  "owwwwwwwddwwwwwwwmddwwwwwwwo",
-  "owwwwwwwwddwwwwwwmddwwwwwwwo",
-  "owwwwwwwwdmwwwwwwmddwwwwwwwo",
-  "owwwwwwwwwdmwwwwmwddwwwwwwwo",
-  "owwwwwwwwwdmwwwwmwddwwwwwwwo",
-  "owwwwwwwwwwdmwwmwwddwwwwwwwo",
-  "owwwwwdwwwwdmwwmwwddwwwwwwwo",
-  "owwwwmdwwwwddwwmwwddwwwwwwwo",
-  "owwwwdldwwwwddmwwwddwwwwwwwo",
-  "owwwwdddwwwwddmwwwddmwwwwwwo",
-  "owwwwwdmwwwwwdwwwmdddmwwwwwo",
-  "owwwwwwwwwwwwwwwwwwwwwwwwwwo",
-  "owwwwwwwwwwwwwwwwwwwwwwwwwwo",
-  "owwwwwwwwwwwwwwwwwwwwwwwwwwo",
-  "owwwwwwwwwwwwwwwwwwwwwwwwwwo",
-  ".owwwwwwwwwwwwwwwwwwwwwwwwo.",
-  ".owwwwwwwwwwwwwwwwwwwwwwwwo.",
-  "..oowwwwwwwwwwwwwwwwwwwwoo..",
-  "....oooooooooooooooooooo....",
-], { o: "#2a1f12", w: "#ffffff", l: "#d8b47c", m: "#b88a4c", d: "#9a692e" })];
-
-const ART_PIXEL = 4;
-const GRADIENT_BANDS = 6;
-// Share of each band spent dithering into the next one; the rest stays flat.
-const BAND_DITHER = 0.4;
-// Photos are posterized without dithering: per-channel dither turns flat dark areas into colour speckle.
-const PHOTO_LEVELS = 16;
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
-const threshold = (x: number, y: number) => (BAYER[(y % 4) * 4 + (x % 4)] + 0.5) / 16;
-
-// Renders one art pixel per 4px (dithered gradient bands, posterized photo); the
-// element scales the PNG back up with nearest-neighbour sampling so blocks stay crisp.
-function renderPixelArt(columns: number, rows: number, color: string | null, photo: HTMLImageElement | null) {
-  if (!color && !photo) return null;
-  const canvas = document.createElement("canvas");
-  canvas.width = columns;
-  canvas.height = rows;
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  if (!context) return null;
-  if (color) {
-    const from = [23, 37, 37];
-    const to = [1, 3, 5].map(offset => parseInt(color.slice(offset, offset + 2), 16));
-    // Same direction as the previous 130deg CSS gradient.
-    const dx = Math.sin(130 * Math.PI / 180);
-    const dy = -Math.cos(130 * Math.PI / 180);
-    const length = columns * Math.abs(dx) + rows * Math.abs(dy);
-    const gradient = context.createImageData(columns, rows);
-    for (let index = 0; index < gradient.data.length; index += 4) {
-      const x = index / 4 % columns;
-      const y = Math.floor(index / 4 / columns);
-      const along = Math.min(1, Math.max(0, ((x + 0.5 - columns / 2) * dx + (y + 0.5 - rows / 2) * dy) / length + 0.5)) * (GRADIENT_BANDS - 1);
-      const edge = Math.min(1, Math.max(0, (along % 1 - 0.5) / BAND_DITHER + 0.5));
-      const band = Math.min(GRADIENT_BANDS - 1, Math.floor(along) + (edge > threshold(x, y) ? 1 : 0)) / (GRADIENT_BANDS - 1);
-      for (let channel = 0; channel < 3; channel += 1) gradient.data[index + channel] = from[channel] + (to[channel] - from[channel]) * band;
-      gradient.data[index + 3] = 255;
-    }
-    context.putImageData(gradient, 0, 0);
-  }
-  if (photo) {
-    // object-fit: cover, centred.
-    const scale = Math.max(columns / photo.naturalWidth, rows / photo.naturalHeight);
-    const width = photo.naturalWidth * scale;
-    const height = photo.naturalHeight * scale;
-    context.imageSmoothingQuality = "high";
-    context.drawImage(photo, (columns - width) / 2, (rows - height) / 2, width, height);
-    const pixels = context.getImageData(0, 0, columns, rows);
-    const step = 255 / (PHOTO_LEVELS - 1);
-    for (let index = 0; index < pixels.data.length; index += 1) {
-      if (index % 4 !== 3) pixels.data[index] = Math.round(pixels.data[index] / step) * step;
-    }
-    context.putImageData(pixels, 0, 0);
-  }
-  return canvas.toDataURL();
-}
-
-// Keeps the element's --pixel-art background in sync with its size and image.
-function usePixelArt(ref: RefObject<HTMLElement | null>, image: string | null, color: string | null = null) {
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const picture = image ? new window.Image() : null;
-    let painted = "";
-    const paint = () => {
-      const columns = Math.ceil(element.clientWidth / ART_PIXEL);
-      const rows = Math.ceil(element.clientHeight / ART_PIXEL);
-      const photo = picture?.complete && picture.naturalWidth ? picture : null;
-      const signature = `${columns}x${rows}${photo ? "+photo" : ""}`;
-      if (!columns || !rows || signature === painted) return;
-      painted = signature;
-      let art: string | null;
-      // A tainted canvas cannot be exported; fall back to the dithered gradient.
-      try { art = renderPixelArt(columns, rows, color, photo); } catch { art = renderPixelArt(columns, rows, color, null); }
-      if (!art) return;
-      // Inline properties also travel with the Genie animation's cloned window.
-      element.style.setProperty("--pixel-art", `url("${art}")`);
-      element.style.setProperty("--pixel-art-size", `${columns * ART_PIXEL}px ${rows * ART_PIXEL}px`);
-    };
-    // Resize callbacks run after layout but before paint, so maximizing never shows stale art.
-    const observer = new ResizeObserver(paint);
-    observer.observe(element);
-    if (picture && image) {
-      picture.onload = paint;
-      picture.src = getImageProps({ src: image, alt: "", width: 320, height: 180 }).props.src;
-    }
-    paint();
-    return () => {
-      observer.disconnect();
-      if (picture) picture.onload = null;
-    };
-  }, [ref, image, color]);
-}
-
-function PixelCover({ project }: { project: typeof projects[number] }) {
-  const coverRef = useRef<HTMLDivElement>(null);
-  usePixelArt(coverRef, project.image, project.color);
-  return <div ref={coverRef} className={styles.cover}><span>{project.mark}</span></div>;
-}
-
-function PixelShot({ src, label }: { src: string; label: string }) {
-  const shotRef = useRef<HTMLDivElement>(null);
-  usePixelArt(shotRef, src);
-  return <div ref={shotRef} className={styles.shot} role="img" aria-label={label} />;
+// The preview video plays on a plain dark panel; a project without one shows its image instead.
+function Cover({ project, label }: { project: typeof projects[number]; label: string }) {
+  return <div className={styles.cover}>
+    {project.video ? <video className={styles.coverVideo} autoPlay muted loop playsInline preload="metadata" poster={project.image ?? undefined} aria-label={`${project.title} — ${label}`}>
+      <source src={project.video} type="video/mp4" />
+    </video> : <Image className={project.containImage ? styles.coverContain : undefined} src={project.image} alt={`${project.title} — ${label}`} fill sizes="(max-width: 610px) 90vw, 360px" />}
+  </div>;
 }
 
 export default function MacProjects({
@@ -211,12 +71,14 @@ export default function MacProjects({
   onOpen,
   onClose,
   selectedProjectId = null,
+  projectRequest = 0,
   desktopFoldersInteractive = true,
 }: {
   open: boolean;
   onOpen: () => void;
   onClose: () => void;
   selectedProjectId?: string | null;
+  projectRequest?: number;
   desktopFoldersInteractive?: boolean;
 }) {
   const { language } = useLanguage();
@@ -227,8 +89,10 @@ export default function MacProjects({
     if (!selectedProjectId) return;
     const timer = window.setTimeout(() => setSelected(selectedProjectId), 0);
     return () => window.clearTimeout(timer);
-  }, [selectedProjectId, open]);
+  }, [selectedProjectId, projectRequest, open]);
   const windowRef = useRef<HTMLElement>(null);
+  // Small enough to tuck beside the terminal, large enough for the 3-column grid and a stacked detail page.
+  const { style: frameStyle, resizable, handleProps, titleBarProps } = useWindowFrame(windowRef, { minWidth: 440, minHeight: 300 });
   const minimized = useRef(false);
   const cancelGenie = useRef<(() => void) | null>(null);
   useLayoutEffect(() => {
@@ -244,10 +108,10 @@ export default function MacProjects({
   const closeRef = useRef<HTMLButtonElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const copy = language === "es"
-    ? { title: "Proyectos", hint: "Abre una carpeta para explorar", back: "Todos los proyectos", close: "Cerrar", minimize: "Minimizar al Dock", maximize: "Maximizar", restore: "Restaurar tamaño", open: "Abrir proyecto", items: "elementos", selected: "Carpeta seleccionada", applications: "Aplicaciones", application: "Aplicación", preview: "Vista previa", visit: "Visitar tienda" }
+    ? { title: "Proyectos", back: "Todos los proyectos", close: "Cerrar", minimize: "Minimizar al Dock", maximize: "Maximizar", restore: "Restaurar tamaño", open: "Abrir proyecto", applications: "Aplicaciones", preview: "Vista previa", visit: "Visitar tienda web", work: "Lo que hice", role: "Rol:", weddingDate: "Fecha de la boda:" }
     : language === "zh"
-      ? { title: "项目", hint: "打开文件夹以探索", back: "所有项目", close: "关闭", minimize: "最小化到程序坞", maximize: "最大化", restore: "恢复大小", open: "打开项目", items: "个项目", selected: "已选文件夹", applications: "应用程序", application: "应用程序", preview: "预览", visit: "访问商店" }
-      : { title: "Projects", hint: "Open a folder to explore", back: "All projects", close: "Close", minimize: "Minimize to Dock", maximize: "Maximize", restore: "Restore window size", open: "Open project", items: "items", selected: "Selected folder", applications: "Applications", application: "Application", preview: "Preview", visit: "Visit store" };
+      ? { title: "项目", back: "所有项目", close: "关闭", minimize: "最小化到程序坞", maximize: "最大化", restore: "恢复大小", open: "打开项目", applications: "应用程序", preview: "预览", visit: "访问网店", work: "我的工作", role: "职位：", weddingDate: "婚礼日期：" }
+      : { title: "Projects", back: "All projects", close: "Close", minimize: "Minimize to Dock", maximize: "Maximize", restore: "Restore window size", open: "Open project", applications: "Applications", preview: "Preview", visit: "Visit web store", work: "What I did", role: "Role:", weddingDate: "Wedding date:" };
   const project = projects.find(item => item.id === selected);
   const app = selected === MONETTA.id ? MONETTA : null;
   const dismiss = () => {
@@ -289,25 +153,20 @@ export default function MacProjects({
               : id === "nonamedbot" ? NONAMEDBOT_ICON
                 : null;
   const brandArt = (id: string, icon: string) =>
-    <span className={`${styles.appArt} ${styles.transparentArt} ${id === "plebes" ? styles.pixelArtAsset : id === "cafeteria" ? styles.artisanalArt : id === "nonamedbot" ? styles.bscArt : id === "wedding-cindy" ? styles.cindyArt : ""}`} aria-hidden="true">
+    <span className={`${styles.appArt} ${styles.transparentArt} ${id === "plebes" ? styles.pixelArtAsset : id === "nonamedbot" ? styles.bscArt : id === "wedding-cindy" ? styles.cindyArt : ""}`} aria-hidden="true">
       <Image src={icon} alt="" width={96} height={96} />
     </span>;
-  const desktopArt = (id: string) => {
+  const projectArt = (id: string) => {
     const icon = brandIcon(id);
     return icon
       ? brandArt(id, icon)
       : <span className={styles.folderArt} aria-hidden="true"><span className={styles.folderBack} /><span className={styles.folderFront} /></span>;
   };
-  const finderArt = (id: string) => {
-    const icon = brandIcon(id);
-    return icon
-      ? brandArt(id, icon)
-      : <PixelArt layers={FOLDER} scale={4} className={styles.pixelIcon} />;
-  };
+  const monettaArt = <span className={styles.appArt} aria-hidden="true"><Image src={MONETTA.icon} alt="" width={96} height={96} /></span>;
   // Order here is the default desktop arrangement; kinds drive Clean Up By / Sort By Kind.
   const desktopIcons: DesktopIconItem[] = [
-    ...projects.map(item => ({ id: item.id, title: item.title, kind: "folder" as const, ariaLabel: `${copy.open}: ${item.title}`, art: desktopArt(item.id), onOpen: (button: HTMLButtonElement) => openItem(item.id, button) })),
-    { id: MONETTA.id, title: MONETTA.title, kind: "application", ariaLabel: `${copy.open}: ${MONETTA.title}`, art: <span className={styles.appArt} aria-hidden="true"><Image src={MONETTA.icon} alt="" width={96} height={96} /></span>, onOpen: button => openItem(MONETTA.id, button) },
+    ...projects.map(item => ({ id: item.id, title: item.title, kind: "folder" as const, ariaLabel: `${copy.open}: ${item.title}`, art: projectArt(item.id), onOpen: (button: HTMLButtonElement) => openItem(item.id, button) })),
+    { id: MONETTA.id, title: MONETTA.title, kind: "application", ariaLabel: `${copy.open}: ${MONETTA.title}`, art: monettaArt, onOpen: button => openItem(MONETTA.id, button) },
     { id: "aws-ai", title: AWS_BADGE.title, kind: "web", ariaLabel: AWS_BADGE.label, href: AWS_BADGE.href, art: <span className={`${styles.appArt} ${styles.badgeArt}`} aria-hidden="true"><Image src={AWS_BADGE.icon} alt="" width={96} height={96} /></span> },
   ];
   return <>
@@ -315,32 +174,35 @@ export default function MacProjects({
       <DesktopIcons items={desktopIcons} interactive={desktopFoldersInteractive} label={copy.title} className={styles.desktopFolders} iconClassName={styles.folderButton} ghostClassName={styles.dragGhost} />
     </div>
     {open && <div className={`${styles.surface} ${expanded ? styles.surfaceFullScreen : ""}`} onKeyDown={event => { event.stopPropagation(); if (event.key === "Escape") { event.preventDefault(); dismiss(); } }} onTouchStart={isolate} onTouchEnd={isolate}>
-      <section ref={windowRef} className={`${styles.window} ${expanded ? styles.expanded : ""}`} role="region" aria-label={`Finder — ${copy.title}`}>
-        <header className={styles.toolbar}>
-          <div className={styles.traffic}><button ref={closeRef} onClick={dismiss} aria-label={copy.close}><PixelArt layers={PIXEL_TRAFFIC.close} scale={2} /></button><button onClick={minimize} aria-label={copy.minimize}><PixelArt layers={PIXEL_TRAFFIC.minimize} scale={2} /></button><button onClick={() => setExpanded(value => !value)} aria-label={expanded ? copy.restore : copy.maximize} aria-pressed={expanded}><PixelArt layers={expanded ? PIXEL_TRAFFIC.restore : PIXEL_TRAFFIC.maximize} scale={2} /></button></div>
-          {(project || app) && <div className={styles.navigation}><button onClick={() => setSelected(null)} aria-label={copy.back}><PixelArt layers={PIXEL_ARROWS.back} scale={2} /></button></div>}
-          <strong>{project ? `${project.title} — Local` : app ? `${app.title} — ${copy.applications}` : `${copy.title} — Local`}</strong>
+      <section ref={windowRef} className={`${styles.window} ${expanded ? styles.expanded : ""}`} style={expanded ? undefined : frameStyle} role="region" aria-label={`Finder — ${copy.title}`}>
+        {/* The title bar moves the window; double-clicking it zooms, as in macOS's default setting. */}
+        <header className={styles.toolbar} {...(expanded ? {} : titleBarProps)} onDoubleClick={event => { if (!(event.target as Element).closest("button, a")) setExpanded(value => !value); }}>
+          <div className={styles.traffic}><button ref={closeRef} className={styles.close} onClick={dismiss} aria-label={copy.close}><X size={10} /></button><button className={styles.minimize} onClick={minimize} aria-label={copy.minimize}><Minus size={10} /></button><button className={styles.zoom} onClick={() => setExpanded(value => !value)} aria-label={expanded ? copy.restore : copy.maximize} aria-pressed={expanded}>{expanded ? <Minimize2 size={9} /> : <Maximize2 size={9} />}</button></div>
+          {(project || app) && <div className={styles.navigation}><button onClick={() => setSelected(null)} aria-label={copy.back}><ChevronLeft size={20} /></button></div>}
+          <strong>{project?.title ?? app?.title ?? copy.title}<span className={styles.titleContext}> — {app ? copy.applications : "Local"}</span></strong>
         </header>
         <div className={styles.body}>
           <div className={styles.content} key={selected ?? "all"}>
-            {project ? <article className={styles.detail} style={{ "--folder-color": project.color } as CSSProperties}>
-              <PixelCover project={project} />
-              <div className={styles.detailText}><small>{project.category}</small><h2>{project.title}</h2><p>{project.description[language]}</p><ul>{project.tags.map(tag => <li key={tag}>{tag}</li>)}</ul><a href={project.href} target="_blank" rel="noopener noreferrer">{copy.open}<PixelArt layers={PIXEL_ARROWS.open} scale={2} /></a></div>
-            </article> : app ? <article className={styles.detail} style={{ "--folder-color": app.color } as CSSProperties}>
-              <header className={styles.appHeader}>
-                <PixelArt layers={MONETTA_ICON} scale={4} className={styles.appIcon} />
-                <div className={styles.detailText}><small>{app.category}</small><h2>{app.title}</h2><p>{app.subtitle[language]}</p><a href={app.href} target="_blank" rel="noopener noreferrer">{copy.visit}<PixelArt layers={PIXEL_ARROWS.open} scale={2} /></a></div>
-              </header>
-              <dl className={styles.appInfo}>{app.info.map(item => <div key={item.label.en}><dt>{item.label[language]}</dt><dd>{typeof item.value === "string" ? item.value : item.value[language]}</dd></div>)}</dl>
-              <section className={styles.appPreview}><h3>{copy.preview}</h3><div className={styles.shots}>{app.screenshots.map(shot => <PixelShot key={shot.src} src={shot.src} label={shot.label[language]} />)}</div></section>
-              <div className={styles.detailText}><p>{app.description[language]}</p><ul>{app.tags.map(tag => <li key={tag}>{tag}</li>)}</ul></div>
+            {project ? <article className={`${styles.detail} ${project.highlights ? styles.detailLong : ""}`} style={{ "--folder-color": project.color } as CSSProperties}>
+              <Cover project={project} label={copy.preview} />
+              <div className={styles.detailText}>{project.category && <small>{project.category}</small>}<h2>{project.title}</h2>{project.role && <p className={styles.role}><strong>{copy.role}</strong> {project.role[language]}</p>}{project.weddingDate && <p className={styles.role}><strong>{copy.weddingDate}</strong> {project.weddingDate[language]}</p>}<p>{project.description[language]}</p>{project.highlights && <section className={styles.highlights} aria-label={copy.work}><h3>{copy.work}</h3><ol>{project.highlights[language].map(item => <li key={item}>{item}</li>)}</ol></section>}<ul>{project.tags.map(tag => <li key={tag}>{tag}</li>)}</ul><a href={project.href} target="_blank" rel="noopener noreferrer">{copy.open}<ArrowUpRight size={14} /></a></div>
+            </article> : app ? <article className={`${styles.detail} ${styles.detailLong}`} style={{ "--folder-color": app.color } as CSSProperties}>
+              <section className={styles.appMedia} aria-label={`${app.title} — ${copy.preview}`}><h3>{copy.preview}</h3><video className={`${styles.coverVideo} ${styles.appVideo}`} autoPlay muted loop playsInline preload="metadata" poster={app.poster} aria-label={`${app.title} — ${copy.preview}`}><source src={app.video} type="video/mp4" /></video></section>
+              <div className={styles.appDetails}>
+                <header className={styles.appHeader}>
+                  <Image className={styles.appIcon} src={MONETTA.icon} alt="" width={96} height={96} />
+                  <div className={styles.detailText}><small className={styles.devStatus}>{app.status[language]}</small><h2>{app.title}</h2><p>{app.subtitle[language]}</p><a href={app.href} target="_blank" rel="noopener noreferrer">{copy.visit}<ArrowUpRight size={14} /></a></div>
+                </header>
+                <dl className={styles.appInfo}>{app.info.map(item => <div key={item.label.en}><dt>{item.label[language]}</dt><dd>{typeof item.value === "string" ? item.value : item.value[language]}</dd></div>)}</dl>
+                <div className={`${styles.detailText} ${styles.appDescription}`}><p className={styles.role}><strong>{copy.role}</strong> {app.role[language]}</p><p>{app.description[language]}</p><section className={styles.highlights} aria-label={copy.work}><h3>{copy.work}</h3><ol>{app.highlights[language].map(item => <li key={item}>{item}</li>)}</ol></section><ul>{app.tags.map(tag => <li key={tag}>{tag}</li>)}</ul></div>
+              </div>
             </article> : <div className={styles.grid}>
-              {projects.map(item => launcher(item.id, item.title, finderArt(item.id)))}
-              {launcher(MONETTA.id, MONETTA.title, <PixelArt layers={MONETTA_ICON} scale={2} className={styles.pixelIcon} />)}
+              {projects.map(item => launcher(item.id, item.title, projectArt(item.id)))}
+              {launcher(MONETTA.id, MONETTA.title, monettaArt)}
             </div>}
           </div>
         </div>
-        <footer className={styles.status}><span>{project ? copy.selected : app ? copy.application : `${projects.length + 1} ${copy.items}`}</span><span>{project || app ? copy.hint : ""}</span></footer>
+        {resizable && !expanded && <WindowResizeHandles handleProps={handleProps} />}
       </section>
     </div>}
   </>;

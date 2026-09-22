@@ -13,7 +13,6 @@ import { DateTimeControl } from "./datetime-popover";
 import { DesktopDialogs } from "./dialogs";
 import styles from "./menu-bar.module.css";
 import { SpotlightSearch } from "./spotlight-search";
-import { ConnectionControl, FocusControl } from "./status-controls";
 import { useHoverSwitch, useMenuDismiss } from "./use-menu-dismiss";
 
 function Menu({
@@ -450,8 +449,6 @@ export default function MacMenuBar() {
             </button>
           </Menu>
 
-          <FocusControl />
-          <ConnectionControl />
           <button
             type="button"
             className={styles.iconBtn}

@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useLanguage, type Language } from "@/components/lang-context";
 import { useDesktopStore } from "@/lib/desktop/desktop-store";
+import { DOCK_COPY, DOCK_PRESETS, DOCK_SIZE_NAMES } from "@/lib/desktop/dock-layout";
 import { ASSISTANT_NAME, type AssistantVoiceId } from "@/lib/desktop/types";
 import styles from "./menu-bar.module.css";
 
@@ -116,6 +117,8 @@ export function DesktopDialogs() {
     setShortcutsOpen,
     preferences,
     updatePreferences,
+    dockSize,
+    setDockSize,
   } = useDesktopStore();
 
   const aboutId = useId();
@@ -151,6 +154,7 @@ export function DesktopDialogs() {
             `${ASSISTANT_NAME} (orbe) responde por texto o micrófono.`,
             "Focus pausa animaciones decorativas durante 25 minutos.",
             "Arrastra los íconos del escritorio; clic derecho o Visualización para ordenarlos de nuevo.",
+            "Arrastra el separador del Dock para agrandarlo o reducirlo; clic derecho en el Dock para los tamaños.",
           ],
           shortcutsTitle: "Atajos de teclado",
           shortcuts: [
@@ -159,6 +163,7 @@ export function DesktopDialogs() {
             "Clic fuera — cerrar el popover activo",
             "⌘ / Mayús + clic — seleccionar varios íconos del escritorio",
             "Mayús + F10 — menú de un ícono del escritorio",
+            "Flechas — redimensionar el Dock desde su separador",
           ],
           close: "Cerrar",
           done: "Listo",
@@ -185,6 +190,7 @@ export function DesktopDialogs() {
               `${ASSISTANT_NAME}（光球）支持文字或麦克风。`,
               "Focus 可在 25 分钟内暂停装饰动画。",
               "可拖动桌面图标；右键或“显示”菜单可重新整理。",
+              "拖动程序坞的分隔线可放大或缩小；右键点击程序坞可选择大小。",
             ],
             shortcutsTitle: "键盘快捷键",
             shortcuts: [
@@ -193,6 +199,7 @@ export function DesktopDialogs() {
               "点击外部 — 关闭当前弹出层",
               "⌘ / Shift + 点击 — 多选桌面图标",
               "Shift + F10 — 打开桌面图标菜单",
+              "方向键 — 在分隔线上调整程序坞大小",
             ],
             close: "关闭",
             done: "完成",
@@ -218,6 +225,7 @@ export function DesktopDialogs() {
               `${ASSISTANT_NAME} (orb) answers via text or microphone.`,
               "Focus pauses decorative animations for 25 minutes.",
               "Drag desktop icons anywhere; right-click the desktop or use View to tidy them up.",
+              "Drag the Dock's divider to grow or shrink it; right-click the Dock for preset sizes.",
             ],
             shortcutsTitle: "Keyboard Shortcuts",
             shortcuts: [
@@ -226,10 +234,13 @@ export function DesktopDialogs() {
               "Click outside — dismiss the active popover",
               "⌘ / Shift-click — select several desktop icons",
               "Shift+F10 — open a desktop icon's menu",
+              "Arrows — resize the Dock from its divider",
             ],
             close: "Close",
             done: "Done",
           };
+
+  const dock = DOCK_COPY[language];
 
   const langs: { id: Language; label: string }[] = [
     { id: "en", label: "English" },
@@ -276,6 +287,22 @@ export function DesktopDialogs() {
           >
             {preferences.reducedMotion ? copy.on : copy.off}
           </button>
+        </div>
+        <div className={styles.prefRow}>
+          <span>{dock.size}</span>
+          <div className={styles.chips}>
+            {DOCK_SIZE_NAMES.map((name) => (
+              <button
+                key={name}
+                type="button"
+                className={styles.chip}
+                aria-pressed={dockSize === DOCK_PRESETS[name]}
+                onClick={() => setDockSize(DOCK_PRESETS[name])}
+              >
+                {dock[name]}
+              </button>
+            ))}
+          </div>
         </div>
         <div className={styles.prefRow}>
           <span>{copy.voice}</span>

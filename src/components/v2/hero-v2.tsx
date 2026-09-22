@@ -9,6 +9,8 @@ import ChatInterface from "@/components/chat-interface";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
 import { ICON_COLUMN_STRIP } from "@/lib/desktop/icon-layout";
+import { useWindowFrame } from "@/lib/desktop/use-window-frame";
+import WindowResizeHandles from "./window-resize-handles";
 
 /* The terminal opens beside the desktop icons, never on top of them: the icon
    strip plus a gutter that grows a little on wide screens. Dragging is still
@@ -54,6 +56,14 @@ export default function HeroV2({
   const [macTerminalOpen, setMacTerminalOpen] = useState(true);
   const [terminalExpanded, setTerminalExpanded] = useState(false);
   const terminalDrag = useDragControls();
+  // On the mac desktop the terminal moves and resizes like Finder: clear of the menu bar and the Dock.
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const terminalFrame = useWindowFrame(terminalRef, {
+    minWidth: 380,
+    minHeight: 280,
+    insets: () => ({ top: 30, bottom: parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--mac-dock-gutter")) || 88 }),
+  });
+  const terminalWindowed = !noBgImage && terminalFrame.resizable && !terminalExpanded;
   const hideTerminal = () => {
     setMacTerminalOpen(false);
     requestAnimationFrame(() => document.getElementById("mac-terminal-launcher")?.focus({ preventScroll: true }));
@@ -263,9 +273,10 @@ export default function HeroV2({
         #work[data-active-panel="0"]:has(#home[data-desktop="mac"]) { touch-action: pan-y !important; }
         body:has(#work[data-active-panel="0"] #home[data-desktop="mac"]) .nav-v2-shell { visibility: hidden; }
         #home[data-desktop="mac"] .comic-terminal { left: auto; right: ${TERMINAL_RIGHT}; top: 20%; bottom: auto; translate: none; transform: none; width: min(580px, calc(100% - ${ICON_COLUMN_STRIP}px - ${TERMINAL_GUTTER} - 24px)); }
-        #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] { inset: 40px 12px 90px; width: auto; transform: none !important; }
+        #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] { inset: 40px 12px var(--mac-dock-gutter, 90px); width: auto; transform: none !important; }
         #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] > div { height: 100%; }
         #home[data-desktop="mac"] .comic-terminal[hidden] { display: none; }
+        #home[data-desktop="mac"] .comic-terminal[data-framed] > div { height: 100%; }
         @media (max-width: 1023px) {
           #home[data-desktop="mac"] .comic-terminal { display: none !important; }
         }
@@ -298,13 +309,18 @@ export default function HeroV2({
       {/* Floating comic-terminal — hidden on mobile mac via CSS; remount key still resets drag on breakpoint */}
       <motion.div
         key={isDesktop ? "terminal-lg" : "terminal-sm"}
+        ref={terminalRef}
         hidden={!noBgImage && !macTerminalOpen}
         data-expanded={terminalExpanded}
-        drag={!terminalExpanded}
+        data-framed={terminalWindowed && terminalFrame.framed ? "" : undefined}
+        drag={!terminalExpanded && !terminalWindowed}
         dragControls={terminalDrag}
         dragListener={false}
+        {...(terminalWindowed ? terminalFrame.tracking : {})}
         onPointerDown={event => {
-          if ((event.target as HTMLElement).closest("[data-drag-handle]") && !(event.target as HTMLElement).closest("button")) terminalDrag.start(event);
+          if (!(event.target as HTMLElement).closest("[data-drag-handle]") || (event.target as HTMLElement).closest("button")) return;
+          if (terminalWindowed) terminalFrame.startMove(event);
+          else terminalDrag.start(event);
         }}
         dragMomentum={false}
         dragConstraints={heroRef}
@@ -313,16 +329,10 @@ export default function HeroV2({
         style={{
           opacity: contentOpacity,
           fontFamily: "var(--font-space-mono, ui-monospace, monospace)",
+          ...(terminalWindowed ? terminalFrame.style : undefined),
         }}
       >
-        <a
-          href="https://www.instagram.com/jayivee._/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute -top-6 left-0 z-50 text-[0.55rem] lg:text-[0.6rem] text-white/40 hover:text-white/80 transition-colors font-mono tracking-wider pointer-events-auto md:hidden"
-        >
-          Artist: @jayivee._
-        </a>
+        {terminalWindowed && <WindowResizeHandles handleProps={terminalFrame.handleProps} />}
         <div className="w-full h-[min(425.25px,40.5vh)] lg:h-[min(472.5px,52.5vh)]">
           {/* On mobile mac the mind-sheet owns chat — skip a second useChat instance */}
           {/* Default-on for SSR/desktop; unmount only after we know we are mobile mac */}
