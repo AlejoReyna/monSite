@@ -32,7 +32,8 @@ async function readQuota() {
   return decodeQuotaCookie(store.get(QUOTA_COOKIE)?.value);
 }
 
-/** Kimi accepts a provider-specific `thinking` field; cast keeps OpenAI SDK types satisfied. */
+/** Kimi accepts a provider-specific `thinking` field; cast keeps OpenAI SDK types satisfied.
+    Never pass `temperature`: K2.6 fixes it per mode (0.6 without thinking) and rejects any other value with a 400. */
 async function kimiChat(
   client: OpenAI,
   model: string,
@@ -108,7 +109,6 @@ export async function POST(req: NextRequest) {
       ],
       tools: ASSISTANT_TOOLS,
       tool_choice: "auto",
-      temperature: 1,
       max_tokens: 800,
     });
 
@@ -178,7 +178,6 @@ export async function POST(req: NextRequest) {
 
       const second = await kimiChat(client, kimi.model, {
         messages: followups,
-        temperature: 1,
         max_tokens: 600,
       });
       reply = second.choices[0]?.message?.content?.trim() || "";

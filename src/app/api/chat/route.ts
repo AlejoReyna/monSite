@@ -285,11 +285,11 @@ export async function POST(req: NextRequest) {
 
       // Disable K2.6 "thinking" for snappier portfolio chat, and stream tokens
       // so mobile UX can show text as soon as the first chunk arrives.
+      // No temperature: K2.6 fixes it per mode (0.6 without thinking) and rejects any other value with a 400.
       const kimiParams = {
         model: config.model,
         messages: kimiMessages,
         max_tokens: config.maxTokens,
-        temperature: 1,
         thinking: { type: 'disabled' as const },
       };
 

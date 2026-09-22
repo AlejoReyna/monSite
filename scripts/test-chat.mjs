@@ -143,6 +143,15 @@ test('Kimi streaming emits deltas and a completed reply with remaining quota', a
   assert.equal(events.at(-1).quota.remaining, 19);
 });
 
+// kimi-k2.6 fixes temperature per mode (0.6 without thinking) and answers any explicit value with a 400.
+for (const stream of [false, true]) test(`Kimi ${stream ? 'streaming' : 'single'} requests disable thinking and never send a temperature`, async () => {
+  const { route, captured } = routeHarness('kimi');
+  const response = await route.POST(request({ stream, language: 'es', messages: [{ role: 'user', content: 'Hola.' }] }));
+  if (stream) await readSseStream(response, () => {});
+  assert.equal(captured().thinking?.type, 'disabled');
+  assert.ok(!('temperature' in captured()));
+});
+
 test('recruiter questions route to the hiring focus in both languages', () => {
   const { detectTopic } = direction;
   for (const question of ['What is your expected salary?', 'Are you available to start in October?', 'Would you relocate?']) {
