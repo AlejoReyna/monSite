@@ -10,7 +10,7 @@
 .startup { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; overflow: auto; padding: 16px; background: #000; color: #fff; font-family: Arial, Helvetica, sans-serif; }
 .startupDialog { width: min(580px, 100%); padding: 40px; border: 1px solid #ffffff26; border-radius: 22px; background: #161923; box-shadow: 0 32px 100px #0008; }
 /* Full-bleed: the menu bar is translucent (see menu-bar.module.css) and shows this through it, like real macOS vibrancy. */
-.wallpaper { position: absolute; inset: 0; background: url('/macos-wallpaper-monterey.jpg') center center / cover no-repeat; }
+.wallpaper { position: absolute; inset: 0; background: url('/macos-wallpaper-purple.jpg') center center / cover no-repeat; }
 .macGif { position: absolute; z-index: 20; left: clamp(0rem, 1vw, 1.5rem); right: auto; top: 30px; bottom: 0; width: min(42vw, 34rem); height: auto; overflow: visible; pointer-events: none; }
 .macGifArt { position: absolute; inset: 0; overflow: hidden; pointer-events: auto; }
 .macGifImage { object-fit: contain; object-position: center top; transform: scale(1.4); transform-origin: center top; filter: drop-shadow(0 16px 24px #0006); opacity: 0; transition: opacity .3s ease; }
