@@ -94,8 +94,7 @@
  .menu summary { padding: 0 6px; }
  .statusBar { gap: 0; }
  .menuDropdown { position: fixed; top: 34px; left: 10px; }
- .wallpaper { background-size: auto 100%; background-position: 64% center; }
-  .macGif { left: -1rem; right: auto; top: 30px; bottom: 0; width: min(58vw, 20rem); height: auto; }
+ .macGif { left: -1rem; right: auto; top: 30px; bottom: 0; width: min(58vw, 20rem); height: auto; }
  .mac { --dock-tile: 39px; }
  .dialog, .startupDialog { padding: 32px 20px 24px; }
  .options { gap: 8px; }
@@ -161,13 +160,6 @@
   .macMobile .dock button::after,
   .macMobile .dock a::after {
     display: none;
-  }
-
-  /* Mobile skips the desktop wallpaper and uses the plain mac backdrop. */
-  .macMobile .wallpaper {
-    background: #0e131a;
-    top: 0;
-    bottom: 0;
   }
 }
 
