@@ -43,12 +43,12 @@ still-frame switch in the mobile character, the status line under the input).
 | Desktop terminal window | Open by default (`hero-v2.tsx:54`), dock button `#mac-terminal-launcher` | `hero-v2.tsx:325` — `ChatInterface theme="mac" variant="panel"` in a framer-motion draggable | `/api/chat` (SSE) |
 | Mobile mind-sheet | Terminal/Folders switch (`desktop-picker.tsx`), dock | `mobile-mac-stage.tsx:75` — same component, `presentation` defaults to `window` | `/api/chat` (SSE) |
 | Menu-bar **Orbit** | Orb button in the mac menu bar | `mac-menu-bar/assistant-panel.tsx` | `/api/assistant/stt` → `/api/assistant` → `/api/assistant/tts` |
-| Legacy desktops | — | `windows-desktop.tsx`, `ubuntu-desktop.tsx` exist but `DesktopPicker` renders only `MacDesktop` (`desktop-picker.tsx:139`) | — |
+| Legacy desktops | — | Removed; archived on branch `archive/windows-ubuntu-desktops` (see `docs/macos-only-desktop.md`) | — |
 
 `ChatInterface` is imported in exactly two places (hero + mobile stage), and both pass
 `theme="mac"` unless the v3 page variant asks for `"default"` (`hero-v2.tsx:325`,
-`noBgImage`). Its `windows` and `ubuntu` themes are unreachable — the legacy desktops never
-mount a chat — so **`theme="mac"` is the live path** and every `theme !== "mac"` branch in the
+`noBgImage`). Its `windows` and `ubuntu` themes were removed along with the legacy desktops,
+which never mounted a chat — so **`theme="mac"` is the live path** and every `theme !== "mac"` branch in the
 component is dead on the real site.
 
 ## 1.2 Terminal chat — the turn, exactly as it runs
@@ -517,7 +517,7 @@ exhaustion; TTS unavailable with text still working.
 2. Should an ending be shareable (a permalink to the last line)? That needs storage; default no.
 3. Does Orbit keep voice enabled by default on mobile, or text-first with mic opt-in?
 4. Who authors the ZH labels for the deck?
-5. The component's `windows` / `ubuntu` themes are unreachable today — delete them with PR 2, or keep them for a future desktop picker?
+5. ~~The component's `windows` / `ubuntu` themes are unreachable today — delete them with PR 2, or keep them for a future desktop picker?~~ Resolved: deleted from `main` and kept on branch `archive/windows-ubuntu-desktops` (see `docs/macos-only-desktop.md`).
 
 ## 3.9 References
 

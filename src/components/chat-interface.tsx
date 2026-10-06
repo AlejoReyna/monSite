@@ -17,7 +17,7 @@ type ChatInterfaceProps = {
   className?: string;
   terminalClassName?: string;
   variant?: "card" | "panel";
-  theme?: "default" | "windows" | "mac" | "ubuntu";
+  theme?: "default" | "mac";
   onClose?: () => void;
   onMinimize?: () => void;
   onToggleMaximize?: () => void;
@@ -252,7 +252,7 @@ export default function ChatInterface({
     </div>
   );
 
-  const prompt = (assistant = false) => <span className={styles.prompt} aria-hidden="true">{assistant ? "❯" : theme === "windows" ? "C:\\ALEXIS>" : <><span>➜</span><span className={styles.directory}>~</span></>}</span>;
+  const prompt = (assistant = false) => <span className={styles.prompt} aria-hidden="true">{assistant ? "❯" : <><span>➜</span><span className={styles.directory}>~</span></>}</span>;
   const renderLocal = (entry: LocalEntry) => (
     <div className={styles.turn} key={entry.id} data-entry={entry.id}>
       <div className={styles.commandLine}>{prompt()}<span className={entry.kind === "/ai" ? styles.assistantTitle : undefined}>{entry.kind === "/ai" ? copy.ai : entry.command}</span></div>

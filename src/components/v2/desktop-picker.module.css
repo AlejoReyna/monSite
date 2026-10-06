@@ -6,8 +6,6 @@
 .macCalm .macCoffeeCaption { transition: none; }
 .macCalm .dock, .macCalm .dock button, .macCalm .dock a { transition: none; }
 .macCalm .dock button:hover, .macCalm .dock a:hover { transform: none; }
-.startup { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; overflow: auto; padding: 16px; background: #000; color: #fff; font-family: Arial, Helvetica, sans-serif; }
-.startupDialog { width: min(580px, 100%); padding: 40px; border: 1px solid #ffffff26; border-radius: 22px; background: #161923; box-shadow: 0 32px 100px #0008; }
 /* Full-bleed: the menu bar is translucent (see menu-bar.module.css) and shows this through it, like real macOS vibrancy. */
 .wallpaper { position: absolute; inset: 0; background: url('/macos-wallpaper-purple.webp') center center / cover no-repeat; }
 .macGif { position: absolute; z-index: 20; left: clamp(0rem, 1vw, 1.5rem); right: auto; top: 30px; bottom: 0; width: min(42vw, 34rem); height: auto; overflow: visible; pointer-events: none; }
@@ -64,28 +62,7 @@
 .resizer::before { content: ""; position: absolute; inset: 0 5px; border-radius: 1px; background: #ffffff35; transition: inset .15s ease, background .15s ease; }
 .resizer:hover::before, .resizer:focus-visible::before { inset: 0 4px; background: #ffffffa8; }
 .resizer::after { left: 50%; translate: -50% 0; }
-.dialog { position: fixed; inset: 0; margin: auto; width: min(580px, calc(100vw - 32px)); max-height: calc(100svh - 32px); overflow: auto; padding: 40px; border: 1px solid #ffffff26; border-radius: 22px; background: #161923; color: #fff; box-shadow: 0 32px 100px #0008; font-family: Arial, sans-serif; }
-.dialog::backdrop { background: #060a15b0; backdrop-filter: blur(12px); }
-.eyebrow { color: #b8c2d8; letter-spacing: 2px; font-size: 10px; }
-.dialog h2 { font-size: clamp(24px, 5vw, 32px); letter-spacing: -1px; margin: 14px 0 10px; }
-.dialog p { color: #aeb6c6; font-size: 14px; line-height: 1.6; margin-bottom: 26px; }
-.close { position: absolute; top: 12px; right: 18px; color: #bfc5d2; font-size: 26px; border: 0; background: none; cursor: pointer; }
-.options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.options button { text-align: left; padding: 8px 8px 16px; border-radius: 13px; border: 1px solid #ffffff20; color: white; background: #ffffff05; cursor: pointer; }
-.options button:hover { border-color: #9fcfff; background: #ffffff0a; }
-.options strong, .options small { display: block; margin: 12px 6px 0; }
-.options small { margin-top: 5px; color: #aeb6c6; font-size: 11px; }
-.winPreview, .macPreview, .ubuntuPreview { height: 122px; border-radius: 7px; display: block; position: relative; overflow: hidden; }
-.winPreview { background: #008080; display: grid; place-items: center; font-size: 54px; }
-.winPreview > span { color: #ffd43f; text-shadow: 3px 3px #111; }
-.winPreview i { position: absolute; bottom: 0; inset-inline: 0; background: #c0c0c0; border-top: 2px solid white; font: bold 8px Arial; color: #111; padding: 3px; }
-.macPreview { background: #10121a url('/macos-desktop-reference.png') center / cover; }
-.macPreview i { position: absolute; bottom: 4px; left: 28%; right: 28%; height: 9px; background: #aab6d755; border-radius: 3px; }
-.ubuntuPreview { display: grid; place-items: center; background: linear-gradient(135deg, #e95420, #77216f 70%); color: #fff; }
-.ubuntuPreview svg { position: relative; z-index: 1; }
-.ubuntuPreview::before { content: "Activities"; position: absolute; inset: 0 0 auto; padding: 5px 8px; background: #17151be8; font-size: 8px; text-align: left; }
-.ubuntuPreview i { position: absolute; left: 5px; top: 28px; bottom: 5px; width: 8px; border-radius: 5px; background: #24212ad9; }
-.options button:focus-visible, .dock :focus-visible, .rail :focus-visible, .menuBar :focus-visible { outline: 2px solid #91cbff; outline-offset: 4px; }
+.dock :focus-visible, .rail :focus-visible, .menuBar :focus-visible { outline: 2px solid #91cbff; outline-offset: 4px; }
 @media(max-width: 600px) {
  .menuBar { gap: 8px; padding: 0 10px; font-size: 12px; }
  .menuBar time { display: none; }
@@ -95,10 +72,6 @@
  .menuDropdown { position: fixed; top: 34px; left: 10px; }
  .macGif { left: -1rem; right: auto; top: 30px; bottom: 0; width: min(58vw, 20rem); height: auto; }
  .mac { --dock-tile: 39px; }
- .dialog, .startupDialog { padding: 32px 20px 24px; }
- .options { gap: 8px; }
- .winPreview, .macPreview, .ubuntuPreview { height: 86px; }
- .options strong, .options small { margin-left: 2px; margin-right: 2px; }
 }
 @media(prefers-reduced-motion: reduce) { .dock, .dock button, .dock a, .resizer::before { transition: none; } }
 
