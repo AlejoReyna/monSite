@@ -2,7 +2,7 @@
 
 import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, preload } from "react-dom";
 import Link from "next/link";
 import { BookOpen, Folder, Globe, MoreHorizontal, Moon, Sparkles, Terminal, Mail, Github } from "lucide-react";
 import { useLanguage, type Language } from "@/components/lang-context";
@@ -27,6 +27,9 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
   const copyText = useCopy();
   const { language, setLanguage } = useLanguage();
   const store = useDesktopStore();
+  // The wallpaper is a CSS background, which the browser only discovers after the stylesheet
+  // loads; preloading it from <head> fetches it alongside the CSS.
+  preload("/macos-wallpaper-purple.webp", { as: "image", fetchPriority: "high" });
   const dock = DOCK_COPY[language];
   // lg and up is where the desktop is the macOS desktop: the artwork shows and the Dock is the Dock,
   // with a resize handle. Below it the top Dock uses compact tiles.
@@ -173,7 +176,8 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
     // data-desktop-root / data-desktop-background: where desktop icon drags and the desktop context menu live.
     <div ref={rootRef} data-desktop-root="" data-mobile-view={mobileView} className={`${styles.mac} ${macMobile ? styles.macMobile : ""} ${store.focusMode.active || store.preferences.reducedMotion ? styles.macCalm : ""}`.trim()}>
       <div className={styles.wallpaper} data-desktop-background="" aria-hidden="true" />
-      {!store.desktopHidden && (!macMobile || lgViewport) && (
+      {/* Rendered on the server so the art paints with the page; below lg the macMobile CSS hides it. */}
+      {!store.desktopHidden && (
         <div className={styles.macGif} data-desktop-background="" aria-hidden="true">
           <MacCoffeeDrawing />
         </div>

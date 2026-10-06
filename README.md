@@ -110,12 +110,14 @@ The root layout reads the language cookie, so pages render per request rather th
 - **Add/adjust a home panel:** edit the `PANELS` array and imports in `src/components/v3/hero-carousel-sequence.tsx`; each panel is its own `*-gateway.tsx` component with a colocated CSS module.
 - **Project data:** `src/components/v3/data/` and `src/components/data/`.
 - **Per-panel top-bar color:** `PANEL_THEME_COLORS` in `hero-carousel-sequence.tsx`.
-- **Hero art:** lossless animated WebP at `public/coffee-desktop.webp`; the original `public/16.gif` is retained as source material. Mobile uses its existing smaller assets in `public/mobile/`.
+- **Hero art:** animated WebP at `public/coffee-desktop.webp` plus its first frame, `public/coffee-desktop-still.webp`, which paints with the page until the animation has downloaded. The original `public/16.gif` is retained as source material. Mobile uses its existing smaller assets in `public/mobile/`.
+- **Desktop icons:** pre-sized WebPs in `public/desktop-icons/` (192px on the short side), served without the image optimizer so they load with the page.
 
 ---
 
 ## Notes
 
-- Desktop artwork is served `unoptimized` to preserve animation. The lossless WebP is 64.8% smaller than the source GIF (5,992,350 vs 17,020,818 bytes), with identical visible pixels, transparency and animation timing. This reduces download size; decoded memory and runtime performance have not been measured.
-- Recreate it with `gif2webp -m 4 public/16.gif -o public/coffee-desktop.webp` (lossless by default; no multithreading requested).
+- Desktop artwork is served as static files (not through `next/image`) to preserve animation. The animation is lossy WebP at quality 80: 1,669,306 bytes, 90.2% smaller than the source GIF (17,020,818) and 72.1% smaller than the previous lossless WebP (5,992,350), with the same frames, transparency and timing. At 1:1 the only visible difference is slightly smoothed GIF dithering.
+- Recreate the animation with `gif2webp -lossy -q 80 -m 6 public/16.gif -o public/coffee-desktop.webp`. The still is frame 1 (836×1943 at offset 206,32) padded onto the 1268×2000 canvas and encoded with `cwebp -q 80 -m 6`, so it lines up exactly with the animation.
+- The wallpaper is `public/macos-wallpaper-purple.webp`: `cwebp -q 90 -m 6 -sharp_yuv -f 0 -sns 0` from the JPG (88 KB vs 832 KB), with settings that keep its film grain.
 - Panels use `100svh` and gesture handling tuned for mobile; test scroll-vs-advance behavior on a real device when changing panel heights.
