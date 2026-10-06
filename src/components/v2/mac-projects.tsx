@@ -22,17 +22,20 @@ const projects = [
 
 // Monetta ships as an app, so the desktop shows its App Store icon and Finder an App Store-style page.
 // Projects keep their folder detail pages but can use brand icons on desktop/Finder.
-const INVERATER_ICON = "/inverater/icon-clean.png";
+// Icons are pre-sized WebPs in public/desktop-icons (192px on the short side, 2x the largest tile)
+// and served as-is, so they arrive with the page instead of waiting on the image optimizer. Plebes
+// keeps its small original PNG: it is pixel art drawn with image-rendering: pixelated.
+const INVERATER_ICON = "/desktop-icons/inverater.webp";
 const PLEBES_ICON = "/plebes-icon-clean.png";
-// High-res crop of the concept art (not the 64px animation sprite), so the desktop
+// From the high-res crop of the concept art (not the 64px animation sprite), so the desktop
 // icon stays crisp instead of blowing up a tiny pixel-art frame.
-const ARTISANAL_ICON = "/blog/artisanal-brew-robot-icon.png";
-const ANDREA_ICON = "/weddings/andrea/assets/logos/IMG_0340.PNG";
-const CINDY_ICON = "/weddings/cindy/cindy-jorge-monogram.png";
-const NONAMEDBOT_ICON = "/bnb_logo.webp";
+const ARTISANAL_ICON = "/desktop-icons/artisanal-brew.webp";
+const ANDREA_ICON = "/desktop-icons/andrea-aldo.webp";
+const CINDY_ICON = "/desktop-icons/cindy-jorge.webp";
+const NONAMEDBOT_ICON = "/desktop-icons/nonamedbot.webp";
 const AWS_BADGE = {
   href: "https://www.credly.com/badges/a58ebe0a-da77-4ffe-8499-3d46b84b2059",
-  icon: "/credly-badge.png",
+  icon: "/desktop-icons/aws-badge.webp",
   label: "AWS Certified AI Practitioner",
   title: "AWS AI",
 };
@@ -46,7 +49,7 @@ const MONETTA = {
   id: "monetta",
   title: "Monetta",
   color: "#b98b4c",
-  icon: "/monetta/icon.png",
+  icon: "/desktop-icons/monetta.webp",
   video: "/project-previews/monetta.mp4",
   poster: "/monetta/home.jpg",
   href: "https://monetta.mx",
@@ -160,7 +163,7 @@ export default function MacProjects({
                 : null;
   const brandArt = (id: string, icon: string) =>
     <span className={`${styles.appArt} ${styles.transparentArt} ${id === "plebes" ? styles.pixelArtAsset : id === "nonamedbot" ? styles.bscArt : id === "wedding-cindy" ? styles.cindyArt : ""}`} aria-hidden="true">
-      <Image src={icon} alt="" width={96} height={96} />
+      <Image src={icon} alt="" width={96} height={96} unoptimized loading="eager" />
     </span>;
   const projectArt = (id: string) => {
     const icon = brandIcon(id);
@@ -168,14 +171,14 @@ export default function MacProjects({
       ? brandArt(id, icon)
       : <span className={styles.folderArt} aria-hidden="true"><span className={styles.folderBack} /><span className={styles.folderFront} /></span>;
   };
-  const monettaArt = <span className={styles.appArt} aria-hidden="true"><Image src={MONETTA.icon} alt="" width={96} height={96} /></span>;
+  const monettaArt = <span className={styles.appArt} aria-hidden="true"><Image src={MONETTA.icon} alt="" width={96} height={96} unoptimized loading="eager" /></span>;
   // A blank page with a folded corner, like the generic PDF icon in macOS.
   const cvArt = <span className={styles.documentArt} aria-hidden="true"><span className={styles.documentPage}>PDF</span></span>;
   // Order here is the default desktop arrangement; kinds drive Clean Up By / Sort By Kind.
   const desktopIcons: DesktopIconItem[] = [
     ...projects.map(item => ({ id: item.id, title: item.title, kind: "folder" as const, ariaLabel: `${copy.open}: ${item.title}`, art: projectArt(item.id), onOpen: (button: HTMLButtonElement) => openItem(item.id, button) })),
     { id: MONETTA.id, title: MONETTA.title, kind: "application", ariaLabel: `${copy.open}: ${MONETTA.title}`, art: monettaArt, onOpen: button => openItem(MONETTA.id, button) },
-    { id: "aws-ai", title: AWS_BADGE.title, kind: "web", ariaLabel: AWS_BADGE.label, href: AWS_BADGE.href, art: <span className={`${styles.appArt} ${styles.badgeArt}`} aria-hidden="true"><Image src={AWS_BADGE.icon} alt="" width={96} height={96} /></span> },
+    { id: "aws-ai", title: AWS_BADGE.title, kind: "web", ariaLabel: AWS_BADGE.label, href: AWS_BADGE.href, art: <span className={`${styles.appArt} ${styles.badgeArt}`} aria-hidden="true"><Image src={AWS_BADGE.icon} alt="" width={96} height={96} unoptimized loading="eager" /></span> },
     { id: CV.id, title: CV.title, kind: "pdf", ariaLabel: copy.cv, href: CV.href, art: cvArt },
   ];
   return <>
@@ -199,7 +202,7 @@ export default function MacProjects({
               <section className={styles.appMedia} aria-label={`${app.title} — ${copy.preview}`}><h3>{copy.preview}</h3><video className={`${styles.coverVideo} ${styles.appVideo}`} autoPlay muted loop playsInline preload="metadata" poster={app.poster} aria-label={`${app.title} — ${copy.preview}`}><source src={app.video} type="video/mp4" /></video></section>
               <div className={styles.appDetails}>
                 <header className={styles.appHeader}>
-                  <Image className={styles.appIcon} src={MONETTA.icon} alt="" width={96} height={96} />
+                  <Image className={styles.appIcon} src={MONETTA.icon} alt="" width={96} height={96} unoptimized />
                   <div className={styles.detailText}><small className={styles.devStatus}>{app.status[language]}</small><h2>{copyText(app.title)}</h2><p>{app.subtitle[language]}</p><a href={app.href} target="_blank" rel="noopener noreferrer">{copy.visit}<ArrowUpRight size={14} /></a></div>
                 </header>
                 <dl className={styles.appInfo}>{app.info.map(item => <div key={item.label.en}><dt>{item.label[language]}</dt><dd>{typeof item.value === "string" ? item.value : item.value[language]}</dd></div>)}</dl>

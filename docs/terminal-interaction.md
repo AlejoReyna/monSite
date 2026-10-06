@@ -45,8 +45,9 @@ model names, or progress percentages are fabricated.
 The shell is an inline-size query container. Body text uses
 `clamp(12px, 10px + .5cqi, 16px)`, so resizing the terminal changes its text scale.
 Touch layouts use a 13px body minimum and a 16px input minimum. Long output wraps;
-menu descriptions collapse in narrow windows. Windows and Ubuntu retain their
-own chrome and colors. English and Spanish copy is included.
+menu descriptions collapse in narrow windows. English and Spanish copy is included.
+The Windows and Ubuntu terminal themes were removed with those desktops; see
+[macos-only-desktop.md](./macos-only-desktop.md).
 
 The input has a unique label, output is a keyboard-scrollable region, and a
 separate live region announces waiting and completed replies without announcing

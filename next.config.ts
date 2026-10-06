@@ -52,6 +52,23 @@ const nextConfig: NextConfig = {
         source: "/article_bg-poster.jpg",
         headers: cacheForAWeek,
       },
+      // Home desktop: wallpaper, character art and icons are on screen at first paint.
+      {
+        source: "/macos-wallpaper-purple.webp",
+        headers: cacheForAWeek,
+      },
+      {
+        source: "/coffee-desktop.webp",
+        headers: cacheForAWeek,
+      },
+      {
+        source: "/coffee-desktop-still.webp",
+        headers: cacheForAWeek,
+      },
+      {
+        source: "/desktop-icons/:path*",
+        headers: cacheForAWeek,
+      },
     ];
   },
   async redirects() {
