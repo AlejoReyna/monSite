@@ -1,0 +1,17 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #000;
+}
+
+.gif {
+  display: block;
+  width: 480px;
+  max-width: calc(100vw - 48px);
+  height: auto;
+  max-height: calc(100dvh - 48px);
+  object-fit: contain;
+}

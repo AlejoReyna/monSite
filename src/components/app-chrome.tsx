@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import NavbarV2 from "@/components/v2/navbar-v2";
 import LanguageSwitcher from "@/components/language-switcher";
 
-const HIDE_CHROME_PREFIXES = ["/blog", "/historia", "/legacy", "/weddings"];
+const HIDE_CHROME_PREFIXES = ["/blog", "/historia", "/legacy", "/weddings", "/merci-mon-cheri-to"];
 
 function shouldHideChrome(pathname: string | null): boolean {
   if (!pathname) return false;
