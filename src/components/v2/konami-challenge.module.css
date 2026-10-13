@@ -1,0 +1,81 @@
+.dialog {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 40px 24px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  overscroll-behavior: contain;
+}
+
+.dialog[open] { display: grid; place-items: center; }
+.dialog::backdrop { background: #000; animation: blackout 1000ms ease both; }
+.content { width: min(100%, 640px); text-align: center; animation: appear 650ms ease both; }
+.content[data-leaving="true"] { animation: depart 400ms ease both; pointer-events: none; }
+.eyebrow { margin: 0 0 18px; color: #ffffff80; font: 11px/1.5 Menlo, Monaco, Consolas, monospace; letter-spacing: .2em; }
+.title { margin: 0; font-size: clamp(26px, 3vw, 36px); line-height: 1.2; font-weight: 400; letter-spacing: -.035em; }
+.hint { margin: 14px 0 36px; color: #ffffffa6; font-size: 14px; line-height: 1.5; }
+
+.sequence { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(16px, 3vw, 28px); width: min(100%, 500px); margin: 0 auto; }
+.key {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+  font-size: clamp(32px, 5vw, 64px);
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.key:nth-child(9) { grid-column: 2; }
+.key:nth-child(10) { grid-column: 3; }
+.key[data-next="true"] { box-shadow: 0 0 0 5px #ffffff26; }
+.key[data-complete="true"] { background: #8ad69b; box-shadow: 0 0 24px #8ad69b30; }
+.key[data-error="true"] { background: #ff7676; box-shadow: 0 0 0 5px #ff767680; }
+.key:active { transform: scale(.94); }
+.key:focus-visible { outline: 2px solid #8ad69b; outline-offset: 8px; }
+.arrow { width: 72%; height: 72%; }
+.arrow[data-direction="ArrowDown"] { rotate: 180deg; }
+.arrow[data-direction="ArrowLeft"] { rotate: -90deg; }
+.arrow[data-direction="ArrowRight"] { rotate: 90deg; }
+
+.status { min-height: 24px; margin: 28px 0 16px; color: #8ad69b; font: 13px/1.5 Menlo, Monaco, Consolas, monospace; }
+.actions { display: flex; justify-content: center; gap: 24px; }
+.actions button { min-height: 44px; padding: 8px 16px; border: 0; background: transparent; color: #ffffffa6; cursor: pointer; font: inherit; font-size: 13px; text-decoration: underline; text-underline-offset: 5px; text-decoration-color: #ffffff40; }
+.actions button:hover { color: #fff; }
+.actions button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 4px; }
+
+@keyframes blackout { from { opacity: 0; } to { opacity: 1; } }
+@keyframes appear { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes depart { to { opacity: 0; } }
+
+@media (max-height: 650px) {
+  .dialog { padding: 24px; }
+  .eyebrow { margin-bottom: 8px; }
+  .hint { margin: 10px 0 22px; }
+  .sequence { width: min(100%, 350px); gap: 16px; }
+  .key { font-size: 42px; }
+  .status { margin: 18px 0 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog::backdrop, .content { animation: none; }
+  .key { transition: none; }
+}
+
+:global(html.mac-reduced-motion) .dialog::backdrop,
+:global(html.mac-reduced-motion) .content { animation: none; }
+:global(html.mac-reduced-motion) .key { transition: none; }

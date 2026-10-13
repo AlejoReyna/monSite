@@ -1,0 +1,30 @@
+{
+  "loader.js": {
+    "bytes": 7594,
+    "sha256": "69e0903bf1e2f62ced78895e7e511fa26e11316f7eb734925c35e919ba1287b2"
+  },
+  "emulator.min.js": {
+    "bytes": 426343,
+    "sha256": "6aec3fd7bb2721255801b0a6af02e47e78b05e28a1822b1f213aacbd348abaee"
+  },
+  "emulator.min.css": {
+    "bytes": 25630,
+    "sha256": "16406c60b2dc3b04ae9b115e308613e6f567a0cc7068e21d9d0c1e5030fb395e"
+  },
+  "cores/gambatte-wasm.data": {
+    "bytes": 967156,
+    "sha256": "ad67c7bf57f8f8b62606048e6ea498afac5b5abc76ad8de5f9dfc2a6719374bb"
+  },
+  "cores/gambatte-legacy-wasm.data": {
+    "bytes": 967022,
+    "sha256": "940a7381d51223c0be0c0f98d1a988d42cc98d03c27b392cbd29cb9f357b5f62"
+  },
+  "cores/reports/gambatte.json": {
+    "bytes": 122,
+    "sha256": "a240a47bd6b2a38a6c46ee63c80bdcd24befbd50474453df4898d49282bd5f57"
+  },
+  "compression/extract7z.js": {
+    "bytes": 280155,
+    "sha256": "4ac9933b995a516cb6b3ca4027db860278372a20c21c405d93ceb1998498853a"
+  }
+}
