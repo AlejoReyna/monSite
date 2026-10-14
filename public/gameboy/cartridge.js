@@ -30,19 +30,31 @@ function open() {
     request.onblocked = () => reject(new Error('Save database blocked'));
   });
 }
-export async function readCartridge() {
+export async function readCartridge(gameName = 'pokemon-gold') {
+  if (gameName !== 'pokemon-gold' && !/^rom-[a-f0-9]{64}$/.test(gameName)) throw new Error('Invalid cartridge identity');
+  const path = `/data/saves/${gameName}.`;
   const db = await open();
   try {
     return await new Promise((resolve, reject) => {
       const transaction = db.transaction('FILE_DATA', 'readonly');
       const store = transaction.objectStore('FILE_DATA');
-      const sram = store.get(PATH + 'srm');
-      const rtc = store.get(PATH + 'rtc');
+      const sram = store.get(path + 'srm');
+      const rtc = store.get(path + 'rtc');
       transaction.oncomplete = () => resolve({ sram: sram.result?.contents, rtc: rtc.result?.contents });
       transaction.onerror = () => reject(transaction.error);
       transaction.onabort = () => reject(transaction.error);
     });
   } finally { db.close(); }
+}
+export async function flushLocalCartridge(sram, gameName) {
+  // Acknowledging exit before IDBFS's queued transaction finishes can destroy
+  // the iframe and lose the save. Wait on this ROM's files, never Gold's mirror.
+  for (let attempt = 0; attempt < 20; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+    const files = await readCartridge(gameName);
+    if (!sram.length || (files.sram && encode(files.sram) === encode(sram))) return;
+  }
+  throw new Error('Cartridge flush incomplete');
 }
 export async function restoreCartridge(backup) {
   if (backup.format !== 'monsite-gold-cartridge' || backup.version !== 1 || backup.rom !== ROM) throw new Error('Wrong backup');

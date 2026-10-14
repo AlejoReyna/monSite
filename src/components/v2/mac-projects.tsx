@@ -2,6 +2,7 @@
 
 import { useCopy } from "@/components/use-copy";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ArrowUpRight, ChevronLeft, Maximize2, Minimize2, Minus, X } from "lucide-react";
 import { useLanguage } from "@/components/lang-context";
@@ -10,6 +11,8 @@ import { useWindowFrame } from "@/lib/desktop/use-window-frame";
 import DesktopIcons, { type DesktopIconItem } from "./desktop-icons";
 import WindowResizeHandles from "./window-resize-handles";
 import styles from "./mac-projects.module.css";
+
+const GameBoyPlayer = dynamic(() => import("./gameboy-player"), { ssr: false });
 
 const projects = [
   { id: "inverater", title: "Inverater", color: "#9aab78", image: "/inverater/icon.png", video: "/project-previews/inverater.mp4", containImage: true, tags: ["Stripe", "STP / SPEI", "Ruby on Rails", "Go", "SQL Server", "AWS", "Docker", "NGINX"], href: "https://www.inverater.com", description: { en: "A proptech platform affiliated with Corporación Quimbo that lets anyone take part in real-estate crowdfunding from $1,000 MXN; investors get their capital back plus returns once the project is built. The business model is backed by a trust (fideicomiso), and the company runs banking infrastructure that gives users their own CLABE accounts for deposits and withdrawals.", es: "Proyecto proptech afiliado a Corporación Quimbo que ofrece la oportunidad de ser partícipe de un crowdfunding inmobiliario: se puede invertir desde $1,000 MXN y el cliente recibe su inversión más rendimientos cuando el proyecto ya se ha construido. El modelo de negocio está respaldado por un fideicomiso y la empresa cuenta con infraestructura bancaria para proporcionar cuentas CLABE a sus usuarios y permitirles hacer depósitos o retiros." }, role: { en: "Full-Stack Software Engineer / DevOps · Oct 2024 – Sep 2026", es: "Full-Stack Software Engineer / DevOps · Oct 2024 – Sep 2026" }, highlights: { en: ["Took over the MVP delivered by an outside agency and, with two fellow developers, built the production system the company runs on today — starting on the front end, moving to the back end, and finally owning both the code and DevOps.", "Built manual sales end to end: referral checkout links payable by Stripe or bank transfer to an STP CLABE, recorded in the database automatically.", "Migrated checkout to STP/SPEI and built the platform's payment and deposit experiences.", "Created a white-label theming system so partner brands can run the platform under their own colours and assets.", "Helped move the backend from Ruby on Rails to Go microservices and helped build Inverpay, connecting Inverater's users to its database.", "Wrote the SQL Server stored procedures behind Inverpay, cutting response times by more than 50%.", "Integrated Truora's KYC API (national ID, face photo, proof of address) for regulatory compliance.", "Planned and ran the AWS infrastructure (EC2, RDS, S3, ElastiCache, CodeDeploy) with NGINX over TLS, Docker and CI/CD, plus DNS and SSL certificates auto-renewed with Let’s Encrypt.", "Moved the whole infrastructure from AWS to an Atlantic.net VPS, cutting hosting costs by 57.5%."], es: ["Tomé el MVP entregado por un equipo externo y, con dos compañeros, construí el sistema de producción con el que opera la empresa hoy: empecé en front-end, pasé a back-end y terminé a cargo del código y de DevOps.", "Construí la venta manual: links de compra para referidos, pagables con Stripe o por transferencia a una CLABE de STP, que se registran solos en la base de datos.", "Migré el checkout a STP/SPEI y desarrollé las experiencias de pago y depósito de la plataforma.", "Creé un sistema de marca blanca para que socios operen la plataforma con sus propios colores y assets.", "Participé en la migración del backend de Ruby on Rails a microservicios en Go y ayudé a construir Inverpay, conectando los usuarios de Inverater con su base de datos.", "Escribí los procedimientos almacenados de SQL Server para Inverpay, reduciendo los tiempos de respuesta en más de 50%.", "Integré la API KYC de Truora (INE, fotografía facial y comprobante de domicilio) para cumplir con la normativa.", "Diseñé y operé la infraestructura en AWS (EC2, RDS, S3, ElastiCache, CodeDeploy) con NGINX sobre TLS, Docker y CI/CD, además de DNS y certificados SSL renovados automáticamente con Let’s Encrypt.", "Migré toda la infraestructura de AWS a un VPS en Atlantic.net, reduciendo el costo de hosting 57.5%."] } },
@@ -33,6 +36,11 @@ const ARTISANAL_ICON = "/desktop-icons/artisanal-brew.webp";
 const ANDREA_ICON = "/desktop-icons/andrea-aldo.webp";
 const CINDY_ICON = "/desktop-icons/cindy-jorge.webp";
 const NONAMEDBOT_ICON = "/desktop-icons/nonamedbot.webp";
+const GAMEBOY = {
+  id: "gameboy",
+  title: "Game Boy Color",
+  icon: "/desktop-icons/gameboy-color.svg",
+};
 const AWS_BADGE = {
   href: "https://www.credly.com/badges/a58ebe0a-da77-4ffe-8499-3d46b84b2059",
   icon: "/desktop-icons/aws-badge.webp",
@@ -95,6 +103,7 @@ export default function MacProjects({
   const { language } = useLanguage();
   const [selected, setSelected] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [gameBoyOpen, setGameBoyOpen] = useState(false);
   // Sync Spotlight / Orbit project selection when Finder opens or the id changes.
   useEffect(() => {
     if (!selectedProjectId) return;
@@ -142,6 +151,11 @@ export default function MacProjects({
   };
   const isolate = (event: { stopPropagation: () => void }) => event.stopPropagation();
   const openItem = (id: string, button: HTMLButtonElement) => {
+    if (id === GAMEBOY.id) {
+      button.focus({ preventScroll: true });
+      setGameBoyOpen(true);
+      return;
+    }
     opener.current = button;
     setSelected(id);
     onOpen();
@@ -162,7 +176,7 @@ export default function MacProjects({
               : id === "nonamedbot" ? NONAMEDBOT_ICON
                 : null;
   const brandArt = (id: string, icon: string) =>
-    <span className={`${styles.appArt} ${styles.transparentArt} ${id === "plebes" ? styles.pixelArtAsset : id === "nonamedbot" ? styles.bscArt : id === "wedding-cindy" ? styles.cindyArt : ""}`} aria-hidden="true">
+    <span className={`${styles.appArt} ${styles.transparentArt} ${id === "plebes" || id === GAMEBOY.id ? styles.pixelArtAsset : id === "nonamedbot" ? styles.bscArt : id === "wedding-cindy" ? styles.cindyArt : ""}`} aria-hidden="true">
       <Image src={icon} alt="" width={96} height={96} unoptimized loading="eager" />
     </span>;
   const projectArt = (id: string) => {
@@ -172,12 +186,14 @@ export default function MacProjects({
       : <span className={styles.folderArt} aria-hidden="true"><span className={styles.folderBack} /><span className={styles.folderFront} /></span>;
   };
   const monettaArt = <span className={styles.appArt} aria-hidden="true"><Image src={MONETTA.icon} alt="" width={96} height={96} unoptimized loading="eager" /></span>;
+  const gameBoyArt = brandArt(GAMEBOY.id, GAMEBOY.icon);
   // A blank page with a folded corner, like the generic PDF icon in macOS.
   const cvArt = <span className={styles.documentArt} aria-hidden="true"><span className={styles.documentPage}>PDF</span></span>;
   // Order here is the default desktop arrangement; kinds drive Clean Up By / Sort By Kind.
   const desktopIcons: DesktopIconItem[] = [
     ...projects.map(item => ({ id: item.id, title: item.title, kind: "folder" as const, ariaLabel: `${copy.open}: ${item.title}`, art: projectArt(item.id), onOpen: (button: HTMLButtonElement) => openItem(item.id, button) })),
     { id: MONETTA.id, title: MONETTA.title, kind: "application", ariaLabel: `${copy.open}: ${MONETTA.title}`, art: monettaArt, onOpen: button => openItem(MONETTA.id, button) },
+    { id: GAMEBOY.id, title: GAMEBOY.title, kind: "application", ariaLabel: `${copy.open}: ${GAMEBOY.title}`, art: gameBoyArt, onOpen: button => openItem(GAMEBOY.id, button) },
     { id: "aws-ai", title: AWS_BADGE.title, kind: "web", ariaLabel: AWS_BADGE.label, href: AWS_BADGE.href, art: <span className={`${styles.appArt} ${styles.badgeArt}`} aria-hidden="true"><Image src={AWS_BADGE.icon} alt="" width={96} height={96} unoptimized loading="eager" /></span> },
     { id: CV.id, title: CV.title, kind: "pdf", ariaLabel: copy.cv, href: CV.href, art: cvArt },
   ];
@@ -211,11 +227,13 @@ export default function MacProjects({
             </article> : <div className={styles.grid}>
               {projects.map(item => launcher(item.id, item.title, projectArt(item.id)))}
               {launcher(MONETTA.id, MONETTA.title, monettaArt)}
+              {launcher(GAMEBOY.id, GAMEBOY.title, gameBoyArt)}
             </div>}
           </div>
         </div>
         {resizable && !expanded && <WindowResizeHandles handleProps={handleProps} />}
       </section>
     </div>}
+    {gameBoyOpen && <GameBoyPlayer onExit={() => setGameBoyOpen(false)} />}
   </>;
 }

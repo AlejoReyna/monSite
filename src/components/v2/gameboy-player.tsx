@@ -4,12 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/components/lang-context";
 import { GAME_KEYS, GOLD_SAVE_KEY, parseGoldBackup } from "@/lib/gameboy/save";
 import { GAME_LIBRARY, type LibraryGame } from "@/lib/gameboy/library";
-import { CASE_STORAGE_KEY, GAMEBOY_CASES, MOBILE_GAMEBOY_QUERY, createGameFullscreen, parseGameBoyCase, type GameBoyCase, type GameFullscreenMode } from "@/lib/gameboy/presentation";
+import { ROM_ACCEPT, RomFileError, identifyLocalRom } from "@/lib/gameboy/local-rom";
+import { CASE_STORAGE_KEY, GAMEBOY_CASES, createGameFullscreen, parseGameBoyCase, type GameBoyCase, type GameFullscreenMode } from "@/lib/gameboy/presentation";
 import styles from "./gameboy-player.module.css";
 
 const COPY = {
   es: {
-    loading: "Preparando Pokémon Gold…", error: "No pudimos iniciar el juego.", retry: "Reintentar", back: "Volver al escritorio",
+    loading: "Preparando el juego…", error: "No pudimos iniciar el juego.", retry: "Reintentar", back: "Volver al escritorio",
     pause: "Pausar", resume: "Continuar", paused: "En pausa", sound: "Activar sonido", mute: "Silenciar", exit: "Salir",
     export: "Exportar partida", import: "Importar partida", checkpoint: "Exportar estado instantáneo",
     help: "Flechas · X: A · Z: B · Enter: Start · Shift: Select · Esc: pausa · Alt + Q: salir",
@@ -21,9 +22,12 @@ const COPY = {
     cases: { classic: "Clásica", transparent: "Transparente", green: "Verde", red: "Roja" },
     library: "Juegos", choose: "Elige un juego", play: "Jugar", console: "Consola portátil",
     partial: "Respaldo exportado sin reloj. Conserva la partida guardada.",
+    openRom: "Abrir ROM", romFormats: "Game Boy / Color · .gb, .gbc, .dmg", readingRom: "Leyendo ROM…",
+    romErrors: { format: "Selecciona una ROM de Game Boy o Game Boy Color (.gb, .gbc o .dmg).", size: "El archivo debe medir entre 16 KB y 8 MB.", read: "No pudimos leer esa ROM. Vuelve a seleccionarla." },
+    localSaveHelp: "Guarda desde el menú del juego. Las partidas se conservan en este navegador por ROM. Puedes exportar la partida como .sav o un estado instantáneo.",
   },
   en: {
-    loading: "Preparing Pokémon Gold…", error: "The game could not start.", retry: "Try again", back: "Back to desktop",
+    loading: "Preparing the game…", error: "The game could not start.", retry: "Try again", back: "Back to desktop",
     pause: "Pause", resume: "Resume", paused: "Paused", sound: "Enable sound", mute: "Mute", exit: "Exit",
     export: "Export cartridge save", import: "Import cartridge save", checkpoint: "Export save state",
     help: "Arrows · X: A · Z: B · Enter: Start · Shift: Select · Esc: pause · Alt + Q: exit",
@@ -35,6 +39,9 @@ const COPY = {
     cases: { classic: "Classic", transparent: "Transparent", green: "Green", red: "Red" },
     library: "Games", choose: "Choose a game", play: "Play", console: "Handheld console",
     partial: "Backup exported without the clock. Your cartridge save is included.",
+    openRom: "Open ROM", romFormats: "Game Boy / Color · .gb, .gbc, .dmg", readingRom: "Reading ROM…",
+    romErrors: { format: "Choose a Game Boy or Game Boy Color ROM (.gb, .gbc or .dmg).", size: "The file must be between 16 KB and 8 MB.", read: "This ROM could not be read. Select it again." },
+    localSaveHelp: "Save from the game's menu. Saves stay in this browser separately for each ROM. You can export a .sav file or a save state.",
   },
 };
 
@@ -53,6 +60,12 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const romInput = useRef<HTMLInputElement>(null);
+  const localRomUrl = useRef<string | null>(null);
+  const mounted = useRef(false);
+  const readingRom = useRef(false);
+  const [romBusy, setRomBusy] = useState(false);
+  const [romError, setRomError] = useState<"format" | "size" | "read" | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [status, setStatus] = useState<"library" | "loading" | "ready" | "error" | "stopping">("library");
   const [selectedGame, setSelectedGame] = useState<LibraryGame | null>(null);
@@ -65,7 +78,6 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const [casePickerOpen, setCasePickerOpen] = useState(false);
   const [saveMenuOpen, setSaveMenuOpen] = useState(false);
   const [fullscreenMode, setFullscreenMode] = useState<GameFullscreenMode>("none");
-  const [fullscreenView, setFullscreenView] = useState<"mobile" | "desktop">("desktop");
   const fullscreen = useRef<ReturnType<typeof createGameFullscreen> | null>(null);
   const casePicker = useRef<HTMLDivElement>(null);
   const saveMenu = useRef<HTMLDivElement>(null);
@@ -80,6 +92,14 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   useEffect(() => { state.current = { status, paused }; exitRef.current = onExit; }, [status, paused, onExit]);
 
   const release = useCallback(() => { held.current.clear(); send({ type: "release" }); }, [send]);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      if (localRomUrl.current) URL.revokeObjectURL(localRomUrl.current);
+      localRomUrl.current = null;
+    };
+  }, []);
   useEffect(() => {
     const controller = createGameFullscreen(document, mode => {
       setFullscreenMode(mode);
@@ -104,10 +124,27 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     return () => document.removeEventListener("pointerdown", dismiss);
   }, [casePickerOpen, saveMenuOpen]);
   const startGame = useCallback((game: LibraryGame) => {
-    if (state.current.status !== "library") return;
+    if (state.current.status !== "library" || readingRom.current) return;
     state.current.status = "loading";
     setSelectedGame(game); setStatus("loading");
   }, []);
+  async function openLocalRom(file: File) {
+    if (state.current.status !== "library" || readingRom.current) return;
+    readingRom.current = true; setRomBusy(true); setRomError(null);
+    try {
+      const identity = await identifyLocalRom(file);
+      if (!mounted.current || state.current.status !== "library") return;
+      const romUrl = URL.createObjectURL(file);
+      localRomUrl.current = romUrl;
+      readingRom.current = false;
+      startGame({ ...identity, romUrl, playerUrl: "/gameboy/frame.html?local=1" });
+    } catch (error) {
+      if (mounted.current) setRomError(error instanceof RomFileError ? error.reason : "read");
+    } finally {
+      readingRom.current = false;
+      if (mounted.current) setRomBusy(false);
+    }
+  }
   function chooseCase(value: GameBoyCase) {
     setCasing(value); setCasePickerOpen(false);
     try { localStorage.setItem(CASE_STORAGE_KEY, value); } catch { /* Styling remains usable without storage. */ }
@@ -115,10 +152,8 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   }
   function toggleFullscreen() {
     release(); setCasePickerOpen(false); setSaveMenuOpen(false);
-    if (fullscreenMode === "none") {
-      setFullscreenView(window.matchMedia(MOBILE_GAMEBOY_QUERY).matches ? "mobile" : "desktop");
-      void fullscreen.current?.enter();
-    } else void fullscreen.current?.leave();
+    if (fullscreenMode === "none") void fullscreen.current?.enter();
+    else void fullscreen.current?.leave();
   }
   const exit = useCallback(() => {
     if (state.current.status === "stopping") return;
@@ -221,12 +256,15 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
         catch { setNotice("storage"); }
       }
       if (data.type === "snapshot" && typeof data.encoded === "string") {
-        download(Uint8Array.from(atob(data.encoded), char => char.charCodeAt(0)), "pokemon-gold.state", "application/octet-stream");
+        download(Uint8Array.from(atob(data.encoded), char => char.charCodeAt(0)), `${selectedGame?.id ?? "pokemon-gold"}.state`, "application/octet-stream");
+      }
+      if (data.type === "cartridge-save" && selectedGame?.romUrl && typeof data.encoded === "string" && data.encoded.length <= 174_764) {
+        download(Uint8Array.from(atob(data.encoded), char => char.charCodeAt(0)), `${selectedGame.id}.sav`, "application/octet-stream");
       }
     };
     window.addEventListener("message", listener);
     return () => window.removeEventListener("message", listener);
-  }, [attempt, exit]);
+  }, [attempt, exit, selectedGame]);
 
   function retry() {
     release(); setStatus("loading"); state.current.status = "loading"; setPaused(false); setSound(false); setNotice(null); setAttempt(value => value + 1);
@@ -242,7 +280,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     {key.startsWith("Arrow") ? <svg className={styles.direction} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M6 2h4v2h2v2h2v2h-4v6H6V8H2V6h2V4h2Z" fill="currentColor" /></svg> : label}
   </button>;
 
-  return <dialog ref={dialog} className={styles.dialog} data-case={casing} data-fullscreen={fullscreenMode !== "none"} data-fullscreen-view={fullscreenView} tabIndex={-1} aria-label={copy.console} onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); if (status === "library") exit(); else send({ type: "pause", value: !paused }); }} onTouchStart={event => event.stopPropagation()} onTouchEnd={event => event.stopPropagation()}>
+  return <dialog ref={dialog} className={styles.dialog} data-case={casing} data-fullscreen={fullscreenMode !== "none"} tabIndex={-1} aria-label={copy.console} onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); if (status === "library") exit(); else send({ type: "pause", value: !paused }); }} onTouchStart={event => event.stopPropagation()} onTouchEnd={event => event.stopPropagation()}>
     <div className={styles.content}>
       <header className={styles.toolbar}>
         <span className={styles.title}>{selectedGame?.title ?? copy.library}</span>
@@ -259,15 +297,15 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
             <button className={styles.iconButton} type="button" title={copy.backup} aria-label={copy.backup} aria-expanded={saveMenuOpen} aria-controls="game-save-menu" data-warning={notice === "storage" || notice === "invalid" || notice === "partial"} onClick={() => { release(); send({ type: "pause", value: true }); setCasePickerOpen(false); setSaveMenuOpen(value => !value); }}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 1h12v2h2v12H1Zm3 2v4h7V3Zm0 7v3h8v-3Z" fill="currentColor" /></svg></button>
             {saveMenuOpen && <section id="game-save-menu" className={styles.savePopup} aria-label={copy.backup}>
               <h2>{selectedGame.title}</h2>
-              <p>{copy.saveHelp}</p>
+              <p>{selectedGame.romUrl ? copy.localSaveHelp : copy.saveHelp}</p>
               <button type="button" disabled={status !== "ready"} onClick={() => send({ type: "export" })}>{copy.export}</button>
-              <button type="button" disabled={status !== "ready"} onClick={() => fileInput.current?.click()}>{copy.import}</button>
+              {!selectedGame.romUrl && <button type="button" disabled={status !== "ready"} onClick={() => fileInput.current?.click()}>{copy.import}</button>}
               <button type="button" disabled={status !== "ready"} onClick={() => send({ type: "snapshot" })}>{copy.checkpoint}</button>
               <p className={styles.saveHelp}>{copy.help}</p>
               {notice && <p className={styles.saveStatus} role="status">{copy[notice]}</p>}
             </section>}
           </div>}
-          <button className={styles.iconButton} type="button" disabled={!selectedGame || (status !== "ready" && fullscreenMode === "none")} title={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-label={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-pressed={fullscreenMode !== "none"} onClick={toggleFullscreen}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={fullscreenMode === "none" ? "M1 1h5v2H3v3H1Zm9 0h5v5h-2V3h-3ZM1 10h2v3h3v2H1Zm12 0h2v5h-5v-2h3Z" : "M4 1h2v5H1V4h3Zm6 0h2v3h3v2h-5ZM1 10h5v5H4v-3H1Zm9 0h5v2h-3v3h-2Z"} fill="currentColor" /></svg></button>
+          <button className={styles.iconButton} type="button" disabled={status === "stopping" && fullscreenMode === "none"} title={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-label={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-pressed={fullscreenMode !== "none"} onClick={toggleFullscreen}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={fullscreenMode === "none" ? "M1 1h5v2H3v3H1Zm9 0h5v5h-2V3h-3ZM1 10h2v3h3v2H1Zm12 0h2v5h-5v-2h3Z" : "M4 1h2v5H1V4h3Zm6 0h2v3h3v2h-5ZM1 10h5v5H4v-3H1Zm9 0h5v2h-3v3h-2Z"} fill="currentColor" /></svg></button>
           <button className={styles.exitButton} type="button" aria-label={copy.exit} title={copy.exit} onClick={exit}><span className={styles.exitLabel}>{copy.exit} </span>↗</button>
         </div>
       </header>
@@ -285,12 +323,17 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
             <div className={styles.screen} onPointerDown={() => dialog.current?.focus({ preventScroll: true })}>
               {status === "library" && <section className={styles.library} aria-labelledby="game-library-title">
                 <h2 id="game-library-title">{copy.choose}</h2>
-                {GAME_LIBRARY.map(game => <button className={styles.gameCard} data-launch-game={game.id} key={game.id} type="button" onClick={() => startGame(game)}>
+                {GAME_LIBRARY.map(game => <button className={styles.gameCard} data-launch-game={game.id} key={game.id} type="button" disabled={romBusy} onClick={() => startGame(game)}>
                   <svg className={styles.cartridge} viewBox="0 0 40 48" aria-hidden="true" shapeRendering="crispEdges"><path d="M4 0h32v4h4v40h-4v4H4v-4H0V4h4Z" fill="#c6ac68" /><path d="M8 4h24v22H8Z" fill="#504c37" /><path d="M12 30h16v12H12Z" fill="#e2cb8c" /><path d="M14 8h12v4H14Zm0 8h12v4H14Z" fill="#e2cb8c" /></svg>
                   <span><strong>{game.title}</strong><small>{copy.play}</small></span><span aria-hidden="true">▸</span>
                 </button>)}
+                <button className={`${styles.gameCard} ${styles.romCard}`} type="button" disabled={romBusy} onClick={() => romInput.current?.click()}>
+                  <svg className={styles.cartridge} viewBox="0 0 40 48" aria-hidden="true" shapeRendering="crispEdges"><path d="M4 0h32v4h4v40h-4v4H4v-4H0V4h4Z" fill="#777786" /><path d="M17 10h6v8h8v6h-8v8h-6v-8H9v-6h8Z" fill="#e6e2d5" /><path d="M12 38h16v4H12Z" fill="#41454d" /></svg>
+                  <span><strong>{romBusy ? copy.readingRom : copy.openRom}</strong><small>{copy.romFormats}</small></span><span aria-hidden="true">▸</span>
+                </button>
+                {romError && <p className={styles.romError} role="alert">{copy.romErrors[romError]}</p>}
               </section>}
-              {selectedGame && (status === "loading" || status === "ready" || status === "stopping") && <iframe key={attempt} ref={frame} src={selectedGame.playerUrl} title={selectedGame.title} allow="autoplay" tabIndex={-1} className={styles.frame} />}
+              {selectedGame && (status === "loading" || status === "ready" || status === "stopping") && <iframe key={attempt} ref={frame} src={selectedGame.playerUrl} title={selectedGame.title} allow="autoplay" tabIndex={-1} className={styles.frame} onLoad={() => { if (selectedGame.romUrl) send({ type: "load-rom", url: selectedGame.romUrl, id: selectedGame.id }); }} />}
               {status !== "ready" && status !== "library" && <div className={styles.overlay} role="status">
                 <p>{status === "loading" ? copy.loading : status === "stopping" ? copy.stopping : copy.error}</p>
                 {status === "error" && <><button type="button" onClick={retry}>{copy.retry}</button><button type="button" onClick={exit}>{copy.back}</button></>}
@@ -310,6 +353,10 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
           </div>
         </div>
       </div>
+      <input ref={romInput} type="file" accept={ROM_ACCEPT} hidden onChange={event => {
+        const file = event.currentTarget.files?.[0]; event.currentTarget.value = "";
+        if (file) void openLocalRom(file);
+      }} />
       <input ref={fileInput} type="file" accept=".json,application/json" hidden onChange={async event => {
         const file = event.currentTarget.files?.[0]; event.currentTarget.value = "";
         if (!file) return;
