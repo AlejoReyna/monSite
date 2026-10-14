@@ -15,7 +15,6 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
   const keys = { ArrowUp: 38, ArrowDown: 40, ArrowLeft: 37, ArrowRight: 39, x: 88, z: 90, Enter: 13, Shift: 16 };
   const held = new Set();
   let started = false, paused = false, busy = false, exiting = false, exportNext = false, rawNext = false;
-  let timer;
   const click = name => {
     const label = [...document.querySelectorAll('.ejs_menu_button span')].find(el => el.textContent === `gold-${name}`);
     if (!label) throw new Error(`Missing EmulatorJS control: ${name}`);
@@ -55,7 +54,9 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
   window.EJS_disableAutoLang = false;
   window.EJS_volume = 0.45;
   window.EJS_backgroundColor = '#000';
-  window.EJS_defaultOptions = { shader: 'disabled', 'save-save-interval': '0', 'save-state-location': 'browser' };
+  // Use the pinned engine's native SRAM flush. The export button also takes
+  // a screenshot and must never run periodically during gameplay.
+  window.EJS_defaultOptions = { shader: 'disabled', 'save-save-interval': '30', 'save-state-location': 'browser' };
   window.EJS_defaultControls = { 0: Object.fromEntries([[0,'z'],[2,'shift'],[3,'enter'],[4,'up arrow'],[5,'down arrow'],[6,'left arrow'],[7,'right arrow'],[8,'x']].map(([id,value]) => [id,{value}])), 1:{}, 2:{}, 3:{} };
   const control = (name, callback) => ({ visible: true, displayName: `gold-${name}`, callback });
   window.EJS_Buttons = {
@@ -103,7 +104,7 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
       if (exiting) {
         pause(true);
         if (failed) { exiting = false; send('stop-failed'); }
-        else { clearInterval(timer); send('stopped'); }
+        else send('stopped');
       }
     }
   };
@@ -121,7 +122,6 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
     started = true;
     click('mute');
     send('ready');
-    timer = setInterval(() => { if (!paused && !exiting) save(); }, 15000);
   };
   addEventListener('message', event => {
     if (event.source !== parent || event.origin !== origin || event.data?.channel !== 'gold-host' ||
@@ -175,7 +175,7 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
   });
   addEventListener('blur', release);
   document.addEventListener('visibilitychange', () => { if (document.hidden) { save(); pause(true); } });
-  addEventListener('pagehide', () => { clearInterval(timer); release(); if (started) save(); });
+  addEventListener('pagehide', () => { release(); if (started) save(); });
   document.addEventListener('keydown', event => {
     if (!event.isTrusted) return;
     if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); pause(!paused); }

@@ -207,3 +207,18 @@ motor, únicamente para el SHA de Doom incluido y sin borrar el archivo anterior
 El despliegue del PR #63 y el ícono se verificaron en ambos dominios. Doom y Gold
 arrancaron en Brave. Safari mostró un error de arranque en la prueba inicial;
 la causa específica de Safari sigue pendiente de diagnóstico.
+
+## Guardado periódico sin exportación de imágenes
+
+Ante el reporte de recargas aproximadamente a los 15 segundos, se retiró el
+intervalo del puente que pulsaba la exportación manual. Esa acción también
+captura una imagen del motor, aunque solo se quiera conservar SRAM. El runtime
+fijado admite `save-save-interval: 30`, que llama directamente al guardado nativo
+sin generar capturas ni notificar al host en cada ciclo. Exportar respaldos y
+salir siguen usando su flujo explícito con confirmación de escritura.
+
+62 pruebas, incluidas la ejecución del consumidor real de la opción del runtime
+durante dos minutos simulados y la conservación del iframe ante notificaciones
+de guardado. El reporte de recarga completa no se reprodujo inicialmente en
+Brave de escritorio; esta corrección elimina la operación periódica sospechosa
+sin afirmar que se haya confirmado la causa del cierre en todos los dispositivos.
