@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { DOOM_ROM_SHA256 } from "./src/lib/gameboy/library";
 import { GAMEBOY_HOST } from "./src/lib/gameboy/site";
 
 const nextConfig: NextConfig = {
@@ -25,6 +26,11 @@ const nextConfig: NextConfig = {
         source: "/",
         has: [{ type: "host", value: GAMEBOY_HOST.replaceAll(".", "\\.") }],
         destination: "/gba",
+      }, {
+        // RetroArch derives save filenames from the ROM URL. Match the local
+        // content identity without shipping another copy of the ROM.
+        source: `/games/rom-${DOOM_ROM_SHA256}.gba`,
+        destination: "/games/doom.gba",
       }],
       afterFiles: [],
       fallback: [],

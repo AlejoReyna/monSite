@@ -28,6 +28,6 @@ export const GAME_LIBRARY: readonly LibraryGame[] = [
   {
     id: `rom-${DOOM_ROM_SHA256}`, title: "Doom", playerUrl: "/gameboy/frame.html?local=1",
     platform: "gba", core: "mgba", saveMode: "cartridge", source: "bundled", artwork: "doom",
-    sha256: DOOM_ROM_SHA256, romUrl: "/games/doom.gba",
+    sha256: DOOM_ROM_SHA256, romUrl: `/games/rom-${DOOM_ROM_SHA256}.gba`,
   },
 ];

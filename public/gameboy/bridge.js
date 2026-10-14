@@ -204,7 +204,13 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
       observer.observe(document.getElementById('game'), { childList: true, subtree: true, attributes: true });
     }
     try {
-      if (mode === 'cartridge' && restore) await restoreGameCartridge(restore, window.EJS_gameName, identity);
+      if (mode === 'cartridge') {
+        if (restore) await restoreGameCartridge(restore, window.EJS_gameName, identity);
+        else {
+          const native = await readCartridge(window.EJS_gameName, identity.core);
+          if (native.legacy && native.sram) await restoreGameCartridge(createGameCartridgeBackup(native.sram, native.rtc, identity), window.EJS_gameName, identity);
+        }
+      }
       if (mode === 'gold') {
         const imported = restore ?? JSON.parse(localStorage.getItem(SAVE_KEY + '.restore') || 'null');
         if (imported) {
@@ -213,6 +219,7 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
         } else {
           const native = await readCartridge();
           const mirror = localStorage.getItem(SAVE_KEY);
+          if (native.legacy && native.sram) await restoreCartridge(createCartridgeBackup(native.sram, native.rtc));
           if (!native.sram && mirror) await restoreCartridge(JSON.parse(mirror));
         }
       }
