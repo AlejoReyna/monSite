@@ -31,3 +31,5 @@ export const GAME_KEYS: Record<string, string> = {
   ArrowUp: "ArrowUp", ArrowDown: "ArrowDown", ArrowLeft: "ArrowLeft", ArrowRight: "ArrowRight",
   KeyX: "x", KeyZ: "z", Enter: "Enter", ShiftLeft: "Shift", ShiftRight: "Shift",
 };
+
+export const GBA_KEYS: Record<string, string> = { ...GAME_KEYS, KeyA: "a", KeyS: "s" };

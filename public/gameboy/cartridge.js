@@ -1,3 +1,4 @@
+import { parseGameBackup, MAX_SRAM_BYTES } from './backups.js';
 /* IDBFS stores ordinary IndexedDB records. Pinned to the Emscripten backend
  * shipped with the vendored core (DB v21, FILE_DATA, timestamp index).
  * This adapter never accesses the WASM heap, Module or EJS private methods. */
@@ -87,4 +88,42 @@ export async function captureCartridge(sram) {
   }
   if (!files?.sram || encode(files.sram) !== encode(sram) || files.rtc?.length !== 8) throw new Error('Cartridge flush incomplete');
   return createCartridgeBackup(sram, files.rtc);
+}
+
+export async function captureGameCartridge(sram, gameName, identity) {
+  if (!sram || sram.length > MAX_SRAM_BYTES) throw new Error('Invalid cartridge size');
+  await flushLocalCartridge(sram, gameName);
+  const files = await readCartridge(gameName);
+  return createGameCartridgeBackup(sram, files.rtc, identity);
+}
+
+export function createGameCartridgeBackup(sram, rtc, identity, partial = false) {
+  return parseGameBackup(JSON.stringify({
+    format: 'monsite-game-cartridge', version: 1, rom: identity.sha256,
+    platform: identity.platform, core: identity.core, savedAt: new Date().toISOString(),
+    sram: encode(sram), ...(rtc?.length ? { rtc: encode(rtc) } : {}), ...(partial ? { partial: true } : {}),
+  }), identity);
+}
+
+export async function restoreGameCartridge(backup, gameName, identity) {
+  const value = parseGameBackup(JSON.stringify(backup), identity);
+  if (!/^rom-[a-f0-9]{64}$/.test(gameName) || gameName !== `rom-${value.rom}`) throw new Error('Invalid cartridge identity');
+  const db = await open();
+  try {
+    await new Promise((resolve, reject) => {
+      const transaction = db.transaction('FILE_DATA', 'readwrite');
+      const store = transaction.objectStore('FILE_DATA');
+      const timestamp = new Date();
+      const path = `/data/saves/${gameName}.`;
+      // Restore only before mounting the engine. Its in-memory filesystem must
+      // never overwrite an import written while an old session is still alive.
+      if (value.sram.length) store.put({ timestamp, mode: 33206, contents: decode(value.sram) }, path + 'srm');
+      else store.delete(path + 'srm');
+      if (value.rtc) store.put({ timestamp, mode: 33206, contents: decode(value.rtc) }, path + 'rtc');
+      else store.delete(path + 'rtc');
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    });
+  } finally { db.close(); }
 }

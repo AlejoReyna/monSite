@@ -26,5 +26,17 @@
   "compression/extract7z.js": {
     "bytes": 280155,
     "sha256": "4ac9933b995a516cb6b3ca4027db860278372a20c21c405d93ceb1998498853a"
+  },
+  "cores/mgba-wasm.data": {
+    "bytes": 1055616,
+    "sha256": "01fcaf6d4296ef1db6676e0c69400c4474e24572d0b2b99cc097e4ae885e02d7"
+  },
+  "cores/mgba-legacy-wasm.data": {
+    "bytes": 1054993,
+    "sha256": "e300d2f368c82bf61d77c972c36e367cf16408ec3d50beede080337519a3d696"
+  },
+  "cores/reports/mgba.json": {
+    "bytes": 118,
+    "sha256": "08219f6c855a9d996f04ed21169bb0c5ac64d469a8a536468b9876205b5c268d"
   }
 }
