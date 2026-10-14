@@ -1039,3 +1039,21 @@ test('bundled and local URLs give the pinned engine the same native save basenam
   assert.equal(basename(game.romUrl),game.id);
   assert.equal(basename('blob:https://gba.alexisrs.dev/local-file'),game.id);
 });
+
+
+test('IDBFS signed byte views preserve high-bit bytes and offsets in backup and flush comparison', async () => {
+  const backing=new Int8Array([1,0,-1,-128,127,2]);
+  const signed=backing.subarray(1,5);
+  assert.equal(cartridgeModule.encode(signed),'AP+Afw==');
+  assert.deepEqual(Array.from(cartridgeModule.decode(cartridgeModule.encode(signed))),[0,255,128,127]);
+  const bytes=new Uint8Array(32768);bytes[0]=255;bytes[1]=128;
+  const persisted=new Int8Array(bytes.buffer);
+  const records=new Map([['/data/saves/Gambatte/pokemon-gold.srm',{contents:persisted}]]);
+  const restore=saveDatabase(records);
+  try {
+    const value=await cartridgeModule.captureCartridge(bytes);
+    assert.deepEqual(Buffer.from(value.sram,'base64'),Buffer.from(bytes));
+    const generic=cartridgeModule.createGameCartridgeBackup(signed,undefined,gbaIdentity);
+    assert.equal(generic.sram,'AP+Afw==');
+  } finally {restore();}
+});

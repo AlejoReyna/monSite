@@ -12,8 +12,11 @@ function nativeDirectory(core) {
 }
 const PATH = `${nativeDirectory('gambatte')}/pokemon-gold.`;
 export function encode(bytes) {
+  // IDBFS persists Int8Array views. Base64 consumes unsigned bytes, including
+  // when the view starts inside a larger buffer; avoid copying the save.
+  const data = ArrayBuffer.isView(bytes) ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength) : new Uint8Array(bytes);
   let value = '';
-  for (let i = 0; i < bytes.length; i += 8192) value += String.fromCharCode(...bytes.subarray(i, i + 8192));
+  for (let i = 0; i < data.length; i += 8192) value += String.fromCharCode(...data.subarray(i, i + 8192));
   return btoa(value);
 }
 export const decode = text => Uint8Array.from(atob(text), char => char.charCodeAt(0));
