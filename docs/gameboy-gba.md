@@ -11,7 +11,7 @@ Gambatte para GB/GBC y mGBA para GBA. Solo existe un iframe activo.
 | 1. Catálogo | Gold y Doom GBA incluidos; plataforma, core, SHA-256, origen, URL y estrategia de guardado por entrada. Identidades antiguas de Gold y ROM locales conservadas. | Catálogo validado automáticamente; ejecución real pendiente. |
 | 2. ROM locales y arranque | .gb/.gbc/.dmg/.gba; 8 MiB para GB/GBC y 32 MiB para GBA; mínimo 16 KiB. Sesiones autenticadas, arranque único, URL nueva por reintento. | Compatibilidad de juegos reales en dispositivos objetivo. |
 | 3. Partidas y respaldos | IDBFS por ROM; respaldo Gold antiguo compatible; respaldo genérico con identidad y reloj disponible; importación de JSON, .sav/.srm y estados con metadatos. Escritura antes de cambiar o salir. | Persistencia real SRAM/EEPROM/Flash y reloj mGBA. |
-| 4. Interfaz | L/R en los hombros de la carcasa, pantalla que ocupa el alto libre, serigrafía de pausa/sonido/fullscreen y menú para carcasa, respaldos y salir, ES/EN y confirmación de restauración. | Inspección visual, multitáctil y accesibilidad en navegador. |
+| 4. Interfaz | L/R en un hueco sobre los controles, pantalla un poco más alta hacia abajo, pausa, sonido al pulsar un control, fullscreen, ES/EN y confirmación de restauración. | Inspección visual, multitáctil y accesibilidad en navegador. |
 | 5. Recursos | Carga bajo demanda; variantes sin threads; cabeceras de caché para recursos fijados; diez ciclos simulados con limpieza de frames, URLs, timers y listeners. | Medición de red, memoria, CPU y batería en hardware real. |
 | 6. Entrega | Pruebas automáticas, comprobaciones estáticas y esta documentación. | Validación real autorizada; resultados de la matriz manual. |
 
@@ -43,10 +43,8 @@ permanece en el almacenamiento del navegador, sujeto a su disponibilidad.
 
 Controles: flechas, X=A, Z=B, Enter=Start, Shift=Select. Para GBA: A=L y S=R.
 Esc pausa; Alt+Q vuelve al escritorio. Los controles táctiles admiten fuentes
-simultáneas, y se liberan al perder foco o pausar. Pausa, sonido y pantalla
-completa están en la serigrafía de la carcasa; carcasa, respaldos y salir
-comparten un menú. En paisaje con carcasa, la pantalla queda entre la cruz y
-A/B para caber sin scroll.
+simultáneas, y se liberan al perder foco o pausar. La primera pulsación de un
+control enciende el sonido; silenciar con el botón de sonido se respeta.
 
 ## Guardados e identidad
 

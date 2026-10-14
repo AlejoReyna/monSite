@@ -25,7 +25,6 @@ const COPY = {
     storage: "No se pudo conservar la partida. Exporta un respaldo antes de salir.", stopping: "Conservando la partida…",
     up: "Arriba", down: "Abajo", left: "Izquierda", right: "Derecha", backup: "Partida y respaldos", focus: "Controles del juego",
     fullscreen: "Pantalla completa", windowed: "Salir de pantalla completa", caseLabel: "Carcasa",
-    menu: "Menú",
     cases: { classic: "Clásica", transparent: "Transparente", green: "Verde", red: "Roja" },
     library: "Juegos", choose: "Elige un juego", play: "Jugar", console: "Consola portátil",
     partial: "Respaldo parcial: contiene la partida disponible, pero no se pudo verificar su reloj.",
@@ -49,7 +48,6 @@ const COPY = {
     storage: "Your save could not be preserved. Export a backup before exiting.", stopping: "Preserving your save…",
     up: "Up", down: "Down", left: "Left", right: "Right", backup: "Save and backups", focus: "Game controls",
     fullscreen: "Fullscreen", windowed: "Exit fullscreen", caseLabel: "Casing",
-    menu: "Menu",
     cases: { classic: "Classic", transparent: "Transparent", green: "Green", red: "Red" },
     library: "Games", choose: "Choose a game", play: "Play", console: "Handheld console",
     partial: "Partial backup: the available save is included, but its clock could not be verified.",
@@ -115,17 +113,18 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const wasReady = useRef(false);
   const [paused, setPaused] = useState(false);
   const [sound, setSound] = useState(false);
+  const soundOn = useRef(false);
+  const userMuted = useRef(false);
   const [casing, setCasing] = useState<GameBoyCase>(() => {
     try { return parseGameBoyCase(typeof window === "undefined" ? null : window.localStorage.getItem(CASE_STORAGE_KEY)); }
     catch { return "classic"; }
   });
   const [casePickerOpen, setCasePickerOpen] = useState(false);
   const [saveMenuOpen, setSaveMenuOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [fullscreenMode, setFullscreenMode] = useState<GameFullscreenMode>("none");
   const fullscreen = useRef<ReturnType<typeof createGameFullscreen> | null>(null);
-  const menuRoot = useRef<HTMLDivElement>(null);
-  const menus = useRef({ menu: false, case: false, save: false });
+  const casePicker = useRef<HTMLDivElement>(null);
+  const saveMenu = useRef<HTMLDivElement>(null);
   const [notice, setNotice] = useState<"saved" | "invalid" | "storage" | "partial" | null>(null);
   const state = useRef({ status, paused });
   const held = useRef(new Map<string, string>());
@@ -134,11 +133,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const send = useCallback((message: HostMessage) => {
     frame.current?.contentWindow?.postMessage({ channel: "gold-host", session: session.current, ...message }, window.location.origin);
   }, []);
-  useEffect(() => {
-    state.current = { status, paused };
-    exitRef.current = onExit;
-    menus.current = { menu: menuOpen, case: casePickerOpen, save: saveMenuOpen };
-  }, [status, paused, onExit, menuOpen, casePickerOpen, saveMenuOpen]);
+  useEffect(() => { state.current = { status, paused }; exitRef.current = onExit; }, [status, paused, onExit]);
 
   useLayoutEffect(() => {
     const mobile = window.matchMedia("(max-width: 700px), (pointer: coarse) and (max-width: 1100px)");
@@ -190,6 +185,12 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const release = useCallback(() => { held.current.clear(); send({ type: "release" }); }, [send]);
   const press = useCallback((source: string, key: string) => {
     if (state.current.status !== "ready" || state.current.paused || held.current.has(source)) return;
+    // The cartridge boots muted. The first control press unmutes inside this
+    // gesture; an explicit mute from the sound button stays off.
+    if (!userMuted.current && !soundOn.current) {
+      soundOn.current = true;
+      send({ type: "sound", value: true });
+    }
     const alreadyHeld = [...held.current.values()].includes(key);
     held.current.set(source, key);
     if (!alreadyHeld) send({ type: "key", key, down: true });
@@ -226,15 +227,15 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     return () => { controller.dispose(); fullscreen.current = null; };
   }, []);
   useEffect(() => {
-    if (!casePickerOpen && !saveMenuOpen && !menuOpen) return;
+    if (!casePickerOpen && !saveMenuOpen) return;
     const dismiss = (event: PointerEvent) => {
       if (!(event.target instanceof Node)) return;
-      if (menuRoot.current?.contains(event.target)) return;
-      setMenuOpen(false); setCasePickerOpen(false); setSaveMenuOpen(false);
+      if (!casePicker.current?.contains(event.target)) setCasePickerOpen(false);
+      if (!saveMenu.current?.contains(event.target)) setSaveMenuOpen(false);
     };
     document.addEventListener("pointerdown", dismiss);
     return () => document.removeEventListener("pointerdown", dismiss);
-  }, [casePickerOpen, saveMenuOpen, menuOpen]);
+  }, [casePickerOpen, saveMenuOpen]);
   const startGame = useCallback((game: LibraryGame) => {
     if (state.current.status !== "library" || readingRom.current) return;
     state.current.status = "loading";
@@ -262,12 +263,12 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     }
   }
   function chooseCase(value: GameBoyCase) {
-    setCasing(value); setCasePickerOpen(false); setMenuOpen(false);
+    setCasing(value); setCasePickerOpen(false);
     try { localStorage.setItem(CASE_STORAGE_KEY, value); } catch { /* Styling remains usable without storage. */ }
     dialog.current?.focus({ preventScroll: true });
   }
   function toggleFullscreen() {
-    release(); setCasePickerOpen(false); setSaveMenuOpen(false); setMenuOpen(false);
+    release(); setCasePickerOpen(false); setSaveMenuOpen(false);
     if (fullscreenMode === "none") void fullscreen.current?.enter();
     else void fullscreen.current?.leave();
   }
@@ -288,8 +289,8 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       session.current = crypto.randomUUID(); wasReady.current = false;
       setSessionId(session.current);
       state.current = { status: "loading", paused: false };
-      setStatus("loading"); setPaused(false); setSound(false); setStopFailed(false);
-      setSaveMenuOpen(false); setMenuOpen(false); setImportCandidate(null); setAttempt(value => value + 1);
+      setStatus("loading"); setPaused(false); setSound(false); soundOn.current = false; userMuted.current = false; setStopFailed(false);
+      setSaveMenuOpen(false); setImportCandidate(null); setAttempt(value => value + 1);
       return;
     }
     void fullscreen.current?.leave();
@@ -299,15 +300,15 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     session.current = ""; wasReady.current = false;
     setSessionId("");
     state.current = { status: "library", paused: false };
-    setSelectedGame(null); setStatus("library"); setPaused(false); setSound(false);
-    setNotice(null); setStopFailed(false); setSaveMenuOpen(false); setMenuOpen(false); setImportCandidate(null);
+    setSelectedGame(null); setStatus("library"); setPaused(false); setSound(false); soundOn.current = false; userMuted.current = false;
+    setNotice(null); setStopFailed(false); setSaveMenuOpen(false); setImportCandidate(null);
   }, [release]);
   const recoverStop = useCallback(() => {
     window.clearTimeout(stopTimeout.current);
     state.current.status = wasReady.current ? "ready" : "error";
     setStatus(state.current.status); setStopFailed(true); setNotice("storage");
     setCancelImportOnFailure(stopTarget.current === "restart" && pendingImport.current !== null);
-    setSaveMenuOpen(true); setMenuOpen(true);
+    setSaveMenuOpen(true);
   }, []);
   const requestStop = useCallback((target: "library" | "desktop" | "restart") => {
     if (state.current.status === "stopping" || readingRom.current) return;
@@ -335,20 +336,6 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       if (event.isComposing) return;
       // Native capture prevents terminal/carousel document and window handlers.
       if (event.key === "Tab" || event.metaKey || event.ctrlKey) { event.stopPropagation(); return; }
-      if (menus.current.menu || menus.current.case || menus.current.save) {
-        event.stopImmediatePropagation();
-        if (event.altKey && event.code === "KeyQ") { event.preventDefault(); exit(); return; }
-        if (event.key === "Escape") {
-          event.preventDefault();
-          release();
-          setMenuOpen(false); setCasePickerOpen(false); setSaveMenuOpen(false);
-          return;
-        }
-        const menuControl = event.target instanceof HTMLElement && event.target.closest("button,summary,input");
-        if (menuControl && (event.key === "Enter" || event.key === " ")) return;
-        event.preventDefault();
-        return;
-      }
       const interactive = event.target instanceof HTMLElement && event.target.closest("button,summary,input");
       if (interactive && (event.key === "Enter" || event.key === " ")) return;
       event.stopImmediatePropagation();
@@ -393,7 +380,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       element.close(); document.body.style.overflow = overflow;
       if (previous?.isConnected) previous.focus({ preventScroll: true });
     };
-  }, [send, release, exit, startGame, press, lift, setMenuOpen, setCasePickerOpen, setSaveMenuOpen]);
+  }, [send, release, exit, startGame, press, lift]);
 
   useEffect(() => {
     if (status !== "loading") return;
@@ -403,13 +390,6 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   useEffect(() => {
     if (status === "library") dialog.current?.querySelector<HTMLButtonElement>("[data-launch-game]")?.focus({ preventScroll: true });
   }, [status]);
-  useEffect(() => {
-    if (!menuOpen) return;
-    const root = menuRoot.current;
-    const target = root?.querySelector<HTMLElement>("#game-save-menu button:not([disabled])")
-      ?? root?.querySelector<HTMLElement>("#gameboy-menu button:not([disabled])");
-    target?.focus();
-  }, [menuOpen, saveMenuOpen]);
 
   useEffect(() => {
     const listener = (event: MessageEvent) => {
@@ -420,7 +400,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
         state.current.status = "ready"; setStatus("ready"); dialog.current?.focus({ preventScroll: true });
       }
       if (data.type === "paused") { state.current.paused = data.value === true; setPaused(data.value === true); }
-      if (data.type === "sound") setSound(data.value === true);
+      if (data.type === "sound") { soundOn.current = data.value === true; setSound(data.value === true); }
       if (data.type === "saved") setNotice("saved");
       if (data.type === "storage-error") setNotice("storage");
       if (data.type === "error") {
@@ -518,58 +498,53 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     {key.startsWith("Arrow") ? <svg className={styles.direction} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M6 2h4v2h2v2h2v2h-4v6H6V8H2V6h2V4h2Z" fill="currentColor" /></svg> : label}
   </button>;
 
-  return <dialog ref={dialog} className={styles.dialog} data-case={casing} data-platform={selectedGame?.platform ?? "gbc"} data-fullscreen={fullscreenMode !== "none"} tabIndex={-1} aria-label={copy.console} onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); if (menus.current.menu || menus.current.case || menus.current.save) { release(); setMenuOpen(false); setCasePickerOpen(false); setSaveMenuOpen(false); return; } if (status === "library") exit(); else if (status === "ready") send({ type: "pause", value: !paused }); }} onTouchStart={event => event.stopPropagation()} onTouchEnd={event => event.stopPropagation()}>
+  return <dialog ref={dialog} className={styles.dialog} data-case={casing} data-platform={selectedGame?.platform ?? "gbc"} data-fullscreen={fullscreenMode !== "none"} tabIndex={-1} aria-label={copy.console} onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); if (status === "library") exit(); else if (status === "ready") send({ type: "pause", value: !paused }); }} onTouchStart={event => event.stopPropagation()} onTouchEnd={event => event.stopPropagation()}>
     <div className={styles.content}>
       <header className={styles.toolbar}>
         <span className={styles.title}>{selectedGame?.title ?? copy.library}</span>
-        <div className={styles.quickBar}>
+        <div>
+          {selectedGame && <button className={styles.iconButton} type="button" disabled={status === "stopping" || importBusy} title={copy.libraryBack} aria-label={copy.libraryBack} onClick={() => requestStop("library")}>▦</button>}
           <button className={styles.pauseButton} type="button" disabled={status !== "ready"} aria-label={paused ? copy.resume : copy.pause} title={paused ? copy.resume : copy.pause} onClick={() => { release(); send({ type: "pause", value: !paused }); }}><span className={styles.pauseLabel}>{paused ? copy.resume : copy.pause}</span><svg className={styles.pauseIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={paused ? "M4 2v12h2v-2h3v-2h3V6H9V4H6V2Z" : "M3 2h4v12H3Zm6 0h4v12H9Z"} fill="currentColor" /></svg></button>
-          <button className={styles.soundButton} type="button" disabled={status !== "ready"} aria-label={sound ? copy.mute : copy.sound} title={sound ? copy.mute : copy.sound} aria-pressed={sound} onClick={() => send({ type: "sound", value: !sound })}><span className={styles.soundLabel}>{sound ? copy.mute : copy.sound}</span><svg className={styles.soundIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 6h3V4h2V2h2v12H6v-2H4v-2H1Z" fill="currentColor" /><path d={sound ? "M10 4h2v2h2v4h-2v2h-2v-2h2V6h-2Z" : "M10 6h2v2h-2Zm2 2h2v2h-2Z"} fill="currentColor" /></svg></button>
-          <button className={styles.iconButton} type="button" disabled={status === "stopping" && fullscreenMode === "none"} title={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-label={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-pressed={fullscreenMode !== "none"} onClick={toggleFullscreen}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={fullscreenMode === "none" ? "M1 1h5v2H3v3H1Zm9 0h5v5h-2V3h-3ZM1 10h2v3h3v2H1Zm12 0h2v5h-5v-2h3Z" : "M4 1h2v5H1V4h3Zm6 0h2v3h3v2h-5ZM1 10h5v5H4v-3H1Zm9 0h5v2h-3v3h-2Z"} fill="currentColor" /></svg></button>
-          <div ref={menuRoot} className={styles.menuRoot}>
-            <button className={styles.iconButton} type="button" title={copy.menu} aria-label={copy.menu} aria-expanded={menuOpen} aria-controls="gameboy-menu" aria-haspopup="true" data-warning={notice === "storage" || notice === "invalid" || notice === "partial"} onClick={() => { release(); setCasePickerOpen(false); setSaveMenuOpen(false); setMenuOpen(value => !value); }}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M2 3h12v2H2Zm0 4h12v2H2Zm0 4h12v2H2Z" fill="currentColor" /></svg></button>
-            <div id="gameboy-menu" className={styles.menuPanel} role="group" aria-label={copy.menu} hidden={!menuOpen}>
-              <div className={styles.casePicker}>
-                <button className={styles.iconButton} type="button" title={copy.caseLabel} aria-label={copy.caseLabel} aria-expanded={casePickerOpen} aria-controls="gameboy-case-picker" onClick={() => { release(); setSaveMenuOpen(false); setCasePickerOpen(value => !value); }}>{copy.caseLabel}</button>
-                {casePickerOpen && <div id="gameboy-case-picker" className={styles.caseMenu} role="group" aria-label={copy.caseLabel}>
-                  {GAMEBOY_CASES.map(value => <button type="button" key={value} aria-pressed={casing === value} onClick={() => chooseCase(value)}><span className={styles.swatch} data-case={value} aria-hidden="true" />{copy.cases[value]}</button>)}
-                </div>}
-              </div>
-              {selectedGame && <button className={styles.iconButton} type="button" disabled={status === "stopping" || importBusy} title={copy.libraryBack} aria-label={copy.libraryBack} onClick={() => requestStop("library")}>{copy.libraryBack}</button>}
-              {selectedGame && <div className={styles.savePicker}>
-                <button className={styles.iconButton} type="button" title={copy.backup} aria-label={copy.backup} aria-expanded={saveMenuOpen} aria-controls="game-save-menu" data-warning={notice === "storage" || notice === "invalid" || notice === "partial"} onClick={() => { release(); send({ type: "pause", value: true }); setCasePickerOpen(false); setMenuOpen(true); setSaveMenuOpen(value => !value); }}>{copy.backup}</button>
-                {saveMenuOpen && <section id="game-save-menu" className={styles.savePopup} aria-label={copy.backup}>
-                  <h2>{selectedGame.title}</h2>
-                  <p>{selectedGame.saveMode === "gold" ? copy.saveHelp : copy.localSaveHelp}</p>
-                  <button type="button" disabled={status !== "ready"} onClick={() => send({ type: "export" })}>{copy.export}</button>
-                  <button type="button" disabled={status !== "ready"} onClick={() => send({ type: "export-raw" })}>{copy.rawExport}</button>
-                  <button type="button" disabled={status !== "ready" || importBusy} onClick={() => fileInput.current?.click()}>{copy.import}</button>
-                  <button type="button" disabled={status !== "ready"} onClick={() => send({ type: "snapshot" })}>{copy.checkpoint}</button>
-                  {importCandidate && <div className={styles.importConfirmation} role="group" aria-label={copy.restore}>
-                    <p>{copy.replace}</p>
-                    {importCandidate.raw && <p>{copy.rawWarning}</p>}
-                    {importCandidate.state && <p>{copy.stateWarning}</p>}
-                    {importCandidate.restore && (("partial" in importCandidate.restore && importCandidate.restore.partial) ||
-                      (selectedGame.saveMode === "gold" && !importCandidate.restore.rtc)) && <p>{copy.partial}</p>}
-                    <button type="button" disabled={status !== "ready"} onClick={() => { pendingImport.current = importCandidate; requestStop("restart"); }}>{copy.restore}</button>
-                    <button type="button" onClick={cancelImport}>{copy.cancel}</button>
-                  </div>}
-                  <p className={styles.saveHelp}>{help}</p>
-                  {notice && <p className={styles.saveStatus} role="status">{copy[notice]}</p>}
-                  {stopFailed && <button type="button" onClick={() => {
-                    // Explicit escape hatch after a failed flush. Never apply an
-                    // import while the old engine could still overwrite it.
-                    if (stopTarget.current === "restart" && pendingImport.current) {
-                      cancelImport();
-                      return;
-                    }
-                    finishStop();
-                  }}>{cancelImportOnFailure ? copy.cancel : copy.leaveWithoutSave}</button>}
-                </section>}
-              </div>}
-              <button className={styles.exitButton} type="button" disabled={status === "stopping" || romBusy || importBusy} aria-label={copy.exit} title={copy.exit} onClick={exit}><span className={styles.exitLabel}>{copy.exit}</span></button>
-            </div>
+          <button className={styles.soundButton} type="button" disabled={status !== "ready"} aria-label={sound ? copy.mute : copy.sound} title={sound ? copy.mute : copy.sound} aria-pressed={sound} onClick={() => { const next = !sound; userMuted.current = !next; send({ type: "sound", value: next }); }}><span className={styles.soundLabel}>{sound ? copy.mute : copy.sound}</span><svg className={styles.soundIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 6h3V4h2V2h2v12H6v-2H4v-2H1Z" fill="currentColor" /><path d={sound ? "M10 4h2v2h2v4h-2v2h-2v-2h2V6h-2Z" : "M10 6h2v2h-2Zm2 2h2v2h-2Z"} fill="currentColor" /></svg></button>
+          <div ref={casePicker} className={styles.casePicker}>
+            <button className={styles.iconButton} type="button" title={copy.caseLabel} aria-label={copy.caseLabel} aria-expanded={casePickerOpen} aria-controls="gameboy-case-picker" onClick={() => { release(); setSaveMenuOpen(false); setCasePickerOpen(value => !value); }}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 1h6v6H1Zm8 0h6v6H9ZM1 9h6v6H1Zm8 0h6v6H9Z" fill="currentColor" /></svg></button>
+            {casePickerOpen && <div id="gameboy-case-picker" className={styles.caseMenu} role="group" aria-label={copy.caseLabel}>
+              {GAMEBOY_CASES.map(value => <button type="button" key={value} aria-pressed={casing === value} onClick={() => chooseCase(value)}><span className={styles.swatch} data-case={value} aria-hidden="true" />{copy.cases[value]}</button>)}
+            </div>}
           </div>
+          {selectedGame && <div ref={saveMenu} className={styles.savePicker}>
+            <button className={styles.iconButton} type="button" title={copy.backup} aria-label={copy.backup} aria-expanded={saveMenuOpen} aria-controls="game-save-menu" data-warning={notice === "storage" || notice === "invalid" || notice === "partial"} onClick={() => { release(); send({ type: "pause", value: true }); setCasePickerOpen(false); setSaveMenuOpen(value => !value); }}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 1h12v2h2v12H1Zm3 2v4h7V3Zm0 7v3h8v-3Z" fill="currentColor" /></svg></button>
+            {saveMenuOpen && <section id="game-save-menu" className={styles.savePopup} aria-label={copy.backup}>
+              <h2>{selectedGame.title}</h2>
+              <p>{selectedGame.saveMode === "gold" ? copy.saveHelp : copy.localSaveHelp}</p>
+              <button type="button" disabled={status !== "ready"} onClick={() => send({ type: "export" })}>{copy.export}</button>
+              <button type="button" disabled={status !== "ready"} onClick={() => send({ type: "export-raw" })}>{copy.rawExport}</button>
+              <button type="button" disabled={status !== "ready" || importBusy} onClick={() => fileInput.current?.click()}>{copy.import}</button>
+              <button type="button" disabled={status !== "ready"} onClick={() => send({ type: "snapshot" })}>{copy.checkpoint}</button>
+              {importCandidate && <div className={styles.importConfirmation} role="group" aria-label={copy.restore}>
+                <p>{copy.replace}</p>
+                {importCandidate.raw && <p>{copy.rawWarning}</p>}
+                {importCandidate.state && <p>{copy.stateWarning}</p>}
+                {importCandidate.restore && (("partial" in importCandidate.restore && importCandidate.restore.partial) ||
+                  (selectedGame.saveMode === "gold" && !importCandidate.restore.rtc)) && <p>{copy.partial}</p>}
+                <button type="button" disabled={status !== "ready"} onClick={() => { pendingImport.current = importCandidate; requestStop("restart"); }}>{copy.restore}</button>
+                <button type="button" onClick={cancelImport}>{copy.cancel}</button>
+              </div>}
+              <p className={styles.saveHelp}>{help}</p>
+              {notice && <p className={styles.saveStatus} role="status">{copy[notice]}</p>}
+              {stopFailed && <button type="button" onClick={() => {
+                // Explicit escape hatch after a failed flush. Never apply an
+                // import while the old engine could still overwrite it.
+                if (stopTarget.current === "restart" && pendingImport.current) {
+                  cancelImport();
+                  return;
+                }
+                finishStop();
+              }}>{cancelImportOnFailure ? copy.cancel : copy.leaveWithoutSave}</button>}
+            </section>}
+          </div>}
+          <button className={styles.iconButton} type="button" disabled={status === "stopping" && fullscreenMode === "none"} title={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-label={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-pressed={fullscreenMode !== "none"} onClick={toggleFullscreen}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={fullscreenMode === "none" ? "M1 1h5v2H3v3H1Zm9 0h5v5h-2V3h-3ZM1 10h2v3h3v2H1Zm12 0h2v5h-5v-2h3Z" : "M4 1h2v5H1V4h3Zm6 0h2v3h3v2h-5ZM1 10h5v5H4v-3H1Zm9 0h5v2h-3v3h-2Z"} fill="currentColor" /></svg></button>
+          <button className={styles.exitButton} type="button" disabled={status === "stopping" || romBusy || importBusy} aria-label={copy.exit} title={copy.exit} onClick={exit}><span className={styles.exitLabel}>{copy.exit} </span>↗</button>
         </div>
       </header>
       <div className={styles.console}>
@@ -596,9 +571,9 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
                 </button>
                 {romError && <p className={styles.romError} role="alert">{copy.romErrors[romError]}</p>}
               </section>}
-              {selectedGame && <div className={styles.viewport}><iframe key={attempt} ref={frame} src={`${selectedGame.playerUrl}${selectedGame.playerUrl.includes("?") ? "&" : "?"}session=${sessionId}`} title={selectedGame.title} allow="autoplay" tabIndex={-1} className={styles.frame} onLoad={() => send({ type: "load-rom", url: selectedGame.romUrl, id: selectedGame.id,
+              {selectedGame && <iframe key={attempt} ref={frame} src={`${selectedGame.playerUrl}${selectedGame.playerUrl.includes("?") ? "&" : "?"}session=${sessionId}`} title={selectedGame.title} allow="autoplay" tabIndex={-1} className={styles.frame} onLoad={() => send({ type: "load-rom", url: selectedGame.romUrl, id: selectedGame.id,
                 platform: selectedGame.platform, sha256: selectedGame.sha256, saveMode: selectedGame.saveMode,
-                restore: pendingImport.current?.restore, state: pendingImport.current?.state })} /></div>}
+                restore: pendingImport.current?.restore, state: pendingImport.current?.state })} />}
               {status !== "ready" && status !== "library" && <div className={styles.overlay} role="status">
                 <p>{status === "loading" ? copy.loading : status === "stopping" ? copy.stopping : copy.error}</p>
                 {status === "error" && <><button type="button" onClick={retry}>{copy.retry}</button><button type="button" onClick={() => requestStop("library")}>{copy.libraryBack}</button></>}
