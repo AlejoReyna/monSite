@@ -442,7 +442,7 @@ test('standalone navigation does not start the game; embedded boot creates exact
   assert.equal(embedded.appended[0].src,'/emulatorjs/4.2.3/data/loader.js');
   assert.equal(embedded.context.EJS_gameUrl,'/games/pokemon-gold.gbc');
   assert.equal(embedded.context.EJS_threads,false);
-  assert.equal(embedded.context.EJS_defaultOptions['save-save-interval'],'0');
+  assert.equal(embedded.context.EJS_defaultOptions['save-save-interval'],'30');
 });
 
 test('native saves win over stale mirrors; explicit imports restore before loading the engine', async () => {
@@ -459,7 +459,7 @@ test('input waits for ready, rejects foreign messages, ignores duplicate presses
   h.message({type:'key',key:'x',down:true}); assert.equal(h.events.length,0);
   h.context.EJS_onGameStart();
   h.context.EJS_onGameStart();
-  assert.equal(h.intervals.size,1);
+  assert.equal(h.intervals.size,0);
   h.message({type:'key',key:'x',down:true},{},'http://localhost:3000');
   h.message({type:'key',key:'x',down:true},undefined,'https://other.test');
   assert.equal(h.events.length,0);
@@ -471,10 +471,10 @@ test('input waits for ready, rejects foreign messages, ignores duplicate presses
   h.message({type:'pause',value:false}); h.message({type:'key',key:'z',down:true}); assert.equal(h.events.length,3);
 });
 
-test('exit mutes, releases input, persists cartridge/RTC, stops autosave and acknowledges teardown', async () => {
+test('exit mutes, releases input, persists cartridge/RTC and acknowledges teardown', async () => {
   const h = harness(); await settle(); h.context.EJS_onGameStart();
   h.message({type:'key',key:'ArrowUp',down:true});
-  assert.equal(h.intervals.size,1);
+  assert.equal(h.intervals.size,0);
   h.message({type:'stop'}); await settle();
   assert.equal(h.events.at(-1).type,'keyup');
   assert.ok(h.messages.some(message=>message.type==='stopped'));
@@ -1056,4 +1056,36 @@ test('IDBFS signed byte views preserve high-bit bytes and offsets in backup and 
     const generic=cartridgeModule.createGameCartridgeBackup(signed,undefined,gbaIdentity);
     assert.equal(generic.sram,'AP+Afw==');
   } finally {restore();}
+});
+
+
+test('background saving uses the pinned native flush without export screenshots or restart actions', async () => {
+  const h=harness();await settle();h.context.EJS_onGameStart();
+  assert.equal(h.intervals.size,0,'the bridge never clicks the export UI on a timer');
+  const source=read('../public/emulatorjs/4.2.3/data/emulator.min.js');
+  const ast=ts.createSourceFile('emulator.min.js',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
+  let node;
+  function visit(child){if(ts.isMethodDeclaration(child)&&child.name.getText(ast)==='handleSpecialOptions')node=child;if(!node)ts.forEachChild(child,visit);}
+  visit(ast);assert.ok(node,'inspect the actual pinned setting consumer');
+  const ticks=[];let flushed=0;
+  const apply=vm.runInNewContext(`({${node.getText(ast)}}).handleSpecialOptions`,{
+    setInterval(fn,delay){ticks.push({fn,delay});return 1;},clearInterval(){},
+  });
+  const engine={started:true,gameManager:{saveSaveFiles(){flushed++;}},
+    takeScreenshot(){assert.fail('background saves must not allocate a screenshot');},
+    restart(){assert.fail('background saves must not restart the game');}};
+  apply.call(engine,'save-save-interval',h.context.EJS_defaultOptions['save-save-interval']);
+  assert.equal(ticks.length,1);assert.equal(ticks[0].delay,30000);
+  for(let seconds=30;seconds<=120;seconds+=30)ticks[0].fn();
+  assert.equal(flushed,5,'native save flushes continue for two minutes');
+  assert.equal(h.messages.some(m=>m.type==='stopped'||m.type==='exit'||m.type==='error'),false);
+});
+
+test('save notifications preserve the running host iframe and its session', () => {
+  const h=hostHarness();h.find(node=>node.props['data-launch-game']==='pokemon-gold').props.onClick();h.render();h.load();h.receive({type:'ready'});
+  const frame=h.surface;const url=h.frame.props.src;
+  for(let i=0;i<8;i++)h.receive({type:'saved',bytes:32768});
+  assert.equal(h.surface,frame);assert.equal(h.frame.props.src,url);
+  assert.equal(h.messages.filter(m=>m.type==='load-rom').length,1);
+  assert.equal(h.messages.some(m=>m.type==='stop'),false);h.unmount();
 });
