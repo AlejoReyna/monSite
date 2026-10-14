@@ -6,8 +6,6 @@ export function parseGameBoyCase(value: unknown): GameBoyCase {
 }
 
 export type GameFullscreenMode = "none" | "native" | "immersive";
-// Capture this before native fullscreen changes viewport size or orientation.
-export const MOBILE_GAMEBOY_QUERY = "(max-width: 700px), (pointer: coarse) and (max-width: 1100px)";
 type FullscreenHost = {
   documentElement: { requestFullscreen?: (options?: FullscreenOptions) => Promise<void> };
   fullscreenElement: unknown;

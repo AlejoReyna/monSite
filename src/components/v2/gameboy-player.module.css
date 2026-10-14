@@ -6,6 +6,7 @@
 
 .dialog {
   --case-body: #d5d3c6;
+  --case-top-color: var(--case-body);
   --case-light: #eeeadd;
   --case-shadow: #898b82;
   --case-edge: #bcbdb1;
@@ -41,11 +42,11 @@
 
 .dialog[open] { display: grid; place-items: center; }
 .dialog::backdrop { background: #18191d; }
-.content { width: min(100%, 520px, max(340px, calc((100dvh - 410px) * 10 / 9))); animation: appear 350ms ease both; }
+.content { container: gameboy / inline-size; animation: appear 350ms ease both; }
 .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-.title { color: #b4b3b6; font-size: 11px; line-height: 1.5; white-space: nowrap; }
+.title { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: #b4b3b6; font-size: 11px; line-height: 1.5; white-space: nowrap; }
 .title strong { color: #e3c477; font-weight: 400; }
-.toolbar > div { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.toolbar > div { display: flex; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 .dialog button {
   border: 2px solid #59595e;
   border-radius: 0;
@@ -144,6 +145,8 @@
 }
 .dialog[data-case="transparent"] {
   --case-body: #91b8ab66; --case-light: #d2e6d599; --case-shadow: #1d342e90;
+  /* The translucent case composited over the dialog's #18191d backdrop. */
+  --case-top-color: #485956;
   --case-edge: #9dcac965; --case-ink: #e0ebdb; --case-muted: #c0d6c9;
   --case-accent: #f3eac4; --case-grille: #a9c7b3; --case-control-shadow: #203d3280;
   --case-toolbar: #405851; --case-toolbar-edge: #789988;
@@ -178,13 +181,36 @@
 .frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
 .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 12px; align-items: center; justify-content: center; padding: 16px; background: #000d; color: #e6e2d5; font-size: 12px; line-height: 1.8; text-align: center; }
 .overlay p { margin: 0; }
-.library { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 20px; padding: 24px; color: #e6e2d5; background: #111613; }
-.library h2 { margin: 0; font-size: clamp(16px, 4vw, 24px); line-height: 1.5; font-weight: 400; }
+.library { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: safe center; gap: 16px; padding: 24px; overflow: auto; color: #e6e2d5; background: #111613; }
+.library h2 { margin: 0; font-size: clamp(16px, 4cqw, 24px); line-height: 1.5; font-weight: 400; }
+.libraryGames { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; flex: none; }
 .library .gameCard { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 14px; min-height: 96px; padding: 16px; border-color: #6e796b; background: #252d25; color: #e6e2d5; text-align: left; }
 .library .gameCard:hover { background: #384033; border-color: #e3c477; }
+.library .gameCard[data-artwork="doom"] { background: #2c171b; border-color: #94554b; }
+.library .gameCard[data-artwork="doom"]:hover { background: #482026; border-color: #e5ad5d; }
+.gameCard[data-artwork="doom"] small { color: #efb579; }
 .gameCard strong { display: block; font-size: 14px; font-weight: 400; line-height: 1.6; }
 .gameCard small { display: block; margin-top: 8px; color: #d7bf78; font-size: 10px; }
 .cartridge { width: 40px; height: 48px; }
+.library .gameCard { flex-shrink: 0; }
+.library .romCard { min-height: 80px; }
+.romCard small { line-height: 1.6; }
+.romError { margin: 0; color: #f4a7a7; font-size: 10px; line-height: 1.8; }
+
+@media (max-width: 700px), (pointer: coarse) and (max-width: 1100px) {
+  .library { padding: 12px; gap: 12px; }
+  .library h2 { font-size: 14px; }
+  .libraryGames { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .libraryGames .gameCard { display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0; min-height: 116px; padding: 10px 8px; text-align: center; }
+  .libraryGames .cartridge { width: 44px; height: 53px; flex: none; }
+  .libraryGames .gameCard strong { font-size: clamp(10px, 3cqw, 13px); line-height: 1.4; overflow-wrap: anywhere; }
+  .libraryGames .gameCard small { font-size: 8px; line-height: 1.5; margin-top: 4px; }
+  .libraryGames .cardArrow { display: none; }
+  .library .romCard { grid-template-columns: 24px minmax(0, 1fr) auto; gap: 10px; min-height: 60px; padding: 10px; }
+  .romCard .cartridge { width: 24px; height: 29px; }
+  .romCard strong { font-size: 11px; }
+  .romCard small { font-size: 8px; margin-top: 4px; }
+}
 
 .touchControls { display: grid; grid-template-columns: 132px 1fr; grid-template-rows: 80px 52px; column-gap: 18px; margin-top: 24px; user-select: none; -webkit-user-select: none; }
 .dpad { position: relative; grid-area: 1 / 1 / 3 / 2; display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); filter: drop-shadow(3px 4px 0 var(--case-control-shadow)); }
@@ -219,6 +245,9 @@
 
 @keyframes appear { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 420px) {
+  .toolbar > div { flex-wrap: wrap; }
+  .shell { padding-top: calc(max(12px, env(safe-area-inset-top)) + 110px); }
+  .dialog[data-fullscreen="true"] { --game-top-space: calc(max(12px, env(safe-area-inset-top)) + 104px); }
   .dialog { padding-inline: 16px; }
   .toolbar { gap: 8px; }
   .title { font-size: 9px; }
@@ -245,94 +274,100 @@
   .library .gameCard { grid-template-columns: 32px minmax(0, 1fr) auto; gap: 10px; padding: 12px; }
   .cartridge { width: 32px; height: 40px; }
 }
-@media (max-height: 500px) and (orientation: landscape) {
-  .content { width: min(100%, 720px); }
-  .shell { display: grid; grid-template-columns: minmax(160px, 1fr) 254px; column-gap: 24px; padding: 16px 22px; }
-  .bezel { grid-area: 1 / 1 / 3 / 2; align-self: center; width: min(100%, 288px); justify-self: center; }
-  .touchControls { grid-area: 1 / 2; column-gap: 10px; align-self: center; margin-top: 0; }
-  .shellBottom { grid-area: 2 / 2; height: 40px; }
+/* One mobile console layout on every screen. Controls scale with the console's
+   own width; desktop only centres that same surface on a black backdrop. */
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100dvh;
+  height: 100dvh;
 }
-/* Mobile keeps the reference console's vertical silhouette. The screen is
-   sized by width, never stretched into a spare viewport-height grid track. */
+.toolbar {
+  position: absolute;
+  z-index: 2;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  right: max(16px, env(safe-area-inset-right));
+  gap: 8px;
+  margin: 0;
+  flex-wrap: nowrap;
+  background: var(--case-body);
+}
+.title { display: none; color: var(--case-ink); font-size: 9px; }
+.title strong { color: var(--case-accent); }
+.toolbar > div { flex: 1; flex-wrap: nowrap; justify-content: flex-end; gap: 4px; }
+.toolbar button { padding: 7px; font-size: 9px; white-space: nowrap; border-color: var(--case-toolbar-edge); background: var(--case-toolbar); color: var(--case-ink); box-shadow: inset 2px 2px var(--case-light), 0 2px var(--case-shadow); }
+.toolbar button:not(:disabled) { color: var(--case-ink); }
+.console { flex: 1 0 auto; display: flex; filter: none; }
+.shell {
+  --dpad-cell: clamp(44px, 11.43cqw, 60px);
+  --face-button: clamp(48px, 14.55cqw, 76px);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: auto;
+  padding: calc(max(12px, env(safe-area-inset-top)) + 62px) max(10px, env(safe-area-inset-right)) 16px max(10px, env(safe-area-inset-left));
+}
+.bezel {
+  flex: none;
+  display: block;
+  align-self: auto;
+  justify-self: auto;
+  width: 100%;
+  padding: 8px;
+}
+.powerLight { left: 2px; width: 3px; height: 5px; }
+/* Keep the physical display the same size in the library and every game. */
+.screen { width: 100%; height: auto; aspect-ratio: 3 / 2; outline-width: 2px; box-shadow: none; }
+/* Fit the narrower GB/GBC display inside the fixed screen without stretching. */
+.dialog[data-fullscreen="false"]:not([data-platform="gba"]) .frame {
+  left: 50%;
+  right: auto;
+  width: calc(100% * 20 / 27);
+  transform: translateX(-50%);
+}
+.touchControls {
+  margin-top: 24px;
+  flex: none;
+  width: 100%;
+  grid-template-columns: calc(var(--dpad-cell) * 3) minmax(0, 1fr);
+  grid-template-rows: calc(var(--dpad-cell) * 1.818182) calc(var(--dpad-cell) * 1.181818);
+  column-gap: clamp(10px, 4.68cqw, 24px);
+}
+.dpad { grid-template-columns: repeat(3, var(--dpad-cell)); grid-template-rows: repeat(3, var(--dpad-cell)); }
+.dpadCenter::after { inset: clamp(12px, 3.12cqw, 16px); }
+.direction { width: clamp(18px, 4.68cqw, 24px); height: clamp(18px, 4.68cqw, 24px); }
+.actionButtons { gap: clamp(8px, 3.12cqw, 16px); }
+.actionButtons button { flex-basis: var(--face-button); width: var(--face-button); height: var(--face-button); font-size: calc(var(--face-button) * 3 / 7); }
+.actionButtons button[data-key="z"] { margin-top: clamp(22px, 5.71cqw, 30px); }
+.systemButtons { gap: clamp(6px, 2.6cqw, 14px); }
+.systemButtons button { width: var(--face-button); font-size: clamp(8px, 2.34cqw, 11px); }
+.shellBottom { flex: 1 0 auto; min-height: clamp(46px, 11.95cqw, 60px); height: auto; margin-top: 8px; }
+.speaker { width: clamp(66px, 22.34cqw, 114px); height: clamp(32px, 10.91cqw, 56px); }
 @media (max-width: 700px), (pointer: coarse) and (max-width: 1100px) {
   .dialog { padding: 0; background: #18191d; overflow: auto; }
   .dialog[open] { display: block; }
-  .content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    min-height: 100dvh;
-    height: 100dvh;
+  .toolbar { position: fixed; }
+  .dialog[data-fullscreen="false"] .toolbar {
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
+    background: var(--case-top-color);
   }
-  .toolbar {
-    position: fixed;
-    z-index: 2;
-    top: max(12px, env(safe-area-inset-top));
-    left: max(16px, env(safe-area-inset-left));
-    right: max(16px, env(safe-area-inset-right));
-    gap: 8px;
-    margin: 0;
-    flex-wrap: nowrap;
-    background: var(--case-body);
-  }
-  .title { display: none; color: var(--case-ink); font-size: 9px; }
-  .title strong { color: var(--case-accent); }
-  .toolbar > div { flex: 1; flex-wrap: nowrap; justify-content: flex-end; gap: 4px; }
-  .toolbar button { padding: 7px; font-size: 9px; white-space: nowrap; border-color: var(--case-toolbar-edge); background: var(--case-toolbar); color: var(--case-ink); box-shadow: inset 2px 2px var(--case-light), 0 2px var(--case-shadow); }
-  .toolbar button:not(:disabled) { color: var(--case-ink); }
-  .console { flex: 1 0 auto; display: flex; filter: none; }
-  .shell {
-    --dpad-cell: clamp(44px, 11.43vw, 60px);
-    --face-button: clamp(48px, 14.55vw, 76px);
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: auto;
-    padding: calc(max(12px, env(safe-area-inset-top)) + 62px) max(10px, env(safe-area-inset-right)) 16px max(10px, env(safe-area-inset-left));
-  }
-  .bezel {
-    flex: none;
-    display: block;
-    align-self: auto;
-    justify-self: auto;
-    width: 100%;
-    padding: 8px;
-  }
-  .powerLight { left: 2px; width: 3px; height: 5px; }
-  .screen { width: 100%; height: auto; aspect-ratio: 10 / 9; outline-width: 2px; box-shadow: none; }
-  .touchControls {
-    flex: none;
-    width: 100%;
-    grid-template-columns: calc(var(--dpad-cell) * 3) minmax(0, 1fr);
-    grid-template-rows: calc(var(--dpad-cell) * 1.818182) calc(var(--dpad-cell) * 1.181818);
-    column-gap: clamp(10px, 4.68vw, 24px);
-  }
-  .dpad { grid-template-columns: repeat(3, var(--dpad-cell)); grid-template-rows: repeat(3, var(--dpad-cell)); }
-  .dpadCenter::after { inset: clamp(12px, 3.12vw, 16px); }
-  .direction { width: clamp(18px, 4.68vw, 24px); height: clamp(18px, 4.68vw, 24px); }
-  .actionButtons { gap: clamp(8px, 3.12vw, 16px); }
-  .actionButtons button { flex-basis: var(--face-button); width: var(--face-button); height: var(--face-button); font-size: calc(var(--face-button) * 3 / 7); }
-  .actionButtons button[data-key="z"] { margin-top: clamp(22px, 5.71vw, 30px); }
-  .systemButtons { gap: clamp(6px, 2.6vw, 14px); }
-  .systemButtons button { width: var(--face-button); font-size: clamp(8px, 2.34vw, 11px); }
-  .shellBottom { flex: 1 0 auto; min-height: clamp(46px, 11.95vw, 60px); height: auto; margin-top: 8px; }
-  .speaker { width: clamp(66px, 22.34vw, 114px); height: clamp(32px, 10.91vw, 56px); }
 }
-.dialog[data-fullscreen="true"] { padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom)); }
-@media (min-width: 701px) and (pointer: fine) {
-  .dialog[data-fullscreen="true"] .content { width: min(100%, 1000px, calc((100dvh - 240px) * 10 / 9 + 300px)); }
-  .dialog[data-fullscreen="true"] .shell { display: grid; grid-template-columns: minmax(160px, 1fr) 280px; column-gap: 24px; padding: 16px 22px; }
-  .dialog[data-fullscreen="true"] .bezel { grid-area: 1 / 1 / 3 / 2; align-self: center; width: 100%; }
-  .dialog[data-fullscreen="true"] .touchControls { grid-area: 1 / 2; align-self: center; margin-top: 0; }
-  .dialog[data-fullscreen="true"] .shellBottom { grid-area: 2 / 2; }
+@media (min-width: 701px) and (pointer: fine), (min-width: 1101px) {
+  .dialog[data-fullscreen="false"] { padding: 0 20px; background: #000; }
+  .dialog[data-fullscreen="false"]::backdrop { background: #000; }
+  .dialog[data-fullscreen="false"] .content {
+    width: min(100%, 598px, max(391px, calc((100dvh - 410px) * 23 / 18)));
+  }
 }
-@media (max-width: 700px), (pointer: coarse) and (max-width: 1100px) {
-  .dialog[data-fullscreen="true"] { padding: 0; }
-}
-/* Mobile fullscreen promotes only the existing playable screen. Removing the
-   ancestor paint/clipping boxes keeps it out of the casing's layout entirely. */
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] {
+/* Fullscreen promotes the existing screen on every device. Removing the
+   ancestor paint/clipping boxes keeps it out of the casing layout entirely. */
+.dialog[data-fullscreen="true"] {
   --game-top-space: calc(max(12px, env(safe-area-inset-top)) + 56px);
   --game-bottom-space: calc(max(16px, env(safe-area-inset-bottom)) + 148px);
   --game-left-space: max(8px, env(safe-area-inset-left));
@@ -342,11 +377,11 @@
   overflow: hidden;
   background: #000;
 }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .content { position: static; display: block; width: 100%; height: 100dvh; min-height: 100dvh; animation: none; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] :is(.console, .shell, .bezel) { display: contents; position: static; isolation: auto; filter: none; clip-path: none; background: none; box-shadow: none; padding: 0; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] :is(.circuitBoard, .powerLight, .shellBottom, .casePicker) { display: none; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .shell::after { display: none; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .screen {
+.dialog[data-fullscreen="true"] .content { container-type: normal; position: static; display: block; width: 100%; height: 100dvh; min-height: 100dvh; animation: none; }
+.dialog[data-fullscreen="true"] :is(.console, .shell, .bezel) { display: contents; position: static; isolation: auto; filter: none; clip-path: none; background: none; box-shadow: none; padding: 0; }
+.dialog[data-fullscreen="true"] :is(.circuitBoard, .powerLight, .shellBottom, .casePicker) { display: none; }
+.dialog[data-fullscreen="true"] .shell::after { display: none; }
+.dialog[data-fullscreen="true"] .screen {
   position: fixed;
   z-index: 1;
   left: 50%;
@@ -361,7 +396,7 @@
   box-shadow: none;
   transform: translate(-50%, -50%);
 }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .toolbar {
+.dialog[data-fullscreen="true"] .toolbar {
   position: fixed;
   z-index: 4;
   top: max(12px, env(safe-area-inset-top));
@@ -370,14 +405,14 @@
   margin: 0;
   background: transparent;
 }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .title { display: none; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .toolbar > div { flex: 1; flex-wrap: nowrap; justify-content: flex-end; gap: 4px; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .toolbar button { color: #e6e2d5; background: #292a30; border-color: #59595e; box-shadow: inset 2px 2px #ffffff0c, 0 2px #101114; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .toolbar button:not(:disabled):is(:hover, :focus-visible, :active) { color: #fff; background: #37383e; border-color: #97969d; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] :is(.pauseLabel, .exitLabel) { display: none; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .pauseIcon { display: block; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] :is(.pauseButton, .exitButton) { display: grid; place-items: center; flex: 0 0 44px; width: 44px; padding: 8px; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .touchControls {
+.dialog[data-fullscreen="true"] .title { display: none; }
+.dialog[data-fullscreen="true"] .toolbar > div { flex: 1; flex-wrap: nowrap; justify-content: flex-end; gap: 4px; }
+.dialog[data-fullscreen="true"] .toolbar button { color: #e6e2d5; background: #292a30; border-color: #59595e; box-shadow: inset 2px 2px #ffffff0c, 0 2px #101114; }
+.dialog[data-fullscreen="true"] .toolbar button:not(:disabled):is(:hover, :focus-visible, :active) { color: #fff; background: #37383e; border-color: #97969d; }
+.dialog[data-fullscreen="true"] :is(.pauseLabel, .exitLabel) { display: none; }
+.dialog[data-fullscreen="true"] .pauseIcon { display: block; }
+.dialog[data-fullscreen="true"] :is(.pauseButton, .exitButton) { display: grid; place-items: center; flex: 0 0 44px; width: 44px; padding: 8px; }
+.dialog[data-fullscreen="true"] .touchControls {
   --dpad-cell: 44px;
   --face-button: 52px;
   position: fixed;
@@ -395,15 +430,15 @@
   padding: 0;
   pointer-events: none;
 }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .touchControls button { pointer-events: auto; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .dpad { grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); filter: none; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .actionButtons { gap: 10px; filter: none; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .actionButtons button { flex-basis: 52px; width: 52px; height: 52px; font-size: 22px; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .actionButtons button[data-key="z"] { margin-top: 22px; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .systemButtons { gap: 10px; }
-.dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] .systemButtons button { width: 52px; color: #e6e2d5; }
+.dialog[data-fullscreen="true"] .touchControls button { pointer-events: auto; }
+.dialog[data-fullscreen="true"] .dpad { grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); filter: none; }
+.dialog[data-fullscreen="true"] .actionButtons { gap: 10px; filter: none; }
+.dialog[data-fullscreen="true"] .actionButtons button { flex-basis: 52px; width: 52px; height: 52px; font-size: 22px; }
+.dialog[data-fullscreen="true"] .actionButtons button[data-key="z"] { margin-top: 22px; }
+.dialog[data-fullscreen="true"] .systemButtons { gap: 10px; }
+.dialog[data-fullscreen="true"] .systemButtons button { width: 52px; color: #e6e2d5; }
 @media (orientation: landscape) {
-  .dialog[data-fullscreen="true"][data-fullscreen-view="mobile"] {
+  .dialog[data-fullscreen="true"] {
     --game-bottom-space: max(16px, env(safe-area-inset-bottom));
     --game-left-space: calc(max(16px, env(safe-area-inset-left)) + 132px);
     --game-right-space: calc(max(16px, env(safe-area-inset-right)) + 132px);
@@ -415,3 +450,27 @@
 }
 :global(html.mac-reduced-motion) .content { animation: none; }
 :global(html.mac-reduced-motion) .toolbar button:not(:disabled) { transition: none; }
+
+/* Fullscreen fits each platform's native display; the cased screen stays fixed. */
+.dialog[data-fullscreen="true"] .screen { aspect-ratio: 10 / 9; }
+.dialog[data-platform="gba"] .screen { aspect-ratio: 3 / 2; }
+.dialog[data-platform="gba"] .touchControls { position: relative; margin-top: 82px; }
+.shoulderButtons { position: absolute; inset: -58px 0 auto; display: flex; justify-content: space-between; pointer-events: none; }
+.shoulderButtons button { min-width: 76px; min-height: 44px; pointer-events: auto; color: var(--case-ink); background: var(--case-toolbar); border-color: var(--case-toolbar-edge); }
+.importConfirmation { padding: 12px; border: 2px solid #a98b4e; }
+.importConfirmation p { margin: 0 0 10px; }
+.importConfirmation button + button { margin-left: 8px; }
+.dialog[data-fullscreen="true"][data-platform="gba"] { --game-bottom-space: calc(max(16px, env(safe-area-inset-bottom)) + 206px); }
+.dialog[data-fullscreen="true"][data-platform="gba"] .screen {
+  width: min(calc(100vw - var(--game-left-space) - var(--game-right-space)), calc((100dvh - var(--game-top-space) - var(--game-bottom-space)) * 3 / 2));
+}
+.dialog[data-fullscreen="true"][data-platform="gba"] .touchControls { position: fixed; margin-top: 0; }
+.dialog[data-fullscreen="true"] .shoulderButtons button { color: #e6e2d5; background: #292a30; border-color: #59595e; }
+@media (orientation: landscape) {
+  .dialog[data-fullscreen="true"][data-platform="gba"] { --game-bottom-space: max(16px, env(safe-area-inset-bottom)); }
+}
+@media (max-width: 420px) {
+  .toolbar :is(.pauseLabel, .soundLabel, .exitLabel) { display: none; }
+  .toolbar :is(.pauseIcon, .soundIcon) { display: block; }
+  .toolbar :is(.pauseButton, .soundButton, .exitButton) { display: grid; place-items: center; width: 44px; padding: 8px; }
+}

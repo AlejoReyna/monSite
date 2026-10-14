@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" shape-rendering="crispEdges">
+  <!-- Stepped shell and highlights keep the console pixelated at icon sizes. -->
+  <path fill="#211c35" d="M12 1h24v1h2v2h1v37h-1v3h-2v2H12v-1h-2v-2H9V4h1V2h2z"/>
+  <path fill="#6650a5" d="M12 3h24v1h1v37h-1v2h-2v1H12v-1h-1V5h1z"/>
+  <path fill="#9579d0" d="M12 3h24v2H13v36h-2V5h1z"/>
+  <path fill="#49377c" d="M35 5h2v36h-1v2h-2v1H12v-2h22v-2h1z"/>
+  <!-- Dark bezel, power LED and a tiny green pixel landscape. -->
+  <path fill="#272735" d="M14 6h20v1h1v16h-1v1H14v-1h-1V7h1z"/>
+  <path fill="#464451" d="M14 7h20v1H15v14h-1z"/>
+  <path fill="#111b25" d="M17 9h15v12H17z"/>
+  <path fill="#b7d788" d="M18 10h13v10H18z"/>
+  <path fill="#80ac69" d="M18 17h3v-2h2v-2h3v2h2v2h3v3H18z"/>
+  <path fill="#3e7155" d="M18 19h4v-2h3v2h6v1H18z"/>
+  <path fill="#ebf3b0" d="M28 11h2v2h-2z"/>
+  <path fill="#ef5b66" d="M14 11h1v1h-1z"/>
+  <!-- Colour marks beneath the screen suggest the Game Boy Color wordmark. -->
+  <path fill="#bfb4db" d="M18 22h4v1h-4z"/>
+  <path fill="#ed6687" d="M23 22h1v1h-1z"/>
+  <path fill="#a88ee3" d="M25 22h1v1h-1z"/>
+  <path fill="#71c88d" d="M27 22h1v1h-1z"/>
+  <path fill="#e5ca67" d="M29 22h1v1h-1z"/>
+  <path fill="#6fb9d8" d="M31 22h1v1h-1z"/>
+  <!-- D-pad, staggered A/B buttons, Select/Start and speaker grille. -->
+  <path fill="#49377c" d="M15 27h3v3h3v3h-3v3h-3v-3h-3v-3h3zM29 28h4v1h1v3h-1v1h-4v-1h-1v-3h1zM24 31h3v1h1v3h-1v1h-3v-1h-1v-3h1z"/>
+  <path fill="#232632" d="M15 26h3v3h3v3h-3v3h-3v-3h-3v-3h3zM29 27h3v1h1v3h-1v1h-3v-1h-1v-3h1zM24 30h3v1h1v3h-1v1h-3v-1h-1v-3h1z"/>
+  <path fill="#555768" d="M15 26h3v1h-3zM12 29h3v1h-3zM29 27h3v1h-3zM24 30h3v1h-3z"/>
+  <path fill="#141b27" d="M16 29h1v2h-1z"/>
+  <path fill="#2b293d" d="M18 38h4v2h-4zM24 38h4v2h-4zM31 36h1v2h-1zM33 35h1v3h-1zM31 39h1v2h-1zM33 39h1v2h-1z"/>
+  <path fill="#ae97dd" d="M18 37h4v1h-4zM24 37h4v1h-4z"/>
+</svg>
