@@ -40,7 +40,7 @@ function fit(frame: WindowFrame, bounds: Bounds, minWidth: number, minHeight: nu
   return place({ ...frame, width, height }, bounds);
 }
 
-type Drag = { mode: WindowEdge | "move"; pointerX: number; pointerY: number; start: WindowFrame; bounds: Bounds; parent: DOMRect };
+type Drag = { mode: WindowEdge | "move"; pointerX: number; pointerY: number; pointerId: number; captureTarget: HTMLElement; start: WindowFrame; bounds: Bounds; parent: DOMRect };
 
 /**
  * macOS-style window geometry: drag the title bar to move, any edge or corner to resize (the
@@ -50,10 +50,11 @@ type Drag = { mode: WindowEdge | "move"; pointerX: number; pointerY: number; sta
  */
 export function useWindowFrame(
   windowRef: RefObject<HTMLElement | null>,
-  { minWidth, minHeight, insets }: { minWidth: number; minHeight: number; insets?: () => WindowInsets },
+  { minWidth, minHeight, insets, enabled }: { minWidth: number; minHeight: number; insets?: () => WindowInsets; enabled?: boolean },
 ) {
   const [frame, setFrame] = useState<WindowFrame | null>(null);
-  const [resizable, setResizable] = useState(false);
+  const [desktopMedia, setDesktopMedia] = useState(false);
+  const resizable = enabled ?? desktopMedia;
   const drag = useRef<Drag | null>(null);
   const insetsRef = useRef(insets);
   useEffect(() => { insetsRef.current = insets; });
@@ -64,44 +65,70 @@ export function useWindowFrame(
     return { parent, bounds: { width: parent.width, top, bottom: parent.height - bottom } };
   }, [windowRef]);
 
+  const stopInteraction = useCallback(() => {
+    const active = drag.current;
+    if (!active) return;
+    drag.current = null;
+    if (active.captureTarget.hasPointerCapture(active.pointerId)) active.captureTarget.releasePointerCapture(active.pointerId);
+    document.documentElement.style.cursor = "";
+    document.documentElement.style.userSelect = "";
+  }, []);
+
   useEffect(() => {
+    // A renderer that already owns the breakpoint supplies its desktop state.
+    if (enabled !== undefined) return;
     const query = window.matchMedia(RESIZABLE_QUERY);
-    const sync = () => setResizable(query.matches);
+    const sync = () => setDesktopMedia(query.matches);
     sync();
     query.addEventListener("change", sync);
     return () => query.removeEventListener("change", sync);
-  }, []);
+  }, [enabled]);
 
-  // A smaller browser window pulls a moved or resized window back within reach.
   useEffect(() => {
-    if (!frame) return;
+    if (!resizable) stopInteraction();
+    return stopInteraction;
+  }, [resizable, stopInteraction]);
+
+  // Preserve desktop geometry while hidden on mobile. Refit after the desktop
+  // layout is visible again, rather than measuring a hidden or outgoing frame.
+  useEffect(() => {
+    if (!resizable) return;
+    let pending = 0;
     const onResize = () => {
-      const area = measure();
-      if (area) setFrame(current => current && fit(current, area.bounds, minWidth, minHeight));
+      window.cancelAnimationFrame(pending);
+      pending = window.requestAnimationFrame(() => {
+        const area = measure();
+        if (area) setFrame(current => current && fit(current, area.bounds, minWidth, minHeight));
+      });
     };
+    onResize();
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [frame, measure, minWidth, minHeight]);
+    return () => {
+      window.cancelAnimationFrame(pending);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [resizable, measure, minWidth, minHeight]);
 
   const begin = useCallback((mode: Drag["mode"], event: ReactPointerEvent<HTMLElement>) => {
     const node = windowRef.current;
     const area = measure();
-    if (event.button !== 0 || !node || !area) return;
+    if (!resizable || event.button !== 0 || !node || !area) return;
     event.preventDefault();
     event.stopPropagation();
+    stopInteraction();
     const rect = node.getBoundingClientRect();
     const start = { x: rect.left - area.parent.left, y: rect.top - area.parent.top, width: rect.width, height: rect.height };
-    drag.current = { mode, pointerX: event.clientX, pointerY: event.clientY, start, ...area };
+    drag.current = { mode, pointerX: event.clientX, pointerY: event.clientY, pointerId: event.pointerId, captureTarget: event.currentTarget, start, ...area };
     event.currentTarget.setPointerCapture(event.pointerId);
     // Resize cursors and no text selection hold even when the pointer outruns the handle.
     if (mode !== "move") document.documentElement.style.cursor = CURSORS[mode];
     document.documentElement.style.userSelect = "none";
     setFrame(start);
-  }, [windowRef, measure]);
+  }, [windowRef, measure, resizable, stopInteraction]);
 
   const onPointerMove = useCallback((event: ReactPointerEvent<HTMLElement>) => {
     const active = drag.current;
-    if (!active) return;
+    if (!resizable || !active || active.pointerId !== event.pointerId) return;
     const { mode, start, bounds } = active;
     const dx = event.clientX - active.pointerX;
     const dy = event.clientY - active.pointerY;
@@ -118,20 +145,11 @@ export function useWindowFrame(
     if (mode.includes("s")) bottom = clamp(bottom + dy, top + minH, Math.max(bounds.bottom, bottom));
     if (mode.includes("n")) top = clamp(top + dy, Math.min(bounds.top, top), bottom - minH);
     setFrame({ x: left, y: top, width: right - left, height: bottom - top });
-  }, [minWidth, minHeight]);
+  }, [minWidth, minHeight, resizable]);
 
   const onPointerEnd = useCallback((event: ReactPointerEvent<HTMLElement>) => {
-    if (!drag.current) return;
-    drag.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    document.documentElement.style.cursor = "";
-    document.documentElement.style.userSelect = "";
-  }, []);
-
-  useEffect(() => () => {
-    document.documentElement.style.cursor = "";
-    document.documentElement.style.userSelect = "";
-  }, []);
+    if (drag.current?.pointerId === event.pointerId) stopInteraction();
+  }, [stopInteraction]);
 
   const tracking = { onPointerMove, onPointerUp: onPointerEnd, onPointerCancel: onPointerEnd, onLostPointerCapture: onPointerEnd };
   const style: CSSProperties | undefined = resizable && frame

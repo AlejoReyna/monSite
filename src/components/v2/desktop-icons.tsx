@@ -238,9 +238,9 @@ export default function DesktopIcons({ items, interactive, label, className, ico
     if (!item.href) open(item, event.currentTarget);
   };
 
-  const iconProps = (item: DesktopIconItem) => ({
+  const iconProps = (item: DesktopIconItem, index: number) => ({
     className: iconClassName,
-    style: iconStyle(positions[item.id]),
+    style: { ...iconStyle(positions[item.id]), "--mobile-card-index": index } as CSSProperties,
     "data-desktop-icon": item.id,
     "data-selected": selected.includes(item.id) || undefined,
     onPointerDown: (event: ReactPointerEvent<HTMLElement>) => onPointerDown(event, item.id),
@@ -277,9 +277,9 @@ export default function DesktopIcons({ items, interactive, label, className, ico
 
   return <>
     <div ref={layerRef} className={className} inert={!interactive} aria-hidden={!interactive} aria-label={label} data-animate={iconMotion || undefined}>
-      {items.map(item => item.href
-        ? <a key={item.id} href={item.href} target="_blank" rel="noopener noreferrer" aria-label={item.ariaLabel} draggable={false} {...iconProps(item)}>{item.art}<strong>{copyText(item.title)}</strong></a>
-        : <button key={item.id} type="button" aria-label={item.ariaLabel} {...iconProps(item)}>{item.art}<strong>{copyText(item.title)}</strong></button>)}
+      {items.map((item, index) => item.href
+        ? <a key={item.id} href={item.href} target="_blank" rel="noopener noreferrer" aria-label={item.ariaLabel} draggable={false} {...iconProps(item, index)}>{item.art}<strong>{copyText(item.title)}</strong></a>
+        : <button key={item.id} type="button" aria-label={item.ariaLabel} {...iconProps(item, index)}>{item.art}<strong>{copyText(item.title)}</strong></button>)}
     </div>
     {drag && createPortal(
       <div ref={ghostRef} className={`${className} ${ghostClassName}`} aria-hidden="true">

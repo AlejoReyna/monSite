@@ -212,6 +212,7 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
                   (document.activeElement as HTMLElement | null)?.blur();
                   store.closeProjects();
                   store.closeMail();
+                  if (view === "assistant") store.openTerminal();
                   onMobileViewChange?.(view);
                 }}
               >
@@ -377,19 +378,27 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
 export default function DesktopPicker({
   terminalOpen,
   onTerminalOpenChange,
+  terminalCount,
+  onTerminalLaunch,
+  onTerminalClose,
+  onTerminalFocus,
   macMobileStage = false,
   mobileView,
   onMobileViewChange,
 }: {
   terminalOpen?: boolean;
   onTerminalOpenChange?: (open: boolean) => void;
+  terminalCount?: number;
+  onTerminalLaunch?: () => void;
+  onTerminalClose?: () => void;
+  onTerminalFocus?: () => void;
   /** When true (mobile mac + stage active), hide desktop macGif and clear dock for the sheet. */
   macMobileStage?: boolean;
   mobileView?: MobileView;
   onMobileViewChange?: (view: MobileView) => void;
 }) {
   return (
-    <DesktopStoreProvider terminalOpen={terminalOpen} onTerminalChange={onTerminalOpenChange}>
+    <DesktopStoreProvider terminalOpen={terminalOpen} onTerminalChange={onTerminalOpenChange} terminalCount={terminalCount} onTerminalLaunch={onTerminalLaunch} onTerminalClose={onTerminalClose} onTerminalFocus={onTerminalFocus}>
       <MacDesktop macMobile={macMobileStage} mobileView={mobileView} onMobileViewChange={onMobileViewChange} />
     </DesktopStoreProvider>
   );

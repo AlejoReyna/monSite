@@ -1,0 +1,32 @@
+/* Animate the inner surface so dragging and resizing keep their own geometry. */
+.window[data-visible="true"] {
+  animation: terminalOpen 740ms cubic-bezier(.16, 1, .3, 1) both;
+  transform-origin: 50% 50%;
+}
+
+/* Leave the shell empty until the window has settled, then reveal its text. */
+.window[data-visible="true"] :global([data-terminal-content]) {
+  animation: terminalContent 140ms ease-out 780ms both;
+}
+
+@keyframes terminalOpen {
+  from { opacity: 0; transform: translateY(6px) scale(.94); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes terminalContent {
+  from { opacity: 0; visibility: hidden; }
+  to { opacity: 1; visibility: visible; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .window[data-visible="true"],
+  .window[data-visible="true"] :global([data-terminal-content]) {
+    animation: none;
+  }
+}
+
+:global(html.mac-reduced-motion) .window[data-visible="true"],
+:global(html.mac-reduced-motion) .window[data-visible="true"] :global([data-terminal-content]) {
+  animation: none;
+}

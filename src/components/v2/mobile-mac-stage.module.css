@@ -5,16 +5,27 @@
 
 @media (max-width: 1023px) {
   .stage {
-    --terminal-height: min(340px, 38svh);
+    --terminal-height: min(440px, 52svh);
     --terminal-bottom: max(10px, env(safe-area-inset-bottom, 0px));
     position: absolute;
     inset: 0;
     display: block;
     z-index: 30;
     pointer-events: none;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 740ms ease, visibility 0s linear;
   }
 
-  .stage[data-view="folders"] { visibility: hidden; }
+  /* Keep the mounted sessions intact; the incoming fade follows the window's
+     opening duration so its content appears only after the surface is visible. */
+  .stage[data-view="folders"] {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+  }
+
+  .stage[data-view="folders"] .terminal { pointer-events: none; }
 
   /* Keep the original character scale independent of the terminal height. */
   .character {
@@ -52,9 +63,60 @@
     max-width: 640px;
     margin-inline: auto;
     pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    translate: 0 0;
+    transition: opacity 740ms ease, translate 740ms ease;
+  }
+
+  .stage[data-view="folders"] .terminal {
+    opacity: 0;
+    translate: 0 6px;
+    transition-delay: 0s;
+    transition-duration: 180ms;
   }
 
   .terminal[hidden] { display: none; }
+
+  .tabs {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 3px 4px;
+    background: #29242e;
+    scrollbar-width: thin;
+  }
+
+  .tabs button {
+    flex: 0 0 auto;
+    min-height: 28px;
+    padding: 3px 9px;
+    border: 0;
+    border-radius: 5px;
+    color: #c8c4ca;
+    background: transparent;
+    font: 12px/1.2 Menlo, Monaco, Consolas, monospace;
+  }
+
+  .terminal > .tabs {
+    flex: 0 0 auto;
+    border: 1px solid #66666a;
+    border-bottom: 0;
+    border-radius: 9px 9px 0 0;
+  }
+
+  .tabs button[aria-selected="true"] { color: #fff; background: #55505b; }
+  .tabs button[data-minimized="true"] { opacity: .55; }
+  .tabs button:disabled { opacity: .45; }
+  .tabs button:focus-visible { outline: 2px solid #8ad69b; outline-offset: -2px; }
+
+  .session { flex: 1; min-height: 0; }
+  .session[hidden] { display: none; }
+  .session :global([data-terminal-theme]) { min-height: 0; }
+  .empty { display: grid; flex: 1; place-items: center; padding: 18px; border: 1px solid #66666a; border-radius: 0 0 9px 9px; color: #c8c4ca; background: #1c1c1e; font: 13px/1.5 Menlo, Monaco, Consolas, monospace; text-align: center; }
 
   .terminal[data-expanded="true"] {
     top: calc(66px + env(safe-area-inset-top, 0px));
@@ -68,3 +130,13 @@
   }
 
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .stage, .stage[data-view="folders"], .terminal,
+  .stage[data-view="folders"] .terminal { transition: none; }
+}
+
+:global(html.mac-reduced-motion) .stage,
+:global(html.mac-reduced-motion) .stage[data-view="folders"],
+:global(html.mac-reduced-motion) .terminal,
+:global(html.mac-reduced-motion) .stage[data-view="folders"] .terminal { transition: none; }

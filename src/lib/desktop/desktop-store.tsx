@@ -132,10 +132,18 @@ export function DesktopStoreProvider({
   children,
   terminalOpen: terminalOpenProp,
   onTerminalChange,
+  terminalCount,
+  onTerminalLaunch,
+  onTerminalClose,
+  onTerminalFocus,
 }: {
   children: ReactNode;
   terminalOpen?: boolean;
   onTerminalChange?: (open: boolean) => void;
+  terminalCount?: number;
+  onTerminalLaunch?: () => void;
+  onTerminalClose?: () => void;
+  onTerminalFocus?: () => void;
 }) {
   const { language, setLanguage } = useLanguage();
   const { navigateToSection } = useNavigation();
@@ -237,15 +245,17 @@ export function DesktopStoreProvider({
   const openTerminal = useCallback(() => {
     setDesktopHidden(false);
     setProjectsOpen(false);
+    onTerminalLaunch?.();
     setTerminalOpen(true);
     setFocusedWindowId("terminal");
     dismissUnlessAssistant(setOpenMenu);
-  }, [setTerminalOpen]);
+  }, [onTerminalLaunch, setTerminalOpen]);
 
   const closeTerminal = useCallback(() => {
-    setTerminalOpen(false);
-    if (projectsOpen) setFocusedWindowId("finder");
-  }, [projectsOpen, setTerminalOpen]);
+    if (onTerminalClose) onTerminalClose();
+    else setTerminalOpen(false);
+    if (!onTerminalClose || terminalCount === 1) setFocusedWindowId(mailOpen ? "mail" : "finder");
+  }, [onTerminalClose, mailOpen, setTerminalOpen, terminalCount]);
 
   const openMail = useCallback(() => {
     setDesktopHidden(false);
@@ -286,7 +296,13 @@ export function DesktopStoreProvider({
     (id: DesktopWindowId) => {
       setDesktopHidden(false);
       if (id === "finder") openProjects();
-      else if (id === "terminal") openTerminal();
+      else if (id === "terminal") {
+        if (onTerminalFocus) {
+          onTerminalFocus();
+          setTerminalOpen(true);
+          setFocusedWindowId("terminal");
+        } else openTerminal();
+      }
       else if (id === "mail") openMail();
       else if (id === "about") {
         setAboutOpen(true);
@@ -300,7 +316,7 @@ export function DesktopStoreProvider({
       }
       dismissUnlessAssistant(setOpenMenu);
     },
-    [openProjects, openTerminal, openMail],
+    [openProjects, openTerminal, openMail, onTerminalFocus, setTerminalOpen],
   );
 
   const showDesktop = useCallback(() => {

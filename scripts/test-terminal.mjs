@@ -24,9 +24,44 @@ function load(path, imports = {}, globals = {}) {
   return exports;
 }
 const commands = load('src/lib/terminal/commands.ts');
+const sessions = load('src/lib/terminal/sessions.ts');
 const stream = load('src/lib/dialogue/stream.ts');
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const jsonReply = text => Response.json({ message: text, model: 'test-model' });
+
+test('only one terminal can be opened; launch restores it and close permits reopening', () => {
+  let state = sessions.initialTerminalSessions;
+  assert.equal(sessions.MAX_TERMINALS, 1);
+  const id = state.activeId;
+  for (let i = 0; i < 20; i++) state = sessions.terminalSessionsReducer(state, { type: 'new' });
+  assert.deepEqual([...state.ids], [id]);
+  assert.equal(state.activeId, id);
+  assert.equal(state.nextId, 2);
+
+  state = sessions.terminalSessionsReducer(state, { type: 'minimize', id });
+  assert.equal(state.activeId, null);
+  assert.deepEqual([...state.minimizedIds], [id]);
+  state = sessions.terminalSessionsReducer(state, { type: 'new' });
+  assert.deepEqual([...state.ids], [id]);
+  assert.equal(state.activeId, id);
+  assert.equal(state.minimizedIds.length, 0);
+
+  state = sessions.terminalSessionsReducer(state, { type: 'visible', visible: false });
+  state = sessions.terminalSessionsReducer(state, { type: 'new' });
+  assert.equal(state.visible, true);
+  assert.deepEqual([...state.ids], [id]);
+
+  state = sessions.terminalSessionsReducer(state, { type: 'close', id });
+  assert.equal(state.ids.length, 0);
+  assert.equal(state.visible, false);
+  state = sessions.terminalSessionsReducer(state, { type: 'new' });
+  assert.equal(state.ids.length, 1);
+  assert.equal(state.activeId, 2);
+  state = sessions.terminalSessionsReducer(state, { type: 'close', id: state.activeId });
+  state = sessions.terminalSessionsReducer(state, { type: 'visible', visible: true });
+  assert.equal(state.ids.length, 1);
+  assert.equal(state.activeId, 3);
+});
 
 // Minimal hook host: hook state and refs survive render; provider calls are mocked.
 function harness(fetch, timeoutMs = 60_000) {

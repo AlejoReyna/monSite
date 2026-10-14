@@ -1,17 +1,17 @@
 "use client";
 
 import { useCopy } from "@/components/use-copy";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useReducer } from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform, useSpring, useDragControls, type MotionValue } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
 import DesktopPicker from "./desktop-picker";
 import MobileMacStage from "./mobile-mac-stage";
-import ChatInterface from "@/components/chat-interface";
+import DesktopTerminalWindow from "./desktop-terminal-window";
+import TerminalCloseEasterEgg from "./terminal-close-easter-egg";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
 import { ICON_COLUMN_STRIP } from "@/lib/desktop/icon-layout";
-import { useWindowFrame } from "@/lib/desktop/use-window-frame";
-import WindowResizeHandles from "./window-resize-handles";
+import { initialTerminalSessions, terminalSessionsReducer } from "@/lib/terminal/sessions";
 
 /* The terminal opens beside the desktop icons, never on top of them: the icon
    strip plus a gutter that grows a little on wide screens. Dragging is still
@@ -53,33 +53,20 @@ export default function HeroV2({
   const copyText = useCopy();
   const { language } = useLanguage();
   const heroRef = useRef<HTMLElement>(null);
-  const [macTerminalOpen, setMacTerminalOpen] = useState(true);
-  const [terminalExpanded, setTerminalExpanded] = useState(false);
-  const terminalDrag = useDragControls();
-  // On the mac desktop the terminal moves and resizes like Finder: clear of the menu bar and the Dock.
-  const terminalRef = useRef<HTMLDivElement>(null);
-  const terminalFrame = useWindowFrame(terminalRef, {
-    minWidth: 380,
-    minHeight: 280,
-    insets: () => ({ top: 30, bottom: parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--mac-dock-gutter")) || 88 }),
-  });
-  const terminalWindowed = !noBgImage && terminalFrame.resizable && !terminalExpanded;
-  const hideTerminal = () => {
-    setMacTerminalOpen(false);
-    requestAnimationFrame(() => document.getElementById("mac-terminal-launcher")?.focus({ preventScroll: true }));
+  const [terminals, dispatchTerminals] = useReducer(terminalSessionsReducer, initialTerminalSessions);
+  const macTerminalOpen = terminals.visible && terminals.ids.some(id => !terminals.minimizedIds.includes(id));
+  const mobileTerminalOpen = terminals.visible && terminals.ids.length > 0;
+  const activeTerminalId = terminals.activeId;
+  const openTerminal = () => {
+    dispatchTerminals({ type: "new" });
+    if (isMobile) setMobileView("assistant");
   };
-  // Remonta la terminal al cruzar el breakpoint lg: el offset de drag de
-  // framer-motion vive como transform inline y sobrevive al cambio de CSS
-  // (bottom/center móvil ↔ top/right desktop), dejando el panel descuadrado.
-  const [isDesktop, setIsDesktop] = useState(false);
+  // The mobile stage owns chat below lg; desktop windows stay mounted so their frames survive.
   const [isMobile, setIsMobile] = useState(false);
   const [mobileView, setMobileView] = useState<"assistant" | "folders">("assistant");
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
-    const update = () => {
-      setIsDesktop(mq.matches);
-      setIsMobile(!mq.matches);
-    };
+    const update = () => setIsMobile(!mq.matches);
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
@@ -128,14 +115,18 @@ export default function HeroV2({
       {!noBgImage && (
         <DesktopPicker
           terminalOpen={macTerminalOpen}
+          terminalCount={terminals.ids.length}
+          onTerminalLaunch={openTerminal}
+          onTerminalClose={() => { if (activeTerminalId !== null) dispatchTerminals({ type: "close", id: activeTerminalId }); }}
+          onTerminalFocus={() => { const id = activeTerminalId ?? terminals.ids.at(-1); if (id !== undefined && id !== null) dispatchTerminals({ type: "focus", id }); }}
           onTerminalOpenChange={(open) => {
-            setMacTerminalOpen(open);
+            dispatchTerminals({ type: "visible", visible: open });
             if (open && isMobile) setMobileView("assistant");
           }}
           mobileView={isMobile ? mobileView : undefined}
           onMobileViewChange={(view) => {
             setMobileView(view);
-            if (view === "assistant") setMacTerminalOpen(true);
+            if (view === "assistant") dispatchTerminals({ type: "visible", visible: true });
           }}
           macMobileStage
         />
@@ -272,13 +263,23 @@ export default function HeroV2({
       <style>{`
         #work[data-active-panel="0"]:has(#home[data-desktop="mac"]) { touch-action: pan-y !important; }
         body:has(#work[data-active-panel="0"] #home[data-desktop="mac"]) .nav-v2-shell { visibility: hidden; }
-        #home[data-desktop="mac"] .comic-terminal { left: auto; right: ${TERMINAL_RIGHT}; top: 20%; bottom: auto; translate: none; transform: none; width: min(580px, calc(100% - ${ICON_COLUMN_STRIP}px - ${TERMINAL_GUTTER} - 24px)); }
+        #home[data-desktop="mac"] .comic-terminal { left: auto; right: calc(${TERMINAL_RIGHT} - var(--terminal-offset, 0px)); top: calc(20% + var(--terminal-offset, 0px)); bottom: auto; translate: none; transform: none; width: min(740px, calc(100% - ${ICON_COLUMN_STRIP}px - ${TERMINAL_GUTTER} - 24px)); }
+        #home[data-desktop="mac"] .comic-terminal > [data-visible] { height: min(500px, calc(80svh - var(--mac-dock-gutter, 90px) - 16px)); }
         #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] { inset: 40px 12px var(--mac-dock-gutter, 90px); width: auto; transform: none !important; }
         #home[data-desktop="mac"] .comic-terminal[data-expanded="true"] > div { height: 100%; }
         #home[data-desktop="mac"] .comic-terminal[hidden] { display: none; }
         #home[data-desktop="mac"] .comic-terminal[data-framed] > div { height: 100%; }
+        #home[data-desktop="mac"] .terminal-switcher { position: absolute; z-index: 40; right: 18px; bottom: calc(var(--mac-dock-gutter, 90px) + 10px); display: flex; gap: 4px; max-width: min(70vw, 680px); overflow-x: auto; padding: 5px; border: 1px solid #ffffff30; border-radius: 9px; background: #25262bef; box-shadow: 0 10px 28px #0007; scrollbar-width: thin; }
+        #home[data-desktop="mac"] .terminal-switcher button { flex: 0 0 auto; padding: 6px 9px; border: 0; border-radius: 5px; color: #ddd; background: transparent; font: 12px/1 Menlo, Monaco, monospace; cursor: pointer; }
+        #home[data-desktop="mac"] .terminal-switcher button[aria-pressed="true"] { color: #fff; background: #2866d8; }
+        #home[data-desktop="mac"] .terminal-switcher button[data-minimized="true"] { opacity: .6; }
+        #home[data-desktop="mac"] .terminal-switcher button:focus-visible { outline: 2px solid #8ad69b; outline-offset: -2px; }
+        @media (min-width: 1024px) {
+          #home:not([data-desktop="mac"]) .comic-terminal { top: calc(22% + var(--terminal-offset, 0px)); right: calc(8% - var(--terminal-offset, 0px)); }
+        }
         @media (max-width: 1023px) {
           #home[data-desktop="mac"] .comic-terminal { display: none !important; }
+          #home[data-desktop="mac"] .terminal-switcher { display: none; }
         }
         #home[data-desktop="mac"] .hero-artist-credit { display: none; }
         @keyframes badgeFloat {
@@ -298,49 +299,35 @@ export default function HeroV2({
         <MobileMacStage
           view={mobileView}
           theme="mac"
-          open={macTerminalOpen}
-          onOpenChange={(open) => {
-            setMacTerminalOpen(open);
-            if (!open) setTerminalExpanded(false);
-          }}
+          open={mobileTerminalOpen}
+          terminalIds={terminals.ids}
+          activeTerminalId={activeTerminalId}
+          minimizedTerminalIds={terminals.minimizedIds}
+          onFocusTerminal={id => dispatchTerminals({ type: "focus", id })}
+          onCloseTerminal={id => dispatchTerminals({ type: "close", id })}
+          onMinimizeTerminal={id => dispatchTerminals({ type: "minimize", id })}
         />
       )}
 
-      {/* Floating comic-terminal — hidden on mobile mac via CSS; remount key still resets drag on breakpoint */}
-      <motion.div
-        key={isDesktop ? "terminal-lg" : "terminal-sm"}
-        ref={terminalRef}
-        hidden={!noBgImage && !macTerminalOpen}
-        data-expanded={terminalExpanded}
-        data-framed={terminalWindowed && terminalFrame.framed ? "" : undefined}
-        drag={!terminalExpanded && !terminalWindowed}
-        dragControls={terminalDrag}
-        dragListener={false}
-        {...(terminalWindowed ? terminalFrame.tracking : {})}
-        onPointerDown={event => {
-          if (!(event.target as HTMLElement).closest("[data-drag-handle]") || (event.target as HTMLElement).closest("button")) return;
-          if (terminalWindowed) terminalFrame.startMove(event);
-          else terminalDrag.start(event);
-        }}
-        dragMomentum={false}
-        dragConstraints={heroRef}
-        dragElastic={0}
-        className="absolute z-30 cursor-grab active:cursor-grabbing comic-terminal bottom-[7vh] lg:bottom-auto lg:top-[22%] left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto lg:right-[8%] w-[96vw] lg:w-[min(546px,44.1vw)]"
-        style={{
-          opacity: contentOpacity,
-          fontFamily: "var(--font-space-mono, ui-monospace, monospace)",
-          ...(terminalWindowed ? terminalFrame.style : undefined),
-        }}
-      >
-        {terminalWindowed && <WindowResizeHandles handleProps={terminalFrame.handleProps} />}
-        <div className="w-full h-[min(425.25px,40.5vh)] lg:h-[min(472.5px,52.5vh)]">
-          {/* On mobile mac the mind-sheet owns chat — skip a second useChat instance */}
-          {/* Default-on for SSR/desktop; unmount only after we know we are mobile mac */}
-          {(!isMobile || noBgImage) && (
-            <ChatInterface onClose={() => { setTerminalExpanded(false); hideTerminal(); }} onMinimize={hideTerminal} onToggleMaximize={() => setTerminalExpanded(value => !value)} maximized={terminalExpanded} theme={noBgImage ? "default" : "mac"} variant="panel" className="!w-full !h-full max-w-none" />
-          )}
-        </div>
-      </motion.div>
+      {terminals.ids.map(id => <DesktopTerminalWindow
+        key={id}
+        id={id}
+        active={id === activeTerminalId}
+        count={terminals.ids.length}
+        visible={terminals.visible && !terminals.minimizedIds.includes(id)}
+        isDesktop={!isMobile}
+        noBgImage={noBgImage}
+        opacity={contentOpacity}
+        heroRef={heroRef}
+        onFocus={() => dispatchTerminals({ type: "focus", id })}
+        onClose={() => dispatchTerminals({ type: "close", id })}
+        onMinimize={() => dispatchTerminals({ type: "minimize", id })}
+      />)}
+      {!noBgImage && terminals.visible && (terminals.ids.length > 1 || terminals.minimizedIds.length > 0) && <nav className="terminal-switcher" aria-label={language === "es" ? "Ventanas de Terminal" : "Terminal windows"}>
+        {terminals.ids.map(id => <button key={id} type="button" aria-pressed={id === activeTerminalId && !terminals.minimizedIds.includes(id)} data-minimized={terminals.minimizedIds.includes(id)} onClick={() => dispatchTerminals({ type: "focus", id })}>Terminal {id}</button>)}
+      </nav>}
+
+      {!noBgImage && terminals.ids.length === 0 && <TerminalCloseEasterEgg onReopen={openTerminal} />}
 
       {/* ── Instagram credit ── */}
       <a
