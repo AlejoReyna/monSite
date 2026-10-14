@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import NavbarV2 from "@/components/v2/navbar-v2";
 import LanguageSwitcher from "@/components/language-switcher";
 
-const HIDE_CHROME_PREFIXES = ["/blog", "/historia", "/legacy", "/weddings", "/merci-mon-cheri-to"];
+const HIDE_CHROME_PREFIXES = ["/blog", "/historia", "/legacy", "/weddings", "/merci-mon-cheri-to", "/gba"];
 
 function shouldHideChrome(pathname: string | null): boolean {
   if (!pathname) return false;
@@ -13,9 +13,9 @@ function shouldHideChrome(pathname: string | null): boolean {
   );
 }
 
-export default function AppChrome({ children }: { children: React.ReactNode }) {
+export default function AppChrome({ children, hideChrome = false }: { children: React.ReactNode; hideChrome?: boolean }) {
   const pathname = usePathname();
-  const hide = shouldHideChrome(pathname);
+  const hide = hideChrome || shouldHideChrome(pathname);
 
   return (
     <>

@@ -6,7 +6,9 @@
     "dev": "node scripts/dev.mjs",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:gameboy": "node --max-old-space-size=768 --test scripts/test-gameboy.mjs",
+    "typecheck:gameboy": "node --max-old-space-size=768 node_modules/typescript/bin/tsc --project tsconfig.gameboy.json --noEmit --incremental false"
   },
   "dependencies": {
     "framer-motion": "^12.23.12",

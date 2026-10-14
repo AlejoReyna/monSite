@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono, Bebas_Neue, Cormorant_Garamond, Space_Mono, Press_Start_2P, VT323 } from "next/font/google";
 import "./globals.css";
 import AppChrome from "@/components/app-chrome";
@@ -6,7 +7,7 @@ import AppChrome from "@/components/app-chrome";
 import { LanguageProvider } from "@/components/lang-context";
 import { NavigationProvider } from "@/contexts/navigation-context";
 import { getRequestLanguage } from "@/lib/request-language";
-
+import { isGameBoyHost } from "@/lib/gameboy/site";
 // Function to generate iOS meta tags for status bar styling
 function generateiOSMetaTags() {
   return {
@@ -126,6 +127,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const language = await getRequestLanguage();
+  const gameBoyHost = isGameBoyHost((await headers()).get("host"));
   return (
     <html lang={language}>
       <head>
@@ -146,7 +148,7 @@ export default async function RootLayout({
         <LanguageProvider initialLanguage={language}>
           <NavigationProvider>
             <a id="top" />
-            <AppChrome>{children}</AppChrome>
+            <AppChrome hideChrome={gameBoyHost}>{children}</AppChrome>
           </NavigationProvider>
         </LanguageProvider>
       </body>

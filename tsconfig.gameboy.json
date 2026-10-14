@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "src/lib/gameboy/**/*.ts",
+    "src/components/v2/gameboy-player.tsx",
+    "src/components/v2/gameboy-site.tsx",
+    "src/app/gba/page.tsx",
+    "src/middleware.ts",
+    "next.config.ts"
+  ]
+}
