@@ -117,6 +117,10 @@ The root layout reads the language cookie, so pages render per request rather th
 
 ## Notes
 
+- `gba.alexisrs.dev` sirve únicamente la consola Game Boy en `/gba` (rewrite de
+  la raíz por host + middleware que redirige el resto de rutas). Ver
+  [docs/gba-domain.md](docs/gba-domain.md).
+
 - Desktop artwork is served as static files (not through `next/image`) to preserve animation. The animation is lossy WebP at quality 80: 1,669,306 bytes, 90.2% smaller than the source GIF (17,020,818) and 72.1% smaller than the previous lossless WebP (5,992,350), with the same frames, transparency and timing. At 1:1 the only visible difference is slightly smoothed GIF dithering.
 - Recreate the animation with `gif2webp -lossy -q 80 -m 6 public/16.gif -o public/coffee-desktop.webp`. The still is frame 1 (836×1943 at offset 206,32) padded onto the 1268×2000 canvas and encoded with `cwebp -q 80 -m 6`, so it lines up exactly with the animation.
 - The wallpaper is `public/macos-wallpaper-purple.webp`: `cwebp -q 90 -m 6 -sharp_yuv -f 0 -sns 0` from the JPG (88 KB vs 832 KB), with settings that keep its film grain.

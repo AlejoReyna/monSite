@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { GAMEBOY_HOST } from "./src/lib/gameboy/site";
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -17,6 +18,17 @@ const nextConfig: NextConfig = {
   },
   turbopack: {
     root: process.cwd(),
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [{
+        source: "/",
+        has: [{ type: "host", value: GAMEBOY_HOST.replaceAll(".", "\\.") }],
+        destination: "/gba",
+      }],
+      afterFiles: [],
+      fallback: [],
+    };
   },
   async headers() {
     const cacheForAWeek = [

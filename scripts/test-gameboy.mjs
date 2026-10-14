@@ -280,3 +280,115 @@ test('cartridge codec handles large binary buffers without changing bytes', asyn
   const data = Uint8Array.from({length:200000},(_,i)=>i%256);
   assert.deepEqual(decode(encode(data)),data);
 });
+
+const gameBoySite = {};
+vm.runInNewContext(ts.transpileModule(read('../src/lib/gameboy/site.ts'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { exports: gameBoySite });
+
+test('the GBA subdomain routes only its root to the standalone console and keeps asset URLs intact', async () => {
+  const config = {};
+  vm.runInNewContext(ts.transpileModule(read('../next.config.ts'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText, { exports: config, process:{cwd:()=>'/project'}, require: name => {
+    assert.equal(name, './src/lib/gameboy/site');return gameBoySite;
+  } });
+  const { matchHas } = require('next/dist/shared/lib/router/utils/prepare-destination');
+  const { getPathMatch } = require('next/dist/shared/lib/router/utils/path-match');
+  const rules = (await config.default.rewrites()).beforeFiles;
+  const route = (host, path) => rules.find(rule => getPathMatch(rule.source)(path) &&
+    matchHas({ headers:{host}, cookies:{} }, {}, rule.has))?.destination;
+  for (const host of ['gba.alexisrs.dev', 'gba.alexisrs.dev:3000']) {
+    assert.equal(gameBoySite.isGameBoyHost(host), true);
+    assert.equal(route(host, '/'), '/gba');
+    for (const path of ['/gba','/gameboy/frame.html','/emulatorjs/4.2.3/data/loader.js','/_next/static/chunk.js']) {
+      assert.equal(route(host,path), undefined);
+    }
+  }
+  for (const host of ['alexisrs.dev','www.alexisrs.dev','localhost:3000','gbaXalexisrsXdev','gba.alexisrs.dev.example.com']) {
+    assert.equal(gameBoySite.isGameBoyHost(host),false);
+    assert.equal(route(host,'/'),undefined);
+  }
+  assert.equal(gameBoySite.isGameBoyHost(null),false);
+});
+
+test('the GBA host serves only the console and redirects every other page to its root', () => {
+  const { resolveGameBoyRedirect } = gameBoySite;
+  for (const host of ['gba.alexisrs.dev', 'gba.alexisrs.dev:3000']) {
+    assert.equal(resolveGameBoyRedirect(host, '/'), null);
+    assert.equal(resolveGameBoyRedirect(host, '/gba'), null);
+    for (const path of ['/blog', '/historia', '/weddings/cindy-jorge', '/es', '/en']) {
+      assert.equal(resolveGameBoyRedirect(host, path), '/');
+    }
+    for (const path of ['/api/save', '/_next/static/chunk.js', '/gameboy/frame.html']) {
+      assert.equal(resolveGameBoyRedirect(host, path), null);
+    }
+  }
+  for (const host of ['alexisrs.dev', 'www.alexisrs.dev', null, undefined]) {
+    assert.equal(resolveGameBoyRedirect(host, '/blog'), null);
+    assert.equal(resolveGameBoyRedirect(host, '/'), null);
+  }
+});
+
+test('the middleware redirects non-console GBA pages to the subdomain root', () => {
+  const redirected = [];
+  const NextResponse = {
+    next: () => ({ action: 'next' }),
+    redirect: url => { redirected.push(url.pathname + url.search); return { action: 'redirect' }; },
+  };
+  const middlewareModule = {};
+  const request = (host, pathname) => ({
+    headers: { get: name => (name === 'host' ? host : null) },
+    nextUrl: { pathname, clone() { return { pathname, search: '?ref=portfolio' }; } },
+  });
+  vm.runInNewContext(ts.transpileModule(read('../src/middleware.ts'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText, { exports: middlewareModule, require: name => {
+    if (name === 'next/server') return { NextResponse };
+    if (name === './lib/gameboy/site') return gameBoySite;
+    return require(name);
+  } });
+  assert.equal(middlewareModule.middleware(request('gba.alexisrs.dev', '/blog')).action, 'redirect');
+  assert.deepEqual(redirected, ['/']);
+  assert.equal(middlewareModule.middleware(request('gba.alexisrs.dev', '/')).action, 'next');
+  assert.equal(middlewareModule.middleware(request('gba.alexisrs.dev', '/gba')).action, 'next');
+  assert.equal(middlewareModule.middleware(request('alexisrs.dev', '/blog')).action, 'next');
+  assert.ok(Array.isArray(middlewareModule.config.matcher) && middlewareModule.config.matcher.length > 0);
+});
+
+test('the standalone console has its own canonical URL and localized metadata', async () => {
+  const page = {};let language='es';
+  vm.runInNewContext(ts.transpileModule(read('../src/app/gba/page.tsx'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
+  }).outputText, { exports:page, URL, require:name=>{
+    if(name==='@/components/v2/gameboy-site')return {default:()=>null};
+    if(name==='@/lib/gameboy/site')return gameBoySite;
+    if(name==='@/lib/request-language')return {getRequestLanguage:async()=>language};
+    return require(name);
+  } });
+  for (language of ['es','en']) {
+    const metadata=await page.generateMetadata();
+    assert.equal(metadata.alternates.canonical,'https://gba.alexisrs.dev');
+    assert.equal(metadata.metadataBase.origin,'https://gba.alexisrs.dev');
+    assert.equal(metadata.title.absolute,'Game Boy · Alexis Reyna');
+    assert.equal(metadata.openGraph.locale,language==='es'?'es_MX':'en_US');
+    assert.match(metadata.description,language==='es'?/Juega/:/Play/);
+  }
+});
+
+test('the standalone route and rewritten subdomain hide portfolio chrome while the portfolio root retains it', () => {
+  const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');
+  const chrome={};let pathname='/';
+  vm.runInNewContext(ts.transpileModule(read('../src/components/app-chrome.tsx'), {
+    compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX},
+  }).outputText, {exports:chrome,require:name=>{
+    if(name==='next/navigation')return {usePathname:()=>pathname};
+    if(name==='@/components/v2/navbar-v2')return {default:()=>React.createElement('nav',null,'portfolio-navbar')};
+    if(name==='@/components/language-switcher')return {default:()=>null};
+    return require(name);
+  }});
+  const render=hideChrome=>renderToStaticMarkup(React.createElement(chrome.default,{hideChrome},'console'));
+  assert.match(render(false),/portfolio-navbar/);
+  assert.doesNotMatch(render(true),/portfolio-navbar/);
+  pathname='/gba';assert.doesNotMatch(render(false),/portfolio-navbar/);
+});

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { DEFAULT_LANGUAGE, isLanguage, LANGUAGE_COOKIE, type Language } from "@/lib/language";
+import { isGameBoyHost } from "@/lib/gameboy/site";
 
 export type { Language } from "@/lib/language";
 
@@ -36,7 +37,7 @@ export function LanguageProvider({ children, initialLanguage = DEFAULT_LANGUAGE 
   useEffect(() => {
     if (typeof document !== "undefined") {
       document.documentElement.lang = language;
-      if (pathname === "/") document.title = PAGE_TITLES[language];
+      if (pathname === "/" && !isGameBoyHost(window.location.host)) document.title = PAGE_TITLES[language];
     }
   }, [language, pathname]);
 
