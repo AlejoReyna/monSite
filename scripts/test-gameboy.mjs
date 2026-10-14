@@ -871,6 +871,20 @@ test('host rejects another ROM backup before stopping and allows cancelling a fa
   h.unmount();
 });
 
+test('cancelling a timed-out import ignores its late stop acknowledgement and keeps the session', async () => {
+  const h=hostHarness();await h.pick(hostRom('game.gba'));h.load();h.receive({type:'ready'});h.clickLabel('Partida y respaldos');
+  const config=h.messages.find(m=>m.type==='load-rom');
+  const identity={sha256:config.sha256,core:'mgba',platform:'gba'};
+  await h.importFile(jsonFile('right.json',cartridgeModule.createGameCartridgeBackup(new Uint8Array(512),undefined,identity)));
+  const original=h.surface;const session=h.frame.props.src;
+  h.clickText('Restaurar y reiniciar');h.expire(5000);h.clickText('Cancelar');
+  h.receive({type:'stopped'});
+  assert.equal(h.surface,original);assert.equal(h.frame.props.src,session);
+  assert.equal(h.messages.filter(m=>m.type==='load-rom').length,1);
+  h.clickLabel('Volver a juegos');h.receive({type:'stopped'});assert.equal(h.frame,undefined);
+  h.unmount();
+});
+
 test('host accepts a late successful save acknowledgement after the timeout without discarding early', async () => {
   const h=hostHarness();await h.pick(hostRom('game.gba'));h.load();h.receive({type:'ready'});
   h.clickLabel('Volver a juegos');h.expire(5000);assert.ok(h.frame);

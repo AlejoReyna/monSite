@@ -133,7 +133,7 @@ npm run typecheck:gameboy
 node --max-old-space-size=768 node_modules/eslint/bin/eslint.js src/lib/gameboy src/components/v2/gameboy-player.tsx public/gameboy scripts/test-gameboy.mjs next.config.ts
 ```
 
-54 pruebas automáticas. Incluyen validadores, manifiesto, bridge, IndexedDB
+55 pruebas automáticas. Incluyen validadores, manifiesto, bridge, IndexedDB
 simulado y handlers reales del componente mediante hooks/DOM deterministas.
 Se usan bytes sintéticos para la lógica GBA y la ROM real de Doom para verificar
 integridad, identidad local/catálogo y selección en el host. Estas pruebas no

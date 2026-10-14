@@ -470,7 +470,9 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     finally { importReading.current = false; if (mounted.current) setImportBusy(false); }
   }
   function cancelImport() {
-    pendingImport.current = null; setImportCandidate(null); setStopFailed(false);
+    pendingImport.current = null; awaitingStop.current = false;
+    window.clearTimeout(stopTimeout.current);
+    setImportCandidate(null); setStopFailed(false); setCancelImportOnFailure(false);
   }
   const gba = selectedGame?.platform === "gba";
   const help = gba ? copy.gbaHelp : copy.help;
