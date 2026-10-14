@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { GAMEBOY_HOST } from "./src/lib/gameboy/site";
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -18,6 +19,17 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  async rewrites() {
+    return {
+      beforeFiles: [{
+        source: "/",
+        has: [{ type: "host", value: GAMEBOY_HOST.replaceAll(".", "\\.") }],
+        destination: "/gba",
+      }],
+      afterFiles: [],
+      fallback: [],
+    };
+  },
   async headers() {
     const cacheForAWeek = [
       {
@@ -28,6 +40,12 @@ const nextConfig: NextConfig = {
     ];
 
     return [
+      {
+        // Vendored engine/core bytes are pinned by version and manifest hash.
+        // Upgrades must use a new directory instead of replacing these files.
+        source: "/emulatorjs/4.2.3/data/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
       {
         source: "/blog/artisanal-brew-assets/:path*",
         headers: cacheForAWeek,
