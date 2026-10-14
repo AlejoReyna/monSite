@@ -1,0 +1,12 @@
+.secret { display: none; position: fixed; right: 14px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 30; padding: 8px 11px; border: 1px solid #ffffff40; border-radius: 10px; background: #0e131acc; color: #e4e7ec; font: 12px monospace; touch-action: manipulation; }
+@media (pointer: coarse) { .secret { display: block; } }
+.dialog { box-sizing: border-box; width: min(1000px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); margin: auto; padding: 0; border: 1px solid #67718a; border-radius: 16px; background: #101520; color: #e7ecf6; box-shadow: 0 28px 100px #0009; overflow: auto; }
+.dialog::backdrop { background: #05070dd9; backdrop-filter: blur(6px); }
+.dialog:has([data-fullscreen="true"]) { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; border: none; border-radius: 0; }
+.dialog button:focus-visible, .dialog input:focus-visible { outline: 2px solid #ffb652; outline-offset: 3px; }
+.keypad { position: relative; padding: 36px; text-align: center; }
+.keypad h2 { font-size: 22px; margin-bottom: 12px; }
+.keypad p { margin-bottom: 18px; }
+.keypad > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.keypad button { min-width: 44px; min-height: 44px; border: 1px solid #69728a; border-radius: 9px; background: #222c40; color: inherit; cursor: pointer; }
+.dismiss { position: absolute; right: 8px; top: 8px; }
