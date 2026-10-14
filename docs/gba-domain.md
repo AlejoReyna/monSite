@@ -7,6 +7,8 @@ Configuración iniciada el 13 de octubre de 2026.
 - `/gba` abre directamente la biblioteca y el emulador existentes.
 - El host `gba.alexisrs.dev` reescribe únicamente `/` a `/gba`, antes de resolver
   la página del portafolio. La URL pública permanece en la raíz del subdominio.
+- El subdominio solo sirve la consola: un middleware redirige cualquier otra
+  ruta de página a `/`, sin tocar ROMs, cores, iframes, API ni recursos de Next.
 - La navegación del portafolio se oculta tanto en `/gba` como en el host dedicado.
 - Los metadatos ES/EN y la URL canónica apuntan a `https://gba.alexisrs.dev`.
 - Salir conserva el flujo de guardado del reproductor y vuelve a `https://alexisrs.dev`.

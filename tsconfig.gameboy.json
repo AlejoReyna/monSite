@@ -5,6 +5,7 @@
     "src/lib/gameboy/**/*.ts",
     "src/components/v2/gameboy-player.tsx",
     "src/components/v2/gameboy-site.tsx",
+    "src/middleware.ts",
     "src/app/gba/page.tsx",
     "next.config.ts",
     "public/gameboy/**/*.d.ts"

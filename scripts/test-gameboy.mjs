@@ -61,6 +61,50 @@ test('the GBA subdomain routes only its root to the standalone console and keeps
   assert.equal(gameBoySite.isGameBoyHost(null),false);
 });
 
+test('the GBA host serves only the console and redirects every other page to its root', () => {
+  const { resolveGameBoyRedirect } = gameBoySite;
+  for (const host of ['gba.alexisrs.dev', 'gba.alexisrs.dev:3000']) {
+    assert.equal(resolveGameBoyRedirect(host, '/'), null);
+    assert.equal(resolveGameBoyRedirect(host, '/gba'), null);
+    for (const path of ['/blog', '/historia', '/weddings/cindy-jorge', '/es', '/en']) {
+      assert.equal(resolveGameBoyRedirect(host, path), '/');
+    }
+    for (const path of ['/api/save', '/_next/static/chunk.js', '/gameboy/frame.html', '/games/doom.gba']) {
+      assert.equal(resolveGameBoyRedirect(host, path), null);
+    }
+  }
+  for (const host of ['alexisrs.dev', 'www.alexisrs.dev', null, undefined]) {
+    assert.equal(resolveGameBoyRedirect(host, '/blog'), null);
+    assert.equal(resolveGameBoyRedirect(host, '/'), null);
+  }
+});
+
+test('the middleware redirects non-console GBA pages to the subdomain root', () => {
+  const redirected = [];
+  const NextResponse = {
+    next: () => ({ action: 'next' }),
+    redirect: url => { redirected.push(url.pathname + url.search); return { action: 'redirect' }; },
+  };
+  const middlewareModule = {};
+  const request = (host, pathname) => ({
+    headers: { get: name => (name === 'host' ? host : null) },
+    nextUrl: { pathname, clone() { return { pathname, search: '?ref=portfolio' }; } },
+  });
+  vm.runInNewContext(ts.transpileModule(read('../src/middleware.ts'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText, { exports: middlewareModule, require: name => {
+    if (name === 'next/server') return { NextResponse };
+    if (name === './lib/gameboy/site') return gameBoySite;
+    return require(name);
+  } });
+  assert.equal(middlewareModule.middleware(request('gba.alexisrs.dev', '/blog')).action, 'redirect');
+  assert.deepEqual(redirected, ['/']);
+  assert.equal(middlewareModule.middleware(request('gba.alexisrs.dev', '/')).action, 'next');
+  assert.equal(middlewareModule.middleware(request('gba.alexisrs.dev', '/gba')).action, 'next');
+  assert.equal(middlewareModule.middleware(request('alexisrs.dev', '/blog')).action, 'next');
+  assert.ok(Array.isArray(middlewareModule.config.matcher) && middlewareModule.config.matcher.length > 0);
+});
+
 test('the standalone console has its own canonical URL and localized metadata', async () => {
   const page = {};let language='es';
   vm.runInNewContext(ts.transpileModule(read('../src/app/gba/page.tsx'), {
