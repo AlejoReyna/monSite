@@ -9,6 +9,7 @@ import NoNamedBotGateway from "@/components/nonamedbot-gateway";
 import WeddingServiceGateway from "@/components/wedding-service-gateway";
 import PlebesProjectGateway from "@/components/plebes-project-gateway";
 import ContactGateway from "@/components/contact-gateway";
+import CrashEasterEgg from "@/components/playstation/crash-easter-egg";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    HeroCarouselSequence — Hero-to-projects curtain reveal
@@ -336,6 +337,7 @@ export default function HeroCarouselSequence() {
   // Salto a un panel concreto (rueda, teclado, swipe o clic en los puntos).
   const goToPanel = useCallback(
     (next: SequencePanel) => {
+      if (document.documentElement.dataset.crashOpen === "true") return;
       animateToPanel(next);
     },
     [animateToPanel]
@@ -366,6 +368,7 @@ export default function HeroCarouselSequence() {
 
   const handleWheel = useCallback(
     (event: globalThis.WheelEvent) => {
+      if (document.documentElement.dataset.crashOpen === "true") return;
       if ((event.target as HTMLElement | null)?.closest('[data-desktop="mac"]')) return;
       const interactiveTarget = (event.target as HTMLElement | null)?.closest(
         "input, textarea, select"
@@ -482,6 +485,7 @@ export default function HeroCarouselSequence() {
   // ── Navegación por teclado (flechas, Página, Inicio/Fin, Espacio) ─────────
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (document.documentElement.dataset.crashOpen === "true" || event.defaultPrevented) return;
       const target = event.target as HTMLElement | null;
       if (activePanelRef.current === 0 && containerRef.current?.querySelector('[data-desktop="mac"]')) return;
       if (
@@ -542,6 +546,8 @@ export default function HeroCarouselSequence() {
   const plebesY = useTransform(plebesProgress, [0, 1], ["100%", "0%"]);
   const contactY = useTransform(contactProgress, [0, 1], ["100%", "0%"]);
   return (
+    <>
+    <CrashEasterEgg />
     <div
       ref={containerRef}
       id="work"
@@ -658,5 +664,6 @@ export default function HeroCarouselSequence() {
 
       </div>
     </div>
+    </>
   );
 }

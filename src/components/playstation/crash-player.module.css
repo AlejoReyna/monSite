@@ -1,0 +1,41 @@
+.player { padding: 22px; color: #ecf0f9; font-family: Arial, sans-serif; outline: none; }
+.header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 20px; }
+.header p { color: #ffb652; font-size: 11px; letter-spacing: .15em; text-transform: uppercase; margin: 0 0 7px; }
+.header h2 { font-size: clamp(24px, 5vw, 36px); font-weight: 800; line-height: 1.15; margin: 0 0 6px; }
+.header span { color: #a6b1c8; font-size: 13px; }
+.player button { cursor: pointer; color: inherit; border: 1px solid #46536c; background: #202b40; border-radius: 8px; min-height: 42px; padding: 8px 12px; font: inherit; font-size: 13px; transition: background .15s; }
+.player button:hover { background: #303e59; }
+.player button:disabled { cursor: default; opacity: .5; }
+.header > button { font-size: 24px; line-height: 1; min-width: 42px; }
+.setup { max-width: 540px; margin: 0 auto; padding: 10px 0 6px; }
+.kicker { text-align: center; color: #ffb652; font: 16px monospace; margin-bottom: 24px; }
+.setup label { display: flex; flex-direction: column; gap: 9px; margin: 18px 0; font-size: 14px; }
+.setup input { display: block; width: 100%; padding: 9px; border: 1px solid #44506a; border-radius: 8px; background: #0b111d; font-size: 12px; }
+.setup input::file-selector-button { padding: 7px 9px; margin-right: 10px; border: none; border-radius: 5px; background: #26344c; color: #eef1f9; cursor: pointer; }
+.setup small { color: #a6b1c8; line-height: 1.5; font-size: 12px; }
+.player .start { width: 100%; display: flex; justify-content: space-between; align-items: center; background: #ffb652; color: #1b1308; border: none; padding: 14px 18px; font-size: 16px; font-weight: 700; margin-top: 22px; }
+.player .start:hover { background: #ffc779; }
+.screen { position: relative; width: min(100%, 680px); aspect-ratio: 4 / 3; margin: auto; background: #080a10; border: 1px solid #364159; border-radius: 10px; overflow: hidden; }
+.screen iframe { width: 100%; height: 100%; border: 0; }
+.loading, .paused { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; background: #080a10e8; text-align: center; padding: 24px; font-size: 14px; }
+.paused { background: #080a10b0; }
+.spinner { width: 28px; height: 28px; border: 3px solid #ffb65233; border-top-color: #ffb652; border-radius: 50%; animation: turn 1s linear infinite; }
+.loading progress { width: min(240px, 90%); accent-color: #ffb652; }
+.toolbar { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.hint { color: #a6b1c8; text-align: center; font-size: 12px; line-height: 1.6; margin: 8px 0; }
+.notice { padding: 12px 16px; margin-top: 16px; background: #ffb65212; border: 1px solid #ffb65240; color: #ffe0b3; border-radius: 8px; font-size: 13px; line-height: 1.5; }
+.player .force { display: block; margin: 10px auto 0; border-color: #dc877e; }
+.touchControls { display: none; align-items: center; justify-content: space-between; gap: 8px; margin: 18px auto; max-width: 500px; user-select: none; -webkit-user-select: none; }
+.touchControls button { touch-action: none; min-width: 44px; min-height: 44px; padding: 4px; font-size: 22px; }
+.dpad, .buttons { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 2px; }
+.dpad [data-key="ArrowUp"], .buttons [data-key="v"] { grid-area: 1 / 2; }
+.dpad [data-key="ArrowLeft"], .buttons [data-key="z"] { grid-area: 2 / 1; }
+.dpad [data-key="ArrowRight"], .buttons [data-key="c"] { grid-area: 2 / 3; }
+.dpad [data-key="ArrowDown"], .buttons [data-key="x"] { grid-area: 3 / 2; }
+.middle { display: flex; flex-direction: column; gap: 10px; }
+.middle button { font-size: 10px; }
+@media (pointer: coarse) { .touchControls { display: flex; } }
+@media (max-width: 540px) { .player { padding: 14px; } .toolbar { gap: 6px; } .toolbar button { font-size: 11px; padding: 8px; } }
+@media (max-width: 380px) { .dpad, .buttons { grid-template-columns: repeat(3, 40px); grid-template-rows: repeat(3, 40px); gap: 0; } .touchControls button { min-width: 40px; min-height: 40px; } .touchControls { gap: 4px; } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } .player button { transition: none; } }
+@keyframes turn { to { transform: rotate(360deg); } }
