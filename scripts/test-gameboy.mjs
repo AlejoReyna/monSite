@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { createHash, webcrypto } from 'node:crypto';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
 
@@ -22,6 +22,10 @@ const library = {};
 vm.runInNewContext(ts.transpileModule(read('../src/lib/gameboy/library.ts'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText, { exports: library });
+const localRom = {};
+vm.runInNewContext(ts.transpileModule(read('../src/lib/gameboy/local-rom.ts'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { exports: localRom, crypto: webcrypto });
 const cartridgeModule = await import('data:text/javascript;base64,' + Buffer.from(read('../public/gameboy/cartridge.js')).toString('base64'));
 const backup = () => ({ format: 'monsite-gold-cartridge', version: 1, rom: GOLD_ROM_SHA256,
   savedAt: '2026-10-13T12:00:00.000Z', sram: Buffer.alloc(32768, 0x42).toString('base64'), rtc: Buffer.alloc(8, 0x12).toString('base64') });
@@ -62,7 +66,7 @@ test('physical key mapping excludes the final Konami A and supports both Select 
   assert.equal(GAME_KEYS.KeyA, undefined);
 });
 
-test('the initial console renders a single selectable Gold game, without booting a ROM or showing removed branding/footer', () => {
+test('the initial console offers fullscreen and a single selectable Gold game without booting a ROM', () => {
   const React = require('react');
   const { renderToStaticMarkup } = require('react-dom/server');
   let language = 'es';
@@ -72,6 +76,7 @@ test('the initial console renders a single selectable Gold game, without booting
     if (module === '@/lib/gameboy/save') return exports;
     if (module === '@/lib/gameboy/presentation') return presentation;
     if (module === '@/lib/gameboy/library') return library;
+    if (module === '@/lib/gameboy/local-rom') return localRom;
     if (module.endsWith('.module.css')) return {__esModule:true,default:new Proxy({}, {get:(_,key)=>String(key)})};
     return require(module);
   };
@@ -84,11 +89,33 @@ test('the initial console renders a single selectable Gold game, without booting
     assert.match(html, locale === 'es' ? /Elige un juego/ : /Choose a game/);
     assert.equal((html.match(/data-launch-game=/g) ?? []).length,1);
     assert.match(html,/data-launch-game="pokemon-gold"/);
+    assert.match(html, locale === 'es' ? /Abrir ROM/ : /Open ROM/);
+    assert.match(html, /type="file" accept="\.gb,\.gbc,\.dmg"/);
+    const fullscreenButton = html.match(/<button\b[^>]*aria-label="(?:Pantalla completa|Fullscreen)"[^>]*>/)?.[0];
+    assert.ok(fullscreenButton, 'fullscreen is available before selecting a game');
+    assert.doesNotMatch(fullscreenButton, /\bdisabled=/);
     assert.doesNotMatch(html,/<iframe|<details|GAME BOY|DOT MATRIX|GOLD EDITION|PHONES|id="game-save-menu"/);
   }
 });
 
-function harness({ standalone = false, native, mirror, imported, captureFails = false } = {}) {
+test('local ROMs retain content identity across filenames, support all GB extensions, and reject bad files before reading', async () => {
+  const bytes = readFileSync(new URL('../public/games/pokemon-gold.gbc', import.meta.url));
+  const file = name => ({name, size:bytes.length, arrayBuffer:async()=>Uint8Array.from(bytes).buffer});
+  for (const name of ['Gold.gb', 'Renamed.GBC', 'Homebrew.dmg']) {
+    const game = await localRom.identifyLocalRom(file(name));
+    assert.equal(game.id, 'rom-' + GOLD_ROM_SHA256);
+    assert.equal(game.title, name.replace(/\.(gb|gbc|dmg)$/i,''));
+  }
+  const different = Uint8Array.from(bytes); different[0] ^= 1;
+  const other = await localRom.identifyLocalRom({...file('Gold.gb'),arrayBuffer:async()=>different.buffer});
+  assert.notEqual(other.id, 'rom-' + GOLD_ROM_SHA256);
+  for (const [change, reason] of [[{name:'Gold.gba'},'format'], [{name:'Gold.zip'},'format'], [{size:0},'size'], [{size:8388609},'size']]) {
+    await assert.rejects(localRom.identifyLocalRom({...file('Gold.gb'),...change,arrayBuffer:()=>{throw new Error('Must not read');}}), error => error.reason === reason);
+  }
+  await assert.rejects(localRom.identifyLocalRom({...file('Gold.gb'),arrayBuffer:async()=>new ArrayBuffer(1)}), error=>error.reason==='read');
+});
+
+function harness({ standalone = false, native, mirror, imported, captureFails = false, localGame = false, sramBytes = 32768, flushFails = false, flushWait } = {}) {
   const events = []; const messages = []; const listeners = new Map();
   const intervals = new Map(); let intervalId = 0; const appended = []; const restored = [];
   const local = new Map();
@@ -100,7 +127,7 @@ function harness({ standalone = false, native, mirror, imported, captureFails = 
       textContent: button.displayName,
       closest: () => ({click() {
         button.callback?.();
-        if (button.displayName === 'gold-save') void context.EJS_onSaveSave({save: new Uint8Array(32768)});
+        if (button.displayName === 'gold-save') void context.EJS_onSaveSave({save: new Uint8Array(sramBytes)});
         if (button.displayName === 'gold-snapshot') context.EJS_onSaveState({state: new Uint8Array(180000)});
       }}),
     })),
@@ -111,7 +138,7 @@ function harness({ standalone = false, native, mirror, imported, captureFails = 
     body: {appendChild: element => appended.push(element)},
   };
   const context = vm.createContext({
-    document, parent, location:{origin:'http://localhost:3000'},
+    document, parent, location:{origin:'http://localhost:3000',search:localGame?'?local=1':''}, URLSearchParams,
     localStorage:{getItem:key=>local.get(key)??null,setItem:(key,value)=>local.set(key,value),removeItem:key=>local.delete(key)},
     addEventListener:(type,fn)=>listeners.set(type,fn),
     setInterval:fn=>{intervals.set(++intervalId,fn);return intervalId;},clearInterval:id=>intervals.delete(id),
@@ -123,6 +150,7 @@ function harness({ standalone = false, native, mirror, imported, captureFails = 
     createCartridgeBackup: cartridgeModule.createCartridgeBackup,
     restoreCartridge: async value => restored.push(value),
     readCartridge: async () => native ?? {},
+    flushLocalCartridge: async () => { if (flushWait) await flushWait; if (flushFails) throw new Error('Save unavailable'); },
     Uint8Array, console,
   });
   context.window = context;
@@ -132,6 +160,97 @@ function harness({ standalone = false, native, mirror, imported, captureFails = 
   return {context,events,messages,intervals,appended,restored,local,message,listeners};
 }
 const settle = () => new Promise(resolve => setImmediate(resolve));
+
+test('a local player waits for an authenticated ROM configuration, boots once, and isolates its save identity', async () => {
+  const h = harness({localGame:true,mirror:backup(),imported:backup()}); await settle();
+  assert.equal(h.appended.length,0);
+  const config = {type:'load-rom',url:'blob:http://localhost:3000/local-game',id:'rom-'+'a'.repeat(64)};
+  h.message(config,{}); h.message(config,undefined,'https://foreign.test');
+  h.message({...config,url:'https://foreign.test/game.gbc'});
+  h.message({...config,url:'blob:https://foreign.test/game'});
+  h.message({...config,id:'pokemon-gold'});
+  await settle(); assert.equal(h.appended.length,0);
+  h.message(config); await settle();
+  assert.equal(h.appended.length,1);
+  assert.equal(h.context.EJS_gameUrl,config.url);
+  assert.equal(h.context.EJS_gameName,config.id);
+  assert.equal(h.context.EJS_gameID,Number.parseInt('a'.repeat(12),16));
+  assert.equal(h.context.EJS_core,'gambatte');
+  assert.equal(h.context.EJS_threads,false);
+  assert.equal(h.restored.length,0);
+  assert.ok(h.local.has('monsite.gold.cartridge.v1.restore'));
+  h.message({...config,url:'blob:http://localhost:3000/another',id:'rom-'+'b'.repeat(64)});
+  await settle(); assert.equal(h.appended.length,1); assert.equal(h.context.EJS_gameUrl,config.url);
+  const gold = harness(); await settle(); gold.message(config);
+  assert.equal(gold.context.EJS_gameUrl,'/games/pokemon-gold.gbc');
+  const standalone = harness({localGame:true,standalone:true}); await settle();
+  assert.equal(standalone.appended.length,0);
+});
+
+test('local cartridges export their actual SRAM size and stop cleanly without writing Gold backups', async () => {
+  for (const sramBytes of [0,512,8192,32768,131072]) {
+    const h = harness({localGame:true,sramBytes,mirror:backup(),captureFails:true});
+    h.message({type:'load-rom',url:'blob:http://localhost:3000/local-game',id:'rom-'+'c'.repeat(64)});
+    await settle(); h.context.EJS_onGameStart();
+    h.message({type:'export'}); await settle();
+    const data = h.messages.find(message=>message.type==='cartridge-save');
+    assert.ok(data); assert.equal(Buffer.from(data.encoded,'base64').length,sramBytes);
+    assert.equal(h.messages.some(message=>message.type==='backup'||message.type==='storage-error'),false);
+    assert.equal(h.local.get('monsite.gold.cartridge.v1'),JSON.stringify(backup()));
+    h.message({type:'stop'}); await settle();
+    assert.equal(h.intervals.size,0);
+    assert.ok(h.messages.some(message=>message.type==='stopped'));
+    assert.equal(h.messages.some(message=>message.type==='error'),false);
+  }
+});
+
+test('local exit waits for the native save flush; a storage failure still allows manual export', async () => {
+  let finish;
+  const flushWait = new Promise(resolve => { finish = resolve; });
+  const h = harness({localGame:true,flushWait});
+  const config = {type:'load-rom',url:'blob:http://localhost:3000/local-game',id:'rom-'+'d'.repeat(64)};
+  h.message(config); await settle(); h.context.EJS_onGameStart();
+  h.message({type:'stop'}); await settle();
+  assert.equal(h.messages.some(message=>message.type==='stopped'),false);
+  finish(); await settle();
+  assert.ok(h.messages.some(message=>message.type==='stopped'));
+  const failed = harness({localGame:true,flushFails:true,sramBytes:8192});
+  failed.message(config); await settle(); failed.context.EJS_onGameStart();
+  failed.message({type:'export'}); await settle();
+  assert.ok(failed.messages.some(message=>message.type==='storage-error'));
+  assert.equal(Buffer.from(failed.messages.find(message=>message.type==='cartridge-save').encoded,'base64').length,8192);
+});
+
+test('native cartridge reads and flushes use the local ROM path, including carts without an RTC', async () => {
+  const previous = globalThis.indexedDB;
+  const id = 'rom-'+'e'.repeat(64);
+  const sram = new Uint8Array(8192);
+  const reads = [];
+  globalThis.indexedDB = {open(name, version) {
+    assert.equal(name,'/data/saves'); assert.equal(version,21);
+    const request = {result:{
+      close() {},
+      transaction(store, mode) {
+        assert.equal(store,'FILE_DATA'); assert.equal(mode,'readonly');
+        const transaction = {objectStore() { return {get(path) {
+          reads.push(path);
+          return {result:path === `/data/saves/${id}.srm` ? {contents:sram} : undefined};
+        }}; }};
+        queueMicrotask(()=>transaction.oncomplete());
+        return transaction;
+      },
+    }};
+    queueMicrotask(()=>request.onsuccess());
+    return request;
+  }};
+  try {
+    const files = await cartridgeModule.readCartridge(id);
+    assert.equal(files.sram,sram); assert.equal(files.rtc,undefined);
+    await cartridgeModule.flushLocalCartridge(sram,id);
+    assert.deepEqual(reads,[`/data/saves/${id}.srm`,`/data/saves/${id}.rtc`,`/data/saves/${id}.srm`,`/data/saves/${id}.rtc`]);
+    await assert.rejects(cartridgeModule.readCartridge('../pokemon-gold'));
+  } finally { globalThis.indexedDB = previous; }
+});
 
 test('casing preferences accept the four designs and recover from old or invalid settings', () => {
   for (const casing of ['classic', 'transparent', 'green', 'red']) assert.equal(parseGameBoyCase(casing), casing);

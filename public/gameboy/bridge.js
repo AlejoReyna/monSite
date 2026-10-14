@@ -1,8 +1,10 @@
-import { SAVE_KEY, encode, captureCartridge, restoreCartridge, readCartridge, createCartridgeBackup } from './cartridge.js';
+import { SAVE_KEY, encode, captureCartridge, restoreCartridge, readCartridge, createCartridgeBackup, flushLocalCartridge } from './cartridge.js';
 /* EmulatorJS 4.2.3 adapter: documented options + native UI actions only.
  * No EJS_emulator/GameManager/Module internals are accessed. */
 (() => {
   const origin = location.origin;
+  const localGame = new URLSearchParams(location.search).get('local') === '1';
+  let configured = !localGame, booted = false;
   const send = (type, extra = {}) => parent.postMessage({ channel: 'gold-player', type, ...extra }, origin);
   const keys = { ArrowUp: 38, ArrowDown: 40, ArrowLeft: 37, ArrowRight: 39, x: 88, z: 90, Enter: 13, Shift: 16 };
   const held = new Set();
@@ -62,6 +64,15 @@ import { SAVE_KEY, encode, captureCartridge, restoreCartridge, readCartridge, cr
   };
   window.EJS_onSaveSave = async ({save: bytes}) => {
     try {
+      if (localGame) {
+        // Native IDBFS saves belong to this ROM's content-based gameName.
+        // Gold's 32 KiB + RTC mirror/backup format must never handle other carts.
+        if (!bytes || bytes.length > 131072) throw new Error('Invalid SRAM export');
+        await flushLocalCartridge(bytes, window.EJS_gameName);
+        send('saved', { bytes: bytes.length });
+        if (exportNext) send('cartridge-save', { encoded: encode(bytes) });
+        return;
+      }
       if (!bytes || bytes.length !== 32768) throw new Error('Invalid SRAM export');
       const backup = await captureCartridge(bytes);
       const json = JSON.stringify(backup);
@@ -70,9 +81,10 @@ import { SAVE_KEY, encode, captureCartridge, restoreCartridge, readCartridge, cr
       if (exportNext) send('backup', { backup: json });
     } catch {
       send('storage-error');
+      if (localGame && exportNext && bytes && bytes.length <= 131072) send('cartridge-save', { encoded: encode(bytes) });
       // A failed browser-storage/RTC flush must not prevent a manual backup of
       // the real cartridge SRAM. The host explicitly identifies the missing clock.
-      if (exportNext && bytes?.length === 32768) send('backup', { backup: JSON.stringify(createCartridgeBackup(bytes)) });
+      if (!localGame && exportNext && bytes?.length === 32768) send('backup', { backup: JSON.stringify(createCartridgeBackup(bytes)) });
     }
     finally {
       busy = false; exportNext = false;
@@ -95,6 +107,17 @@ import { SAVE_KEY, encode, captureCartridge, restoreCartridge, readCartridge, cr
     if (event.source !== parent || event.origin !== origin || event.data?.channel !== 'gold-host') return;
     const { type, key, down, value } = event.data;
     try {
+      if (type === 'load-rom') {
+        const { url, id } = event.data;
+        if (!localGame || configured || exiting || typeof url !== 'string' ||
+            !url.startsWith(`blob:${origin}/`) || typeof id !== 'string' || !/^rom-[a-f0-9]{64}$/.test(id)) return;
+        configured = true;
+        window.EJS_gameUrl = url;
+        window.EJS_gameName = id;
+        window.EJS_gameID = Number.parseInt(id.slice(4, 16), 16);
+        void boot();
+        return;
+      }
       if (type === 'key') input(key, down === true);
       if (type === 'release') release();
       if (type === 'pause') pause(value === true);
@@ -129,14 +152,15 @@ import { SAVE_KEY, encode, captureCartridge, restoreCartridge, readCartridge, cr
   addEventListener('error', () => send('error'));
   async function boot() {
     // Standalone navigation must never start the hidden game.
-    if (parent === window) return;
+    if (parent === window || !configured || booted || exiting) return;
+    booted = true;
     if (typeof MutationObserver !== 'undefined') {
       const observer = new MutationObserver(() => {
         if (document.querySelector('.ejs_error_text')) { observer.disconnect(); send('error'); }
       });
       observer.observe(document.getElementById('game'), { childList: true, subtree: true, attributes: true });
     }
-    try {
+    if (!localGame) try {
       const imported = localStorage.getItem(SAVE_KEY + '.restore');
       if (imported) {
         await restoreCartridge(JSON.parse(imported));
