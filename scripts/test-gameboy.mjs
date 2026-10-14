@@ -40,13 +40,14 @@ test('the GBA subdomain routes only its root to the standalone console and keeps
   vm.runInNewContext(ts.transpileModule(read('../next.config.ts'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText, { exports: config, process:{cwd:()=>'/project'}, require: name => {
+    if (name === './src/lib/gameboy/library') return library;
     assert.equal(name, './src/lib/gameboy/site');return gameBoySite;
   } });
   const { matchHas } = require('next/dist/shared/lib/router/utils/prepare-destination');
   const { getPathMatch } = require('next/dist/shared/lib/router/utils/path-match');
   const rules = (await config.default.rewrites()).beforeFiles;
   const route = (host, path) => rules.find(rule => getPathMatch(rule.source)(path) &&
-    matchHas({ headers:{host}, cookies:{} }, {}, rule.has))?.destination;
+    matchHas({ headers:{host}, cookies:{} }, {}, rule.has ?? []))?.destination;
   for (const host of ['gba.alexisrs.dev', 'gba.alexisrs.dev:3000']) {
     assert.equal(gameBoySite.isGameBoyHost(host), true);
     assert.equal(route(host, '/'), '/gba');
@@ -58,6 +59,7 @@ test('the GBA subdomain routes only its root to the standalone console and keeps
     assert.equal(gameBoySite.isGameBoyHost(host),false);
     assert.equal(route(host,'/'),undefined);
   }
+  assert.equal(route('alexisrs.dev', `/games/rom-${library.DOOM_ROM_SHA256}.gba`), '/games/doom.gba');
   assert.equal(gameBoySite.isGameBoyHost(null),false);
 });
 
@@ -352,7 +354,7 @@ test('native cartridge reads and flushes use the local ROM path, including carts
         assert.equal(store,'FILE_DATA'); assert.equal(mode,'readonly');
         const transaction = {objectStore() { return {get(path) {
           reads.push(path);
-          return {result:path === `/data/saves/${id}.srm` ? {contents:sram} : undefined};
+          return {result:path === `/data/saves/Gambatte/${id}.srm` ? {contents:sram} : undefined};
         }}; }};
         queueMicrotask(()=>transaction.oncomplete());
         return transaction;
@@ -365,7 +367,7 @@ test('native cartridge reads and flushes use the local ROM path, including carts
     const files = await cartridgeModule.readCartridge(id);
     assert.equal(files.sram,sram); assert.equal(files.rtc,undefined);
     await cartridgeModule.flushLocalCartridge(sram,id);
-    assert.deepEqual(reads,[`/data/saves/${id}.srm`,`/data/saves/${id}.rtc`,`/data/saves/${id}.srm`,`/data/saves/${id}.rtc`]);
+    assert.deepEqual(reads,[`/data/saves/Gambatte/${id}.srm`,`/data/saves/Gambatte/${id}.rtc`,`/data/saves/${id}.srm`,`/data/saves/${id}.rtc`,`/data/saves/Gambatte/${id}.srm`,`/data/saves/Gambatte/${id}.rtc`,`/data/saves/${id}.srm`,`/data/saves/${id}.rtc`]);
     await assert.rejects(cartridgeModule.readCartridge('../pokemon-gold'));
   } finally { globalThis.indexedDB = previous; }
 });
@@ -623,12 +625,12 @@ test('generic restore writes only this ROM and deletes a stale clock when the im
     queueMicrotask(()=>request.onsuccess()); return request;
   }};
   try {
-    records.set(`/data/saves/${gbaConfig.id}.rtc`,{contents:new Uint8Array(8)});
+    records.set(`/data/saves/mGBA/${gbaConfig.id}.rtc`,{contents:new Uint8Array(8)});
     const value=cartridgeModule.createGameCartridgeBackup(new Uint8Array(512),undefined,gbaIdentity);
     await cartridgeModule.restoreGameCartridge(value,gbaConfig.id,gbaIdentity);
-    assert.equal(records.get(`/data/saves/${gbaConfig.id}.srm`).contents.length,512);
-    assert.equal(records.has(`/data/saves/${gbaConfig.id}.rtc`),false);
-    assert.ok(writes.every(path=>path.startsWith(`/data/saves/${gbaConfig.id}.`)));
+    assert.equal(records.get(`/data/saves/mGBA/${gbaConfig.id}.srm`).contents.length,512);
+    assert.equal(records.has(`/data/saves/mGBA/${gbaConfig.id}.rtc`),false);
+    assert.ok(writes.every(path=>path === '/data/saves/mGBA' || path.startsWith(`/data/saves/mGBA/${gbaConfig.id}.`)));
     await assert.rejects(cartridgeModule.restoreGameCartridge(value,'rom-'+'a'.repeat(64),gbaIdentity));
   } finally {globalThis.indexedDB=previous;}
 });
@@ -949,7 +951,7 @@ test('bundled Doom is an intact GBA cartridge with the same save identity as its
   assert.equal(createHash('sha256').update(rom).digest('hex'),library.DOOM_ROM_SHA256);
   assert.equal(game.sha256,library.DOOM_ROM_SHA256);assert.equal(game.id,'rom-'+game.sha256);
   assert.equal(game.core,'mgba');assert.equal(game.platform,'gba');assert.equal(game.saveMode,'cartridge');
-  assert.equal(game.romUrl,'/games/doom.gba');assert.equal(rom[0xb2],0x96);
+  assert.equal(game.romUrl,`/games/rom-${library.DOOM_ROM_SHA256}.gba`);assert.equal(rom[0xb2],0x96);
   let checksum=-0x19;for(let offset=0xa0;offset<0xbd;offset++)checksum-=rom[offset];
   assert.equal(checksum&255,rom[0xbd]);assert.equal(rom.subarray(0xac,0xb0).toString('ascii'),'ADME');
   const local=await localRom.identifyLocalRom({name:'Renamed Doom.GBA',size:rom.length,arrayBuffer:async()=>Uint8Array.from(rom).buffer});
@@ -960,11 +962,80 @@ test('host selects bundled Doom with GBA controls and returns to the library aft
   const h=hostHarness();const game=library.GAME_LIBRARY.find(game=>game.title==='Doom');
   h.find(node=>node.props['data-launch-game']===game.id).props.onClick();h.render();h.load();
   const config=h.messages.find(message=>message.type==='load-rom');
-  assert.equal(config.url,'/games/doom.gba');assert.equal(config.platform,'gba');
+  assert.equal(config.url,`/games/rom-${library.DOOM_ROM_SHA256}.gba`);assert.equal(config.platform,'gba');
   assert.equal(config.id,game.id);assert.equal(config.sha256,game.sha256);assert.equal(config.saveMode,'cartridge');
   h.receive({type:'ready'});
   assert.equal(h.find(node=>node.props['data-key']==='a').props['aria-label'],'L');
   assert.equal(h.find(node=>node.props['data-key']==='s').props['aria-label'],'R');
   h.clickLabel('Volver a juegos');assert.ok(h.frame);h.receive({type:'stopped'});assert.equal(h.frame,undefined);
   h.unmount();
+});
+
+function saveDatabase(records) {
+  const previous=globalThis.indexedDB;
+  globalThis.indexedDB={open(){
+    const request={result:{close(){},transaction(){
+      const transaction={objectStore(){return {
+        get:path=>({result:records.get(path)}),
+        put:(record,path)=>records.set(path,record),delete:path=>records.delete(path),
+      };}};
+      queueMicrotask(()=>transaction.oncomplete());return transaction;
+    }}};
+    queueMicrotask(()=>request.onsuccess());return request;
+  }};
+  return ()=>{globalThis.indexedDB=previous;};
+}
+
+test('native core directories win over legacy files and Gold can flush without a separate RTC', async () => {
+  const sram=new Uint8Array(32768);sram[0]=7;
+  const records=new Map([
+    ['/data/saves/Gambatte/pokemon-gold.srm',{contents:sram}],
+    ['/data/saves/pokemon-gold.srm',{contents:new Uint8Array(32768)}],
+    ['/data/saves/pokemon-gold.rtc',{contents:new Uint8Array(8)}],
+  ]);
+  const restore=saveDatabase(records);
+  try {
+    const native=await cartridgeModule.readCartridge();
+    assert.equal(native.sram,sram);assert.equal(native.rtc,undefined);assert.equal(native.legacy,undefined);
+    const value=await cartridgeModule.captureCartridge(sram);
+    assert.equal(value.rtc,undefined);assert.equal(Buffer.from(value.sram,'base64')[0],7);
+  } finally {restore();}
+});
+
+test('mGBA migration finds only the exact legacy Doom and restores a core directory plus content identity', async () => {
+  const id='rom-'+library.DOOM_ROM_SHA256;
+  const identity={sha256:library.DOOM_ROM_SHA256,platform:'gba',core:'mgba'};
+  const bytes=new Uint8Array(131072);bytes[0]=42;
+  const records=new Map([['/data/saves/mGBA/doom.srm',{contents:bytes}]]);
+  const restore=saveDatabase(records);
+  try {
+    assert.equal((await cartridgeModule.readCartridge(gbaConfig.id,'mgba')).sram,undefined);
+    const old=await cartridgeModule.readCartridge(id,'mgba');assert.equal(old.legacy,true);
+    await cartridgeModule.restoreGameCartridge(cartridgeModule.createGameCartridgeBackup(old.sram,old.rtc,identity),id,identity);
+    assert.equal(records.get('/data/saves/mGBA').mode & 0o170000,0o040000);
+    assert.equal(records.get(`/data/saves/mGBA/${id}.srm`).contents[0],42);
+    const current=await cartridgeModule.readCartridge(id,'mgba');assert.equal(current.legacy,undefined);
+    const captured=await cartridgeModule.captureGameCartridge(current.sram,id,identity);
+    assert.equal(Buffer.from(captured.sram,'base64')[0],42);
+    assert.ok(records.has('/data/saves/mGBA/doom.srm'),'migration preserves its source');
+  } finally {restore();}
+});
+
+test('legacy game data is migrated before mounting the native engine', async () => {
+  const h=harness({localGame:true,native:{legacy:true,sram:new Uint8Array(512)}});
+  h.message(gbaConfig);await settle();
+  assert.equal(h.restored.length,1);assert.equal(h.restored[0].name,gbaConfig.id);
+  assert.equal(h.appended.length,1);
+});
+
+test('bundled and local URLs give the pinned engine the same native save basename', () => {
+  const source=read('../public/emulatorjs/4.2.3/data/emulator.min.js');
+  const start=source.indexOf('getBaseFileName(t){');assert.ok(start>=0);
+  let end=start+source.slice(start).indexOf('{')+1,depth=1;
+  while(depth){if(source[end]==='{')depth++;if(source[end]==='}')depth--;end++;}
+  const method=vm.runInNewContext(`({${source.slice(start,end)}}).getBaseFileName`);
+  const game=library.GAME_LIBRARY.find(game=>game.title==='Doom');
+  const basename=url=>method.call({started:true,config:{gameUrl:url,gameName:game.id}},true).replace(/\.gba$/,'');
+  assert.equal(basename(game.romUrl),game.id);
+  assert.equal(basename('blob:https://gba.alexisrs.dev/local-file'),game.id);
 });

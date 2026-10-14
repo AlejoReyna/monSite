@@ -4,7 +4,13 @@ import { parseGameBackup, MAX_SRAM_BYTES } from './backups.js';
  * This adapter never accesses the WASM heap, Module or EJS private methods. */
 export const SAVE_KEY = 'monsite.gold.cartridge.v1';
 export const ROM = 'fb0016d27b1e5374e1ec9fcad60e6628d8646103b5313ca683417f52b97e7e4e';
-const PATH = '/data/saves/pokemon-gold.';
+const CORE_FOLDERS = { gambatte: 'Gambatte', mgba: 'mGBA' };
+const DOOM_ID = 'rom-f5f4f0aac6c1884ef0b771dacb21a5d3f2152a066157f46abb39769c7f95deab';
+function nativeDirectory(core) {
+  if (!Object.hasOwn(CORE_FOLDERS, core)) throw new Error('Invalid core');
+  return `/data/saves/${CORE_FOLDERS[core]}`;
+}
+const PATH = `${nativeDirectory('gambatte')}/pokemon-gold.`;
 export function encode(bytes) {
   let value = '';
   for (let i = 0; i < bytes.length; i += 8192) value += String.fromCharCode(...bytes.subarray(i, i + 8192));
@@ -31,28 +37,35 @@ function open() {
     request.onblocked = () => reject(new Error('Save database blocked'));
   });
 }
-export async function readCartridge(gameName = 'pokemon-gold') {
+export async function readCartridge(gameName = 'pokemon-gold', core = 'gambatte') {
   if (gameName !== 'pokemon-gold' && !/^rom-[a-f0-9]{64}$/.test(gameName)) throw new Error('Invalid cartridge identity');
-  const path = `/data/saves/${gameName}.`;
+  const directory = nativeDirectory(core);
+  const paths = [`${directory}/${gameName}.`, `/data/saves/${gameName}.`];
+  // The first published Doom used its display filename as the native basename.
+  // Migrate only this exact cartridge; an unrelated local ROM cannot claim it.
+  if (gameName === DOOM_ID && core === 'mgba') paths.push(`${directory}/doom.`);
   const db = await open();
   try {
     return await new Promise((resolve, reject) => {
       const transaction = db.transaction('FILE_DATA', 'readonly');
       const store = transaction.objectStore('FILE_DATA');
-      const sram = store.get(path + 'srm');
-      const rtc = store.get(path + 'rtc');
-      transaction.oncomplete = () => resolve({ sram: sram.result?.contents, rtc: rtc.result?.contents });
+      const candidates = paths.map(path => ({ sram: store.get(path + 'srm'), rtc: store.get(path + 'rtc') }));
+      transaction.oncomplete = () => {
+        const index = candidates.findIndex(files => files.sram.result?.contents);
+        const files = candidates[Math.max(0, index)];
+        resolve({ sram: files.sram.result?.contents, rtc: files.rtc.result?.contents, ...(index > 0 ? { legacy: true } : {}) });
+      };
       transaction.onerror = () => reject(transaction.error);
       transaction.onabort = () => reject(transaction.error);
     });
   } finally { db.close(); }
 }
-export async function flushLocalCartridge(sram, gameName) {
+export async function flushLocalCartridge(sram, gameName, core = 'gambatte') {
   // Acknowledging exit before IDBFS's queued transaction finishes can destroy
   // the iframe and lose the save. Wait on this ROM's files, never Gold's mirror.
   for (let attempt = 0; attempt < 20; attempt++) {
     await new Promise(resolve => setTimeout(resolve, 50));
-    const files = await readCartridge(gameName);
+    const files = await readCartridge(gameName, core);
     if (!sram.length || (files.sram && encode(files.sram) === encode(sram))) return;
   }
   throw new Error('Cartridge flush incomplete');
@@ -68,6 +81,7 @@ export async function restoreCartridge(backup) {
       const transaction = db.transaction('FILE_DATA', 'readwrite');
       const store = transaction.objectStore('FILE_DATA');
       const timestamp = new Date();
+      store.put({ timestamp, mode: 16877 }, nativeDirectory('gambatte'));
       store.put({ timestamp, mode: 33206, contents: sram }, PATH + 'srm');
       if (rtc) store.put({ timestamp, mode: 33206, contents: rtc }, PATH + 'rtc');
       else store.delete(PATH + 'rtc');
@@ -84,16 +98,16 @@ export async function captureCartridge(sram) {
   for (let attempt = 0; attempt < 20; attempt++) {
     await new Promise(resolve => setTimeout(resolve, 50));
     files = await readCartridge();
-    if (files.sram && encode(files.sram) === encode(sram) && files.rtc?.length === 8) break;
+    if (files.sram && encode(files.sram) === encode(sram)) break;
   }
-  if (!files?.sram || encode(files.sram) !== encode(sram) || files.rtc?.length !== 8) throw new Error('Cartridge flush incomplete');
+  if (!files?.sram || encode(files.sram) !== encode(sram)) throw new Error('Cartridge flush incomplete');
   return createCartridgeBackup(sram, files.rtc);
 }
 
 export async function captureGameCartridge(sram, gameName, identity) {
   if (!sram || sram.length > MAX_SRAM_BYTES) throw new Error('Invalid cartridge size');
-  await flushLocalCartridge(sram, gameName);
-  const files = await readCartridge(gameName);
+  await flushLocalCartridge(sram, gameName, identity.core);
+  const files = await readCartridge(gameName, identity.core);
   return createGameCartridgeBackup(sram, files.rtc, identity);
 }
 
@@ -114,7 +128,9 @@ export async function restoreGameCartridge(backup, gameName, identity) {
       const transaction = db.transaction('FILE_DATA', 'readwrite');
       const store = transaction.objectStore('FILE_DATA');
       const timestamp = new Date();
-      const path = `/data/saves/${gameName}.`;
+      const directory = nativeDirectory(identity.core);
+      const path = `${directory}/${gameName}.`;
+      store.put({ timestamp, mode: 16877 }, directory);
       // Restore only before mounting the engine. Its in-memory filesystem must
       // never overwrite an import written while an old session is still alive.
       if (value.sram.length) store.put({ timestamp, mode: 33206, contents: decode(value.sram) }, path + 'srm');
