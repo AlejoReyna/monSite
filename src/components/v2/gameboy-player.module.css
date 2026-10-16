@@ -360,19 +360,11 @@
     padding-top: max(12px, env(safe-area-inset-top));
     padding-bottom: calc(max(16px, env(safe-area-inset-bottom)) + 68px);
   }
-  /* Safari tints its bars from fixed elements touching each edge: the bottom
-     toolbar paints the lower one, this strip paints the status bar. */
-  .dialog[data-fullscreen="false"] .content::before {
-    content: "";
-    position: fixed;
-    z-index: 3;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: max(12px, env(safe-area-inset-top));
-    background: var(--case-top-color);
-    pointer-events: none;
-  }
+  /* Safari 26 tints the status bar from the full-screen fixed dialog, so its
+     background must be the case color. Opaque shells hide it entirely. */
+  .dialog[data-fullscreen="false"] { background: var(--case-top-color); }
+  /* The translucent shell keeps its dark backdrop as an image layer. */
+  .dialog[data-fullscreen="false"][data-case="transparent"] { background: linear-gradient(#18191d, #18191d) var(--case-top-color); }
   .dialog[data-fullscreen="false"] .savePopup,
   .dialog[data-fullscreen="false"] .caseMenu {
     top: auto;
