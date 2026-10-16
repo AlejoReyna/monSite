@@ -360,6 +360,19 @@
     padding-top: max(12px, env(safe-area-inset-top));
     padding-bottom: calc(max(16px, env(safe-area-inset-bottom)) + 68px);
   }
+  /* Safari tints its bars from fixed elements touching each edge: the bottom
+     toolbar paints the lower one, this strip paints the status bar. */
+  .dialog[data-fullscreen="false"] .content::before {
+    content: "";
+    position: fixed;
+    z-index: 3;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: max(12px, env(safe-area-inset-top));
+    background: var(--case-top-color);
+    pointer-events: none;
+  }
   .dialog[data-fullscreen="false"] .savePopup,
   .dialog[data-fullscreen="false"] .caseMenu {
     top: auto;
