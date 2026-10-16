@@ -682,7 +682,15 @@ function hostHarness({language='es', mobile=false, casing='classic', themeMetas=
   const localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)};
   const window={location:{origin:'http://localhost:3000'},localStorage,
     matchMedia:()=>mediaQuery,
-    getComputedStyle:()=>({getPropertyValue:()=>({classic:'#d5d3c6',green:'#73935b',red:'#bc4e4b',transparent:'#485956'})[tree.props['data-case']]}),
+    getComputedStyle:()=>({getPropertyValue:key=>{
+      const css=require('postcss').parse(read('../src/components/v2/gameboy-player.module.css'));
+      const variables=new Map();
+      for(const rule of css.nodes)if(rule.type==='rule' && ['.dialog',`.dialog[data-case="${tree.props['data-case']}"]`].includes(rule.selector)){
+        for(const declaration of rule.nodes)if(declaration.type==='decl' && declaration.prop.startsWith('--'))variables.set(declaration.prop,declaration.value);
+      }
+      const resolve=name=>(variables.get(name)??'').replace(/var\((--[\w-]+)\)/g,(_,reference)=>resolve(reference));
+      return resolve(key);
+    }}),
     addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(type){listeners.delete(type);},
     setTimeout(fn,delay){timers.set(++timerId,{fn,delay});return timerId;},clearTimeout(id){timers.delete(id);},
   };
@@ -765,13 +773,13 @@ test('mobile browser chrome follows stored and selected cases, fullscreen, and r
     for(const meta of h.metas){assert.equal(meta.content,color);assert.equal(meta.getAttribute('media'),null);}
   };
   check('#73935b');
-  for(const [casing,color] of [['classic','#d5d3c6'],['red','#bc4e4b'],['transparent','#485956']]){
+  for(const [casing,color] of [['classic','#d5d3c6'],['red','#bc4e4b'],['transparent','#2f5043']]){
     h.clickLabel('Carcasa');
     h.find(n=>n.type==='button'&&n.key===casing&&n.props['aria-pressed']!==undefined).props.onClick();h.render();
     check(color);
   }
   h.clickLabel('Pantalla completa');check('#000000');
-  h.clickLabel('Salir de pantalla completa');await settle();h.render();check('#485956');
+  h.clickLabel('Salir de pantalla completa');await settle();h.render();check('#2f5043');
   h.unmount();
   assert.equal(h.document.documentElement.style.backgroundColor,'#0e131a');
   assert.equal(h.document.body.style.backgroundColor,'#0e131a');
@@ -795,7 +803,7 @@ test('desktop chrome stays unchanged and mobile never adds theme metadata owned 
 });
 
 test('every stored case restores distinct portfolio metadata across mobile and fullscreen transitions', async () => {
-  for(const [casing,color] of [['classic','#d5d3c6'],['green','#73935b'],['red','#bc4e4b'],['transparent','#485956']]){
+  for(const [casing,color] of [['classic','#d5d3c6'],['green','#73935b'],['red','#bc4e4b'],['transparent','#2f5043']]){
     const h=hostHarness({casing});
     h.metas[0].content='#f9faf7';
     h.metas[1].content='#10131a';
@@ -818,6 +826,25 @@ test('every stored case restores distinct portfolio metadata across mobile and f
     assert.equal(h.document.body.style.backgroundColor,'#0e131a');
     assert.equal(h.listeners.size,0);
   }
+});
+
+test('transparent browser chrome matches the composited circuit board without changing its canvas', () => {
+  const css=require('postcss').parse(read('../src/components/v2/gameboy-player.module.css'));
+  const value=(selector,property)=>css.nodes.find(rule=>rule.type==='rule' && rule.selector===selector)
+    .nodes.find(declaration=>declaration.prop===property).value;
+  const canvas=value('.dialog[data-case="transparent"]','--case-top-color');
+  assert.equal(canvas,'#485956');
+  const opacity=Number(value('.circuitBoard','opacity'));
+  const h=hostHarness({mobile:true,casing:'transparent'});
+  const fill=h.find(node=>node.type==='svg' && node.props.className==='circuitBoard').props.children[0].props.fill;
+  const rgb=hex=>hex.slice(1).match(/../g).map(channel=>parseInt(channel,16));
+  const under=rgb(canvas);
+  const expected='#'+rgb(fill).map((channel,index)=>Math.round(channel*opacity+under[index]*(1-opacity)).toString(16).padStart(2,'0')).join('');
+  assert.equal(h.document.documentElement.style.backgroundColor,expected);
+  assert.equal(h.document.body.style.backgroundColor,expected);
+  assert.ok(h.metas.every(meta=>meta.content===expected));
+  assert.notEqual(expected,canvas,'Chrome uses the visible board color, independently of the case canvas');
+  h.unmount();
 });
 
 test('host keeps the library idle, authenticates Gold startup, and returns only after save acknowledgement', () => {

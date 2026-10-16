@@ -153,7 +153,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       const element = dialog.current;
       if (!mobile.matches || !element) return;
       const color = fullscreenMode === "none"
-        ? window.getComputedStyle(element).getPropertyValue("--case-top-color").trim()
+        ? window.getComputedStyle(element).getPropertyValue("--case-chrome-color").trim()
         : "#000000";
       const root = document.documentElement;
       const body = document.body;

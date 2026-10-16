@@ -23,7 +23,7 @@
     pre { font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
   </style>
   <script>
-    const colors = { classic: '#d5d3c6', green: '#73935b', red: '#bc4e4b', transparent: '#485956', black: '#000000' };
+    const colors = { classic: '#d5d3c6', green: '#73935b', red: '#bc4e4b', transparent: '#2f5043', black: '#000000' };
     let saved;
     try { saved = JSON.parse(localStorage.getItem('gba-chrome-test') || 'null'); } catch { /* Storage is optional. */ }
     const config = { casing: 'classic', mode: 'modal', meta: false, canvas: true, edges: false, clipped: false, ...saved };
@@ -39,7 +39,7 @@
     <main>
       <h1>Safari: barras superior e inferior</h1>
       <p>Prueba aislada, sin React ni emulador. Cambia una sola opción, espera a que termine de pintar y captura la pantalla completa. Registra el color de ambas barras; el DOM no puede leer su color.</p>
-      <label>Carcasa <select id="casing"><option value="classic">Clásica</option><option value="green">Verde</option><option value="red">Roja</option><option value="transparent">Transparente (color compuesto)</option><option value="black">Negro / pantalla completa</option></select></label>
+      <label>Carcasa <select id="casing"><option value="classic">Clásica</option><option value="green">Verde</option><option value="red">Roja</option><option value="transparent">Transparente (placa compuesta)</option><option value="black">Negro / pantalla completa</option></select></label>
       <label>Capa <select id="mode"><option value="modal">Dialog modal fijo (showModal)</option><option value="fixed">Dialog fijo no modal (show)</option><option value="normal">Contenido normal (posición absoluta)</option></select></label>
       <label><input id="meta" type="checkbox"> Meta theme-color presente</label>
       <label><input id="canvas" type="checkbox"> Sincronizar html/body (si no: #18191d)</label>
