@@ -23,6 +23,8 @@ storage keys are separate from the player and cartridge saves.
 
 ## Baseline observations
 
+[Before/after comparison of all four cases](assets/gba-safari-chrome/comparison.png).
+
 | Selected case, changed without reload | Upper bar | Lower bar |
 | --- | --- | --- |
 | Classic | Classic beige | Classic beige |
@@ -119,3 +121,41 @@ for Safari's sampling heuristic, not a standardized browser-chrome API.
 
 Physical Android verification and older iOS versions are outside the tested
 device matrix; their metadata behavior is protected by the host tests.
+
+## Final preview verification
+
+Verified implementation commit `9726a26` on the same physical iPhone:
+
+| State | Result and full screenshot |
+| --- | --- |
+| Classic, hot change | [Both bars classic](assets/gba-safari-chrome/final-classic-hot.png) |
+| Green, hot change | [Both bars green](assets/gba-safari-chrome/final-green-hot.png) |
+| Red, hot change | [Both bars red](assets/gba-safari-chrome/final-red-hot.png) |
+| Transparent, hot change immediately after red | [Both bars match the visible board](assets/gba-safari-chrome/final-transparent-hot.png) |
+| Reload with transparent stored | [Transparent restored, both bars match](assets/gba-safari-chrome/final-transparent-reload.png) |
+| Fullscreen | [Both bars black](assets/gba-safari-chrome/final-fullscreen.png) |
+| Exit fullscreen | [Both bars return to board green](assets/gba-safari-chrome/final-transparent-fullscreen-exit.png) |
+
+The final Inspector reports board, shell and toolbar bottom coordinates all
+equal to **699 CSS px**, with a transparent toolbar background. Both edge
+backgrounds are `rgb(47, 80, 67)` and the meta is `#2f5043`.
+
+[Captured pixel measurements and image hashes](assets/gba-safari-chrome/measurements.json)
+record the sample positions. In all three final transparent screenshots, upper
+bar, lower bar and an unobstructed board region are exactly equal within each
+capture, after color-profile conversion. The screenshots use Display P3 or
+sRGB; conversion/quantization can differ from CSS by one channel level.
+
+The [deliberately conflicting edge colors](assets/gba-safari-chrome/lab-computed-edge-colors.png)
+demonstrate which properties drive the bars. The original baseline and fixture
+captures are preserved alongside the final screenshots.
+
+Validation: **71/71** `npm run test:gameboy` tests pass;
+`npm run typecheck:gameboy` passes; ESLint passes on the changed TSX/MJS files
+and the fixture's extracted inline JavaScript. CSS parsing and `git diff --check`
+also pass. No existing assertions were removed. The existing absence-of-metadata
+test still checks that the host does not create tags; its unverified explanatory
+title was corrected. Expected transparent colors now implement the user's board
+color requirement and are independently checked against the real CSS and SVG.
+
+Rotation, older iOS versions and a physical Android device remain manual checks.

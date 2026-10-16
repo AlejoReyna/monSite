@@ -1,0 +1,274 @@
+{
+  "device": "iPhone 16e",
+  "iOS": "26.6.2",
+  "Safari": "26.6.1",
+  "date": "2026-10-16",
+  "implementation_commit": "9726a26",
+  "coordinates_in_1170x2532_capture": {
+    "upper": [
+      20,
+      80
+    ],
+    "lower": [
+      20,
+      2480
+    ],
+    "flat_board": [
+      800,
+      1300
+    ]
+  },
+  "note": "Embedded Display P3 profiles converted to sRGB for comparison; quantization may differ from CSS by one channel level. Transparent upper/lower/board samples match exactly within the same capture.",
+  "dom_final_transparent": {
+    "board_bottom": 699,
+    "shell_bottom": 699,
+    "toolbar_bottom": 699,
+    "toolbar_background": "rgba(0, 0, 0, 0)",
+    "theme_color": "#2f5043",
+    "edge_backgrounds": [
+      "rgb(47, 80, 67)",
+      "rgb(47, 80, 67)"
+    ]
+  },
+  "captures": [
+    {
+      "file": "baseline-classic.png",
+      "sha256": "64984cdfb0a16f329e2876b7b65101222460f3269bdb6c13aaeaf5e68d1d826c",
+      "upper_srgb": [
+        213,
+        211,
+        198
+      ],
+      "lower_srgb": [
+        213,
+        211,
+        198
+      ]
+    },
+    {
+      "file": "baseline-green-hot.png",
+      "sha256": "6af05b1e24ede974fba6d345e8c72a48014fe0cb9e0b34be62ef99978796841d",
+      "upper_srgb": [
+        213,
+        211,
+        198
+      ],
+      "lower_srgb": [
+        114,
+        147,
+        91
+      ]
+    },
+    {
+      "file": "baseline-red-hot.png",
+      "sha256": "d2893b512468441fd21401c105020f7889fb8352923593f40c975c17ce4d4181",
+      "upper_srgb": [
+        213,
+        211,
+        198
+      ],
+      "lower_srgb": [
+        188,
+        78,
+        75
+      ]
+    },
+    {
+      "file": "baseline-transparent-hot.png",
+      "sha256": "3b75af33e38502063c3b1a445f43773d41b5fb5f289a301833907c95a38e14e2",
+      "upper_srgb": [
+        213,
+        211,
+        198
+      ],
+      "lower_srgb": [
+        188,
+        78,
+        75
+      ]
+    },
+    {
+      "file": "baseline-transparent-reload.png",
+      "sha256": "7280c87d6bff0dfbd041feb9877f5760ee08c6ff97a3506cad10462a835c4f24",
+      "upper_srgb": [
+        213,
+        211,
+        198
+      ],
+      "lower_srgb": [
+        213,
+        211,
+        198
+      ]
+    },
+    {
+      "file": "lab-modal-green-hot.png",
+      "sha256": "c2cba3d6d065ff1332178987f95df63db07e9ddaedeafa990a34466c93aaf483",
+      "upper_srgb": [
+        213,
+        211,
+        198
+      ],
+      "lower_srgb": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "lab-modal-green-reload.png",
+      "sha256": "82c57ec62015157d8d3d1455c6652871286299ce150fde02eb6ef0c13e198e91",
+      "upper_srgb": [
+        114,
+        147,
+        91
+      ],
+      "lower_srgb": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "lab-normal-green-hot.png",
+      "sha256": "4d114e722c1300d5c3b585ed7d789b35680daafba6ac4e2236649cc514f7b498",
+      "upper_srgb": [
+        114,
+        147,
+        91
+      ],
+      "lower_srgb": [
+        114,
+        147,
+        91
+      ]
+    },
+    {
+      "file": "lab-computed-edge-colors.png",
+      "sha256": "2cc0f5efecf9c6d91b5f9175c0190c8903f603fbb7356db3dc14a9b8418dea99",
+      "upper_srgb": [
+        188,
+        78,
+        75
+      ],
+      "lower_srgb": [
+        114,
+        147,
+        91
+      ]
+    },
+    {
+      "file": "final-classic-hot.png",
+      "sha256": "bca17d20df8d96e9be93ca20628f7da0f7148703e7d0936ebfc9ba0f981a370a",
+      "upper_srgb": [
+        213,
+        211,
+        198
+      ],
+      "lower_srgb": [
+        213,
+        211,
+        198
+      ]
+    },
+    {
+      "file": "final-green-hot.png",
+      "sha256": "8fd25dd82ce2dbb38d154dc555195d13f7165f5cf75fddd989429b0126d56a3f",
+      "upper_srgb": [
+        114,
+        147,
+        91
+      ],
+      "lower_srgb": [
+        114,
+        147,
+        91
+      ]
+    },
+    {
+      "file": "final-red-hot.png",
+      "sha256": "e1e22722a3764906e96e24143be865946017a87dcba30dc268ad96cede677e96",
+      "upper_srgb": [
+        188,
+        78,
+        75
+      ],
+      "lower_srgb": [
+        188,
+        78,
+        75
+      ]
+    },
+    {
+      "file": "final-transparent-hot.png",
+      "sha256": "bb8bd8067b510f585c85c1e7936cc322e8d46546726e72d00be5606d5eb7c40a",
+      "upper_srgb": [
+        46,
+        80,
+        67
+      ],
+      "lower_srgb": [
+        46,
+        80,
+        67
+      ],
+      "flat_board_srgb": [
+        46,
+        80,
+        67
+      ]
+    },
+    {
+      "file": "final-transparent-reload.png",
+      "sha256": "c2e0c4d81d5c6e38ebc95a6700d583080763e6121785421ea72cf67b2342c9d4",
+      "upper_srgb": [
+        46,
+        80,
+        67
+      ],
+      "lower_srgb": [
+        46,
+        80,
+        67
+      ],
+      "flat_board_srgb": [
+        46,
+        80,
+        67
+      ]
+    },
+    {
+      "file": "final-transparent-fullscreen-exit.png",
+      "sha256": "be8d88bb374e80d7feae0044f2fc1bfdfa320a0ca5dcd5520d8cefa855ba3f00",
+      "upper_srgb": [
+        46,
+        80,
+        67
+      ],
+      "lower_srgb": [
+        46,
+        80,
+        67
+      ],
+      "flat_board_srgb": [
+        46,
+        80,
+        67
+      ]
+    },
+    {
+      "file": "final-fullscreen.png",
+      "sha256": "d0eaa6cf3c498c7fbb153351c4caa55633dace93d5eedda16b1d8435d471bea6",
+      "upper_srgb": [
+        0,
+        0,
+        0
+      ],
+      "lower_srgb": [
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
