@@ -370,9 +370,9 @@
      its shell pre-composited over #18191d (--case-top-color): same pixels,
      but the dialog behind it stays one solid color. */
   .dialog[data-fullscreen="false"][data-case="transparent"] .shell { background: var(--case-top-color); }
-  /* The circuit board runs under the bottom toolbar down to the screen edge. */
+  /* The circuit board runs under the bottom toolbar. It keeps its 12px margin
+     so Safari samples the case color at the bottom edge, not the board border. */
   .dialog[data-fullscreen="false"][data-case="transparent"] .toolbar { background: transparent; }
-  .dialog[data-fullscreen="false"][data-case="transparent"] .circuitBoard { height: calc(100% - 12px); }
   .dialog[data-fullscreen="false"] .savePopup,
   .dialog[data-fullscreen="false"] .caseMenu {
     top: auto;

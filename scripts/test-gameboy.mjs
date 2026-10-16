@@ -781,12 +781,12 @@ test('mobile browser chrome follows stored and selected cases, fullscreen, and r
   assert.equal(h.listeners.has('media:change'),false);
 });
 
-test('desktop chrome stays unchanged and temporary mobile theme metadata is removed on resize or exit', () => {
+test('desktop chrome stays unchanged and mobile never adds theme metadata that would pin the iOS status bar', () => {
   const h=hostHarness({themeMetas:false});
   assert.equal(h.metas.length,0);
   assert.equal(h.document.documentElement.style.backgroundColor,'#0e131a');
   h.resizeMobile(true);
-  assert.equal(h.metas.length,1);assert.equal(h.metas[0].content,'#d5d3c6');
+  assert.equal(h.metas.length,0);assert.equal(h.document.documentElement.style.backgroundColor,'#d5d3c6');
   h.resizeMobile(false);
   assert.equal(h.metas.length,0);assert.equal(h.document.documentElement.style.backgroundColor,'#0e131a');
   h.resizeMobile(true);h.unmount();
