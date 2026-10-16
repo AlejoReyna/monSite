@@ -4,7 +4,7 @@ import { useCopy } from "@/components/use-copy";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal, preload } from "react-dom";
 import Link from "next/link";
-import { BookOpen, Folder, Globe, MoreHorizontal, Moon, Sparkles, Terminal, Mail, Github } from "lucide-react";
+import { Folder, Globe, MoreHorizontal, Moon, Sparkles, Terminal, Mail, Github } from "lucide-react";
 import { useLanguage, type Language } from "@/components/lang-context";
 import { LanguageToggle } from "@/components/language-switcher";
 import { DesktopStoreProvider, useDesktopStore } from "@/lib/desktop/desktop-store";
@@ -156,7 +156,6 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
           language: copyText("Idioma"),
           motion: "Reducir efectos",
           focus: "Modo Focus",
-          story: "Mi historia",
         }
       : {
             projects: copyText("Projects"),
@@ -169,7 +168,6 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
             language: copyText("Language"),
             motion: "Reduce effects",
             focus: "Focus mode",
-            story: "My story",
           };
 
   return (
@@ -360,14 +358,6 @@ function MacDesktop({ macMobile = false, mobileView, onMobileViewChange }: { mac
                 <span aria-hidden="true" />
               </button>
             </div>
-
-            <Link href="/historia" className={styles.sheetRow} onClick={() => setSheetOpen(false)}>
-              <BookOpen size={20} aria-hidden="true" />
-              <span>{copy.story}</span>
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polyline points="9 5 16 12 9 19" />
-              </svg>
-            </Link>
           </div>
         </dialog>
       )}

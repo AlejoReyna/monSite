@@ -69,7 +69,7 @@ test('the GBA host serves only the console and redirects every other page to its
   for (const host of ['gba.alexisrs.dev', 'gba.alexisrs.dev:3000']) {
     assert.equal(resolveGameBoyRedirect(host, '/'), null);
     assert.equal(resolveGameBoyRedirect(host, '/gba'), null);
-    for (const path of ['/blog', '/historia', '/weddings/cindy-jorge', '/es', '/en']) {
+    for (const path of ['/blog', '/legacy', '/weddings/cindy-jorge', '/es', '/en']) {
       assert.equal(resolveGameBoyRedirect(host, path), '/');
     }
     for (const path of ['/api/save', '/_next/static/chunk.js', '/gameboy/frame.html', '/games/doom.gba']) {
