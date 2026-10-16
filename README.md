@@ -83,12 +83,9 @@ A wheel/swipe-driven sequence that advances one panel at a time and tints the br
 ### Other routes
 
 - `/legacy` — the previous "PokeFolio" retro portfolio (`src/components/legacy/pokefolio/*`), with its own music context, projects, and about pages.
-- `/historia` — a long-form narrative case study of the UANL/academic dashboard work.
-- `/v3`, `/v3/preview` — work-in-progress editorial layouts.
 - `/projects/[id]` — per-project detail route.
-- `/oms` — redirects to `/historia`.
 
-`AppChrome` hides the shared nav/status shell on `/historia` and `/legacy` (see `HIDE_CHROME_PREFIXES` in `src/components/app-chrome.tsx`).
+`AppChrome` hides the shared nav/status shell on `/legacy` and the other pages listed in `HIDE_CHROME_PREFIXES` in `src/components/app-chrome.tsx`.
 
 ### API routes
 
