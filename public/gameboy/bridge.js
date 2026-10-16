@@ -1,3 +1,4 @@
+import { installSafariWasmGuard } from './safari-wasm-guard.js';
 import { SAVE_KEY, ROM, encode, decode, captureCartridge, restoreCartridge, readCartridge, createCartridgeBackup, captureGameCartridge, createGameCartridgeBackup, restoreGameCartridge } from './cartridge.js';
 import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_STATE_BYTES } from './backups.js';
 /* Pinned EmulatorJS adapter: documented configuration/events and native UI
@@ -265,6 +266,8 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
     }
     if (exiting) return;
     if (stateRestore) window.EJS_loadStateURL = decode(stateRestore.state);
+    // Avoid Safari's transient multi-GB OMG compilation of this pinned core.
+    if (identity.core === 'gambatte') installSafariWasmGuard();
     const loader = document.createElement('script');
     loader.src = '/emulatorjs/4.2.3/data/loader.js';
     loader.onerror = () => fail('No se pudo descargar', loader.src);

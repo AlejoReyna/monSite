@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createHash, webcrypto } from 'node:crypto';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
+import './test-safari-wasm-guard.mjs';
 
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
@@ -262,6 +263,7 @@ function harness({ standalone = false, native, mirror, imported, captureFails = 
     KeyboardEvent:class{constructor(type,options){this.type=type;Object.assign(this,options);}},
     MouseEvent:class{constructor(type,options){this.type=type;Object.assign(this,options);}},
     ...backups, ROM: GOLD_ROM_SHA256, SAVE_KEY:'monsite.gold.cartridge.v1',
+    installSafariWasmGuard: () => {},
     decode: encoded => Uint8Array.from(Buffer.from(encoded, 'base64')),
     encode: bytes=>Buffer.from(bytes).toString('base64'),
     captureCartridge: async () => { if (captureFails) throw new Error('RTC unavailable'); return backup(); },
