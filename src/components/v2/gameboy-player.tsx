@@ -115,10 +115,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const [sound, setSound] = useState(false);
   const soundOn = useRef(false);
   const userMuted = useRef(false);
-  const [casing, setCasing] = useState<GameBoyCase>(() => {
-    try { return parseGameBoyCase(typeof window === "undefined" ? null : window.localStorage.getItem(CASE_STORAGE_KEY)); }
-    catch { return "classic"; }
-  });
+  const [casing, setCasing] = useState<GameBoyCase>("classic");
   const [casePickerOpen, setCasePickerOpen] = useState(false);
   const [saveMenuOpen, setSaveMenuOpen] = useState(false);
   const [fullscreenMode, setFullscreenMode] = useState<GameFullscreenMode>("none");
@@ -138,6 +135,16 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   useEffect(() => { state.current = { status, paused }; exitRef.current = onExit; }, [status, paused, onExit]);
 
   useLayoutEffect(() => {
+    // Read the browser preference after hydration. Next's server render has no
+    // localStorage; a lazy state initializer alone left /gba on classic even
+    // with a stored transparent case (confirmed in the iOS inspector).
+    let stored: GameBoyCase = "classic";
+    try { stored = parseGameBoyCase(window.localStorage.getItem(CASE_STORAGE_KEY)); } catch { /* Storage is optional. */ }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore browser-only state before the first visible modal paint.
+    setCasing(stored);
+  }, []);
+
+  useLayoutEffect(() => {
     const mobile = window.matchMedia("(max-width: 700px), (pointer: coarse) and (max-width: 1100px)");
     let restore: (() => void) | undefined;
     const sync = () => {
@@ -146,7 +153,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       const element = dialog.current;
       if (!mobile.matches || !element) return;
       const color = fullscreenMode === "none"
-        ? window.getComputedStyle(element).getPropertyValue("--case-top-color").trim()
+        ? window.getComputedStyle(element).getPropertyValue("--case-chrome-color").trim()
         : "#000000";
       const root = document.documentElement;
       const body = document.body;
@@ -156,9 +163,9 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       const panelPriority = root.style.getPropertyPriority("--sequence-theme-color");
       const metas = Array.from(document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'));
       const previous = metas.map(meta => ({ meta, content: meta.getAttribute("content"), media: meta.getAttribute("media") }));
-      // Never add a theme-color: iOS Safari would pin the status bar to its
-      // first value instead of sampling the page edges.
-      // Tint browser chrome and the canvas behind translucent iOS status bars.
+      // Safari 26 uses the fixed edge elements' computed background colors.
+      // Existing metadata still serves Android and older Safari; preserve the
+      // portfolio's light/dark tags and do not add tags owned by this dialog.
       metas.forEach(meta => { meta.removeAttribute("media"); meta.content = color; });
       root.style.backgroundColor = color;
       body.style.backgroundColor = color;
@@ -532,6 +539,8 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   </button>;
 
   return <dialog ref={dialog} className={styles.dialog} data-case={casing} data-platform={selectedGame?.platform ?? "gbc"} data-fullscreen={fullscreenMode !== "none"} tabIndex={-1} aria-label={copy.console} onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); if (status === "library") exit(); else if (status === "ready") send({ type: "pause", value: !paused }); }} onTouchStart={event => event.stopPropagation()} onTouchEnd={event => event.stopPropagation()}>
+    <div className={styles.chromeEdge} data-chrome-edge="top" aria-hidden="true" />
+    <div className={styles.chromeEdge} data-chrome-edge="bottom" aria-hidden="true" />
     <div className={styles.content}>
       <header className={styles.toolbar}>
         <span className={styles.title}>{selectedGame?.title ?? copy.library}</span>

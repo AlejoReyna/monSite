@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Diagnóstico de barras Safari · PR 77</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #18191d; }
+    body { font: 16px system-ui; }
+    #surface { position: fixed; inset: 0; margin: 0; border: 0; padding: 0; max-width: none; max-height: none; width: 100%; height: 100%; background: var(--case); color: #111; overflow: auto; }
+    #surface.normal { position: absolute; min-height: 100dvh; }
+    #surface::backdrop { background: #18191d; }
+    .edge { display: none; position: fixed; left: 0; right: 0; height: 16px; background: var(--case); pointer-events: none; z-index: 2; }
+    .edge.top { top: 0; } .edge.bottom { bottom: 0; }
+    #surface.edges .edge { display: block; }
+    #surface.clipped .edge { padding-top: 16px; background-clip: content-box; }
+    main { max-width: 600px; margin: auto; padding: max(24px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom)); }
+    h1 { font-size: 22px; } p { line-height: 1.4; }
+    label { display: block; margin: 14px 0; }
+    select, button, textarea { font: inherit; padding: 8px; max-width: 100%; }
+    button { margin: 4px 0; } textarea { width: 100%; min-height: 100px; }
+    pre { font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+  <script>
+    const colors = { classic: '#d5d3c6', green: '#73935b', red: '#bc4e4b', transparent: '#2f5043', black: '#000000' };
+    let saved;
+    try { saved = JSON.parse(localStorage.getItem('gba-chrome-test') || 'null'); } catch { /* Storage is optional. */ }
+    const config = { casing: 'classic', mode: 'modal', meta: false, canvas: true, edges: false, clipped: false, ...saved };
+    document.documentElement.style.setProperty('--case', colors[config.casing] || colors.classic);
+    if (config.meta) {
+      const meta = document.createElement('meta'); meta.name = 'theme-color'; meta.content = colors[config.casing]; document.head.append(meta);
+    }
+  </script>
+</head>
+<body>
+  <dialog id="surface" tabindex="-1" autofocus>
+    <div class="edge top" aria-hidden="true"></div><div class="edge bottom" aria-hidden="true"></div>
+    <main>
+      <h1>Safari: barras superior e inferior</h1>
+      <p>Prueba aislada, sin React ni emulador. Cambia una sola opción, espera a que termine de pintar y captura la pantalla completa. Registra el color de ambas barras; el DOM no puede leer su color.</p>
+      <label>Carcasa <select id="casing"><option value="classic">Clásica</option><option value="green">Verde</option><option value="red">Roja</option><option value="transparent">Transparente (placa compuesta)</option><option value="black">Negro / pantalla completa</option></select></label>
+      <label>Capa <select id="mode"><option value="modal">Dialog modal fijo (showModal)</option><option value="fixed">Dialog fijo no modal (show)</option><option value="normal">Contenido normal (posición absoluta)</option></select></label>
+      <label><input id="meta" type="checkbox"> Meta theme-color presente</label>
+      <label><input id="canvas" type="checkbox"> Sincronizar html/body (si no: #18191d)</label>
+      <label><input id="edges" type="checkbox"> Bordes fijos de 16px dentro de la capa</label>
+      <label><input id="clipped" type="checkbox"> Recortar la pintura de los bordes (conservar el color calculado)</label>
+      <button id="reload" type="button">Recargar con estas opciones guardadas</button>
+      <p>Por cada capa: probar sin/con meta, cambiar clásica → verde → roja → transparente → negro sin recargar; repetir tras recargar. Luego activar los bordes de 16px y repetir. No cambiar el diseño de barras de Safari durante la comparación.</p>
+      <label>Observación manual (superior / inferior / captura)<textarea id="observation" placeholder="Ej.: caliente, modal, sin meta, verde: superior beige, inferior verde"></textarea></label>
+      <button id="record" type="button">Registrar observación</button>
+      <button id="download" type="button">Descargar registro JSON</button>
+      <pre id="state" aria-live="polite"></pre>
+    </main>
+  </dialog>
+  <script>
+    const surface = document.getElementById('surface');
+    let records = [];
+    try { records = JSON.parse(sessionStorage.getItem('gba-chrome-records') || '[]'); } catch { /* Storage is optional. */ }
+    function record(entry) {
+      records.push(entry); records = records.slice(-200);
+      try { sessionStorage.setItem('gba-chrome-records', JSON.stringify(records)); } catch { /* Storage is optional. */ }
+      document.getElementById('state').textContent = JSON.stringify(entry, null, 2);
+    }
+    const controls = ['casing', 'mode', 'meta', 'canvas', 'edges', 'clipped'];
+    function snapshot(action) {
+      return { action, time: new Date().toISOString(), config: { ...config }, userAgent: navigator.userAgent,
+        viewport: { width: innerWidth, height: innerHeight, visualHeight: visualViewport?.height },
+        canvas: { html: getComputedStyle(document.documentElement).backgroundColor, body: getComputedStyle(document.body).backgroundColor },
+        surface: { color: getComputedStyle(surface).backgroundColor, position: getComputedStyle(surface).position, modal: surface.matches(':modal') },
+        metas: [...document.querySelectorAll('meta[name="theme-color"]')].map(meta => meta.content) };
+    }
+    function apply(action) {
+      const color = colors[config.casing];
+      document.documentElement.style.setProperty('--case', color);
+      document.documentElement.style.backgroundColor = document.body.style.backgroundColor = config.canvas ? color : '#18191d';
+      let meta = document.querySelector('meta[name="theme-color"]');
+      if (config.meta) { if (!meta) { meta = document.createElement('meta'); meta.name = 'theme-color'; document.head.append(meta); } meta.content = color; }
+      else meta?.remove();
+      // Do not reopen the dialog for color changes: that would hide the hot-update failure.
+      if (surface.dataset.mode !== config.mode) {
+        surface.close(); surface.classList.toggle('normal', config.mode === 'normal');
+        if (config.mode === 'modal') surface.showModal(); else surface.show();
+        surface.dataset.mode = config.mode;
+      }
+      surface.classList.toggle('edges', config.edges);
+      surface.classList.toggle('clipped', config.clipped);
+      try { localStorage.setItem('gba-chrome-test', JSON.stringify(config)); } catch { /* Storage is optional. */ }
+      requestAnimationFrame(() => record(snapshot(action)));
+    }
+    for (const id of controls) {
+      const input = document.getElementById(id);
+      if (input.type === 'checkbox') input.checked = config[id]; else input.value = config[id];
+      input.addEventListener('change', () => { config[id] = input.type === 'checkbox' ? input.checked : input.value; apply('change:' + id); });
+    }
+    surface.addEventListener('cancel', event => event.preventDefault());
+    document.getElementById('reload').onclick = () => location.reload();
+    document.getElementById('record').onclick = () => record({ ...snapshot('observation'), observation: document.getElementById('observation').value });
+    document.getElementById('download').onclick = () => { const url = URL.createObjectURL(new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' })); const link = document.createElement('a'); link.href = url; link.download = 'safari-chrome-pr77.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
+    apply('load');
+  </script>
+</body>
+</html>

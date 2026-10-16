@@ -23,10 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// No theme-color: iOS Safari keeps the first one it reads for the status bar
-// and ignores later changes, so a fixed color pins the classic case. Without
-// it Safari samples the page edges, which follow the selected case.
-export const viewport: Viewport = { themeColor: null };
+// Android and older Safari use this metadata; the player updates it on mobile.
+// Safari 26 uses the player's fixed edge elements instead (see the diagnostic).
+export const viewport: Viewport = { themeColor: "#d5d3c6" };
 
 export default function GameBoyPage() {
   return <GameBoySite />;
