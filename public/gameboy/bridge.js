@@ -12,6 +12,23 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
   let identity = { sha256: ROM, platform: 'gbc', core: 'gambatte' };
   let restore, stateRestore;
   const send = (type, extra = {}) => parent.postMessage({ channel: 'gold-player', ...(session ? { session } : {}), type, ...extra }, origin);
+  // The core's OpenAL resumes its AudioContext once, on the first keydown or
+  // mousedown here. Our synthetic input spends that attempt without a user
+  // gesture, Safari rejects it (NotAllowedError) and audio stays suspended
+  // for the whole session. Track every context so the host can resume them
+  // synchronously from a real tap or key press in its own document.
+  const audioContexts = new Set();
+  const NativeAudioContext = window.AudioContext || window.webkitAudioContext;
+  if (NativeAudioContext) {
+    const TrackedAudioContext = class extends NativeAudioContext {
+      constructor(...args) { super(...args); audioContexts.add(this); }
+    };
+    window.AudioContext = TrackedAudioContext;
+    if (window.webkitAudioContext) window.webkitAudioContext = TrackedAudioContext;
+  }
+  window.goldResumeAudio = () => audioContexts.forEach(context => {
+    if (context.state !== 'running' && context.state !== 'closed') context.resume().catch(() => {});
+  });
   // Fatal errors carry a readable cause so the host can log and show it.
   const fail = (where, cause, at = '') => {
     const detail = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause ?? 'sin detalle');
@@ -167,7 +184,7 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
       if (type === 'release') release();
       if (type === 'pause') pause(value === true);
       if (type === 'sound' && started && !exiting) {
-        if (value) document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        if (value) window.goldResumeAudio();
         click(value ? 'unmute' : 'mute');
       }
       if (type === 'save' && !exiting) save();
