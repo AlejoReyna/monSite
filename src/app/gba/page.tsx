@@ -23,7 +23,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const viewport: Viewport = { themeColor: "#d5d3c6" };
+// No theme-color: iOS Safari keeps the first one it reads for the status bar
+// and ignores later changes, so a fixed color pins the classic case. Without
+// it Safari samples the page edges, which follow the selected case.
+export const viewport: Viewport = { themeColor: null };
 
 export default function GameBoyPage() {
   return <GameBoySite />;

@@ -156,12 +156,8 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       const panelPriority = root.style.getPropertyPriority("--sequence-theme-color");
       const metas = Array.from(document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'));
       const previous = metas.map(meta => ({ meta, content: meta.getAttribute("content"), media: meta.getAttribute("media") }));
-      const created = metas.length ? null : document.createElement("meta");
-      if (created) {
-        created.name = "theme-color";
-        document.head.appendChild(created);
-        metas.push(created);
-      }
+      // Never add a theme-color: iOS Safari would pin the status bar to its
+      // first value instead of sampling the page edges.
       // Tint browser chrome and the canvas behind translucent iOS status bars.
       metas.forEach(meta => { meta.removeAttribute("media"); meta.content = color; });
       root.style.backgroundColor = color;
@@ -176,7 +172,6 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
           if (content === null) meta.removeAttribute("content"); else meta.setAttribute("content", content);
           if (media === null) meta.removeAttribute("media"); else meta.setAttribute("media", media);
         });
-        created?.remove();
       };
     };
     sync();
