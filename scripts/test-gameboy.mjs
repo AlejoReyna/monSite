@@ -177,7 +177,7 @@ test('all official precompiled resources still match the manifest', () => {
 test('physical key mapping excludes the final Konami A and supports both Select keys', () => {
   assert.equal(GAME_KEYS.KeyX,'x'); assert.equal(GAME_KEYS.KeyZ,'z');
   assert.equal(GAME_KEYS.ShiftLeft,'Shift'); assert.equal(GAME_KEYS.ShiftRight,'Shift');
-  assert.equal(GAME_KEYS.KeyA, undefined);
+  assert.equal(GAME_KEYS.KeyA,'ArrowLeft'); assert.equal(GAME_KEYS.KeyW,'ArrowUp'); assert.equal(GAME_KEYS.KeyS,'ArrowDown'); assert.equal(GAME_KEYS.KeyD,'ArrowRight');
 });
 
 test('the initial console offers fullscreen and bundled Gold and Doom without booting a ROM', () => {
@@ -531,8 +531,8 @@ test('GBA ROMs use mGBA, a separate size limit, and filename-independent identit
   let readCalled = false;
   await assert.rejects(localRom.identifyLocalRom({ name:'huge.gba', size:33554433, arrayBuffer:async()=>{readCalled=true;} }), e=>e.reason==='size');
   assert.equal(readCalled,false);
-  assert.equal(exports.GBA_KEYS.KeyA,'a'); assert.equal(exports.GBA_KEYS.KeyS,'s');
-  assert.equal(exports.GAME_KEYS.KeyA,undefined);
+  assert.equal(exports.GBA_KEYS.KeyQ,'a'); assert.equal(exports.GBA_KEYS.KeyE,'s');
+  assert.equal(exports.GBA_KEYS.KeyA,'ArrowLeft'); assert.equal(exports.GAME_KEYS.KeyQ,undefined);
 });
 
 test('GBA session waits for authenticated configuration and exposes L/R only on mGBA', async () => {
@@ -808,11 +808,11 @@ test('host local GBA exposes L/R and aggregates simultaneous pointer and keyboar
   const left=h.find(n=>n.props['data-key']==='a');assert.equal(left.props['aria-label'],'L');
   const buttonTarget={setPointerCapture(){},hasPointerCapture(){return false;}};
   left.props.onPointerDown({preventDefault(){},currentTarget:buttonTarget,pointerId:1});
-  h.key('keydown',{code:'KeyA',key:'a'});
+  h.key('keydown',{code:'KeyQ',key:'q'});
   let keys=h.messages.filter(m=>m.type==='key');assert.equal(keys.length,1);assert.equal(keys[0].down,true);
   left.props.onPointerUp({currentTarget:buttonTarget,pointerId:1});
   keys=h.messages.filter(m=>m.type==='key');assert.equal(keys.length,1);
-  h.key('keyup',{code:'KeyA',key:'a'});keys=h.messages.filter(m=>m.type==='key');assert.equal(keys.length,2);assert.equal(keys[1].down,false);
+  h.key('keyup',{code:'KeyQ',key:'q'});keys=h.messages.filter(m=>m.type==='key');assert.equal(keys.length,2);assert.equal(keys[1].down,false);
   h.unmount();assert.equal(h.revoked.length,1);
 });
 

@@ -29,7 +29,8 @@ export function parseGoldBackup(text: string): GoldBackup {
 
 export const GAME_KEYS: Record<string, string> = {
   ArrowUp: "ArrowUp", ArrowDown: "ArrowDown", ArrowLeft: "ArrowLeft", ArrowRight: "ArrowRight",
+  KeyW: "ArrowUp", KeyS: "ArrowDown", KeyA: "ArrowLeft", KeyD: "ArrowRight",
   KeyX: "x", KeyZ: "z", Enter: "Enter", ShiftLeft: "Shift", ShiftRight: "Shift",
 };
 
-export const GBA_KEYS: Record<string, string> = { ...GAME_KEYS, KeyA: "a", KeyS: "s" };
+export const GBA_KEYS: Record<string, string> = { ...GAME_KEYS, KeyQ: "a", KeyE: "s" };

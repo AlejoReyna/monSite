@@ -19,7 +19,7 @@ const COPY = {
     rawWarning: "Un archivo .sav no identifica el juego ni incluye necesariamente su reloj. Comprueba que corresponda a esta ROM.",
     stateWarning: "Restaurar un estado instantáneo también devuelve el reloj y la partida al momento exportado.",
     leaveWithoutSave: "Continuar sin conservar la partida", libraryBack: "Volver a juegos",
-    help: "Flechas · X: A · Z: B · Enter: Start · Shift: Select · Esc: pausa · Alt + Q: salir",
+    help: "Flechas/WASD · X: A · Z: B · Enter: Start · Shift: Select · Esc: pausa · Alt + Q: salir",
     saveHelp: "Guarda desde el menú de Pokémon. La partida del cartucho y su reloj se conservan en este navegador. Un estado instantáneo congela también el reloj; no sustituye la partida del cartucho.",
     saved: "Partida del cartucho conservada.", invalid: "Ese respaldo no corresponde a este juego, es incompatible o está dañado.",
     storage: "No se pudo conservar la partida. Exporta un respaldo antes de salir.", stopping: "Conservando la partida…",
@@ -31,7 +31,7 @@ const COPY = {
     openRom: "Abrir ROM", romFormats: "Game Boy / Color / Advance · .gb, .gbc, .gba", readingRom: "Leyendo ROM…",
     romErrors: { format: "Selecciona una ROM .gb, .gbc, .dmg o .gba.", size: "El mínimo es 16 KB; el máximo es 8 MB para GB/Color y 32 MB para GBA.", read: "No pudimos leer esa ROM. Vuelve a seleccionarla." },
     localSaveHelp: "Guarda desde el menú del juego. La partida permanece en este navegador por ROM. El respaldo incluye los archivos de partida y reloj disponibles. Para volver a jugar una ROM local, selecciona el archivo otra vez.",
-    gbaHelp: "Flechas · X: A · Z: B · A: L · S: R · Enter: Start · Shift: Select · Esc: pausa · Alt + Q: salir",
+    gbaHelp: "Flechas/WASD · X: A · Z: B · Q: L · E: R · Enter: Start · Shift: Select · Esc: pausa · Alt + Q: salir",
   },
   en: {
     loading: "Preparing the game…", error: "The game could not start.", retry: "Try again", back: "Back to desktop",
@@ -42,7 +42,7 @@ const COPY = {
     rawWarning: "A .sav file does not identify its game and may not include its clock. Check that it belongs to this ROM.",
     stateWarning: "Restoring a save state also returns the clock and game to the exported moment.",
     leaveWithoutSave: "Continue without preserving the save", libraryBack: "Back to games",
-    help: "Arrows · X: A · Z: B · Enter: Start · Shift: Select · Esc: pause · Alt + Q: exit",
+    help: "Arrows/WASD · X: A · Z: B · Enter: Start · Shift: Select · Esc: pause · Alt + Q: exit",
     saveHelp: "Save from the Pokémon menu. The cartridge save and its clock stay in this browser. A save state also freezes the clock; it does not replace the cartridge save.",
     saved: "Cartridge save preserved.", invalid: "This backup belongs to another game, is incompatible or is damaged.",
     storage: "Your save could not be preserved. Export a backup before exiting.", stopping: "Preserving your save…",
@@ -54,7 +54,7 @@ const COPY = {
     openRom: "Open ROM", romFormats: "Game Boy / Color / Advance · .gb, .gbc, .gba", readingRom: "Reading ROM…",
     romErrors: { format: "Choose a .gb, .gbc, .dmg or .gba ROM.", size: "Minimum 16 KB; maximum 8 MB for GB/Color and 32 MB for GBA.", read: "This ROM could not be read. Select it again." },
     localSaveHelp: "Save from the game's menu. Saves stay in this browser separately for each ROM. Backups include the available save and clock files. Select a local ROM file again to play it after returning.",
-    gbaHelp: "Arrows · X: A · Z: B · A: L · S: R · Enter: Start · Shift: Select · Esc: pause · Alt + Q: exit",
+    gbaHelp: "Arrows/WASD · X: A · Z: B · Q: L · E: R · Enter: Start · Shift: Select · Esc: pause · Alt + Q: exit",
   },
 };
 
@@ -244,6 +244,23 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     pendingImport.current = null;
     setSelectedGame(game); setStatus("loading"); setNotice(null); setStopFailed(false);
   }, []);
+  // Library screen: the D-pad (arrows, WASD, on-screen) moves the highlighted
+  // card and A/Start launch it, mirroring what the keys do in-game.
+  const libraryCards = useCallback(() => [...(dialog.current?.querySelectorAll<HTMLButtonElement>("[data-launch-game], [data-library-rom]") ?? [])], []);
+  const libraryStep = useCallback((delta: number) => {
+    if (state.current.status !== "library") return;
+    const cards = libraryCards();
+    if (!cards.length) return;
+    const current = cards.indexOf(document.activeElement as HTMLButtonElement);
+    cards[Math.min(cards.length - 1, Math.max(0, (current < 0 ? 0 : current) + delta))].focus({ preventScroll: false });
+  }, [libraryCards]);
+  const libraryLaunch = useCallback(() => {
+    const cards = libraryCards();
+    const focused = cards.find(card => card === document.activeElement) ?? cards[0];
+    if (focused?.hasAttribute("data-library-rom")) { focused.click(); return; }
+    const game = GAME_LIBRARY.find(item => item.id === focused?.dataset.launchGame) ?? GAME_LIBRARY[0];
+    startGame(game);
+  }, [libraryCards, startGame]);
   async function openLocalRom(file: File) {
     if (state.current.status !== "library" || readingRom.current) return;
     readingRom.current = true; setRomBusy(true); setRomError(null);
@@ -350,7 +367,11 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       // Let Enter/Space activate focused UI buttons instead of pressing Start/A.
       if (!key || event.altKey) return;
       event.preventDefault();
-      if (!event.repeat && state.current.status === "library" && (key === "x" || key === "Enter")) { startGame(GAME_LIBRARY[0]); return; }
+      if (state.current.status === "library") {
+        if (key === "ArrowUp" || key === "ArrowDown") libraryStep(key === "ArrowUp" ? -1 : 1);
+        else if (!event.repeat && (key === "x" || key === "Enter")) libraryLaunch();
+        return;
+      }
       if (!event.repeat && state.current.status === "ready" && !state.current.paused) {
         press(`keyboard:${event.code}`, key);
       }
@@ -380,7 +401,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       element.close(); document.body.style.overflow = overflow;
       if (previous?.isConnected) previous.focus({ preventScroll: true });
     };
-  }, [send, release, exit, startGame, press, lift]);
+  }, [send, release, exit, startGame, press, lift, libraryStep, libraryLaunch]);
 
   useEffect(() => {
     if (status !== "loading") return;
@@ -488,11 +509,12 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const gba = selectedGame?.platform === "gba";
   const help = gba ? copy.gbaHelp : copy.help;
   const controls = [["ArrowUp", "↑", copy.up], ["ArrowLeft", "←", copy.left], ["ArrowDown", "↓", copy.down], ["ArrowRight", "→", copy.right], ["z", "B", "B"], ["x", "A", "A"], ["Shift", "Select", "Select"], ["Enter", "Start", "Start"]];
-  const renderControl = ([key, label, name]: string[]) => <button key={key} type="button" data-key={key} aria-label={name} disabled={(status !== "ready" && !(status === "library" && (key === "x" || key === "Enter"))) || paused}
-    onPointerDown={event => { event.preventDefault(); if (status === "library") { startGame(GAME_LIBRARY[0]); return; } event.currentTarget.setPointerCapture(event.pointerId); press(`pointer:${event.pointerId}`, key); }}
+  const libraryAction = (key: string) => { if (key === "ArrowUp" || key === "ArrowDown") libraryStep(key === "ArrowUp" ? -1 : 1); else libraryLaunch(); };
+  const renderControl = ([key, label, name]: string[]) => <button key={key} type="button" data-key={key} aria-label={name} disabled={(status !== "ready" && !(status === "library" && ["x", "Enter", "ArrowUp", "ArrowDown"].includes(key))) || paused}
+    onPointerDown={event => { event.preventDefault(); if (status === "library") { libraryAction(key); return; } event.currentTarget.setPointerCapture(event.pointerId); press(`pointer:${event.pointerId}`, key); }}
     onPointerUp={event => { lift(`pointer:${event.pointerId}`); if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
     onPointerCancel={event => lift(`pointer:${event.pointerId}`)} onLostPointerCapture={event => lift(`pointer:${event.pointerId}`)}
-    onKeyDown={event => { if ((event.key === " " || event.key === "Enter") && !event.repeat) { event.preventDefault(); if (status === "library") startGame(GAME_LIBRARY[0]); else press(`button:${key}:${event.key}`, key); } }}
+    onKeyDown={event => { if ((event.key === " " || event.key === "Enter") && !event.repeat) { event.preventDefault(); if (status === "library") libraryAction(key); else press(`button:${key}:${event.key}`, key); } }}
     onKeyUp={event => { if (event.key === " " || event.key === "Enter") { event.preventDefault(); lift(`button:${key}:${event.key}`); } }}
     onBlur={() => { lift(`button:${key}: `); lift(`button:${key}:Enter`); }}>
     {key.startsWith("Arrow") ? <svg className={styles.direction} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M6 2h4v2h2v2h2v2h-4v6H6V8H2V6h2V4h2Z" fill="currentColor" /></svg> : label}
@@ -565,7 +587,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
                   <GameCartridge artwork={game.artwork} />
                   <span><strong>{game.title}</strong><small>{game.platform.toUpperCase()} · {copy.play}</small></span><span className={styles.cardArrow} aria-hidden="true">▸</span>
                 </button>)}</div>
-                <button className={`${styles.gameCard} ${styles.romCard}`} type="button" disabled={romBusy} onClick={() => romInput.current?.click()}>
+                <button className={`${styles.gameCard} ${styles.romCard}`} data-library-rom type="button" disabled={romBusy} onClick={() => romInput.current?.click()}>
                   <svg className={styles.cartridge} viewBox="0 0 40 48" aria-hidden="true" shapeRendering="crispEdges"><path d="M4 0h32v4h4v40h-4v4H4v-4H0V4h4Z" fill="#777786" /><path d="M17 10h6v8h8v6h-8v8h-6v-8H9v-6h8Z" fill="#e6e2d5" /><path d="M12 38h16v4H12Z" fill="#41454d" /></svg>
                   <span><strong>{romBusy ? copy.readingRom : copy.openRom}</strong><small>{copy.romFormats}</small></span><span aria-hidden="true">▸</span>
                 </button>
