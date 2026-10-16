@@ -126,6 +126,7 @@ test('the standalone console has its own canonical URL and localized metadata', 
     assert.equal(metadata.openGraph.locale,language==='es'?'es_MX':'en_US');
     assert.match(metadata.description,language==='es'?/Juega/:/Play/);
   }
+  assert.equal(page.viewport.themeColor,'#d5d3c6','Standalone Android has metadata for the host to update');
 });
 
 test('the standalone route and rewritten subdomain hide portfolio chrome while the portfolio root retains it', () => {
@@ -781,7 +782,7 @@ test('mobile browser chrome follows stored and selected cases, fullscreen, and r
   assert.equal(h.listeners.has('media:change'),false);
 });
 
-test('desktop chrome stays unchanged and mobile never adds theme metadata that would pin the iOS status bar', () => {
+test('desktop chrome stays unchanged and mobile never adds theme metadata owned by the dialog', () => {
   const h=hostHarness({themeMetas:false});
   assert.equal(h.metas.length,0);
   assert.equal(h.document.documentElement.style.backgroundColor,'#0e131a');

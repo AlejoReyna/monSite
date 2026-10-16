@@ -42,6 +42,7 @@
 
 .dialog[open] { display: grid; place-items: center; }
 .dialog::backdrop { background: #18191d; }
+.chromeEdge { display: none; }
 .content { container: gameboy / inline-size; animation: appear 350ms ease both; }
 .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .title { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: #b4b3b6; font-size: 11px; line-height: 1.5; white-space: nowrap; }
@@ -348,6 +349,28 @@
 @media (max-width: 700px), (pointer: coarse) and (max-width: 1100px) {
   .dialog { padding: 0; background: #18191d; overflow: auto; }
   .dialog[open] { display: block; }
+  /* Safari 26 retains the old tint for viewport-sized fixed containers. Real,
+     narrow edge elements provide a fresh computed background-color instead.
+     Keep these outside .content's animated/contained coordinate system.
+     A zero-height content box clips the paint, preserving the board beneath
+     the toolbar. Safari samples the color property, not that clipped paint.
+     Verified on iOS 26.6.2; see docs/gba-safari-chrome.md. */
+  .chromeEdge {
+    display: block;
+    position: fixed;
+    z-index: 5;
+    left: 0;
+    right: 0;
+    height: 16px;
+    box-sizing: border-box;
+    padding-top: 16px;
+    background-color: var(--case-top-color);
+    background-clip: content-box;
+    pointer-events: none;
+  }
+  .chromeEdge[data-chrome-edge="top"] { top: 0; }
+  .chromeEdge[data-chrome-edge="bottom"] { bottom: 0; }
+  .dialog[data-fullscreen="true"] .chromeEdge { background-color: #000; }
   .toolbar { position: fixed; }
   .dialog[data-fullscreen="false"] .toolbar {
     top: auto;
@@ -363,15 +386,19 @@
     /* The top edge continues into the tinted status bar: no highlight seam. */
     box-shadow: inset 4px 0 var(--case-shadow), inset -4px 0 var(--case-shadow);
   }
-  /* Safari 26 tints the status bar from the full-screen fixed dialog, so its
-     background must be the case color. Opaque shells hide it entirely. */
+  /* Keep the canvas continuous with the casing; the edge elements tint Safari. */
   .dialog[data-fullscreen="false"] { background: var(--case-top-color); }
   /* Safari cannot sample a background image, so the translucent case paints
      its shell pre-composited over #18191d (--case-top-color): same pixels,
      but the dialog behind it stays one solid color. */
   .dialog[data-fullscreen="false"][data-case="transparent"] .shell { background: var(--case-top-color); }
-  /* The circuit board runs under the bottom toolbar. It keeps its 12px margin
-     so Safari samples the case color at the bottom edge, not the board border. */
+  /* Retain the top/side inset and extend the board behind the bottom controls.
+     Safari's lower tint is independent of the SVG's border and traces. */
+  .dialog[data-fullscreen="false"][data-case="transparent"] .circuitBoard {
+    bottom: 0;
+    height: calc(100% - 12px);
+  }
+  .dialog[data-fullscreen="false"][data-case="transparent"] .circuitBoard > rect { height: 480px; }
   .dialog[data-fullscreen="false"][data-case="transparent"] .toolbar { background: transparent; }
   .dialog[data-fullscreen="false"] .savePopup,
   .dialog[data-fullscreen="false"] .caseMenu {

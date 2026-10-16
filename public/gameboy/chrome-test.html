@@ -14,6 +14,7 @@
     .edge { display: none; position: fixed; left: 0; right: 0; height: 16px; background: var(--case); pointer-events: none; z-index: 2; }
     .edge.top { top: 0; } .edge.bottom { bottom: 0; }
     #surface.edges .edge { display: block; }
+    #surface.clipped .edge { padding-top: 16px; background-clip: content-box; }
     main { max-width: 600px; margin: auto; padding: max(24px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom)); }
     h1 { font-size: 22px; } p { line-height: 1.4; }
     label { display: block; margin: 14px 0; }
@@ -25,7 +26,7 @@
     const colors = { classic: '#d5d3c6', green: '#73935b', red: '#bc4e4b', transparent: '#485956', black: '#000000' };
     let saved;
     try { saved = JSON.parse(localStorage.getItem('gba-chrome-test') || 'null'); } catch { /* Storage is optional. */ }
-    const config = { casing: 'classic', mode: 'modal', meta: false, canvas: true, edges: false, ...saved };
+    const config = { casing: 'classic', mode: 'modal', meta: false, canvas: true, edges: false, clipped: false, ...saved };
     document.documentElement.style.setProperty('--case', colors[config.casing] || colors.classic);
     if (config.meta) {
       const meta = document.createElement('meta'); meta.name = 'theme-color'; meta.content = colors[config.casing]; document.head.append(meta);
@@ -33,7 +34,7 @@
   </script>
 </head>
 <body>
-  <dialog id="surface">
+  <dialog id="surface" tabindex="-1" autofocus>
     <div class="edge top" aria-hidden="true"></div><div class="edge bottom" aria-hidden="true"></div>
     <main>
       <h1>Safari: barras superior e inferior</h1>
@@ -43,6 +44,7 @@
       <label><input id="meta" type="checkbox"> Meta theme-color presente</label>
       <label><input id="canvas" type="checkbox"> Sincronizar html/body (si no: #18191d)</label>
       <label><input id="edges" type="checkbox"> Bordes fijos de 16px dentro de la capa</label>
+      <label><input id="clipped" type="checkbox"> Recortar la pintura de los bordes (conservar el color calculado)</label>
       <button id="reload" type="button">Recargar con estas opciones guardadas</button>
       <p>Por cada capa: probar sin/con meta, cambiar clásica → verde → roja → transparente → negro sin recargar; repetir tras recargar. Luego activar los bordes de 16px y repetir. No cambiar el diseño de barras de Safari durante la comparación.</p>
       <label>Observación manual (superior / inferior / captura)<textarea id="observation" placeholder="Ej.: caliente, modal, sin meta, verde: superior beige, inferior verde"></textarea></label>
@@ -60,7 +62,7 @@
       try { sessionStorage.setItem('gba-chrome-records', JSON.stringify(records)); } catch { /* Storage is optional. */ }
       document.getElementById('state').textContent = JSON.stringify(entry, null, 2);
     }
-    const controls = ['casing', 'mode', 'meta', 'canvas', 'edges'];
+    const controls = ['casing', 'mode', 'meta', 'canvas', 'edges', 'clipped'];
     function snapshot(action) {
       return { action, time: new Date().toISOString(), config: { ...config }, userAgent: navigator.userAgent,
         viewport: { width: innerWidth, height: innerHeight, visualHeight: visualViewport?.height },
@@ -82,6 +84,7 @@
         surface.dataset.mode = config.mode;
       }
       surface.classList.toggle('edges', config.edges);
+      surface.classList.toggle('clipped', config.clipped);
       try { localStorage.setItem('gba-chrome-test', JSON.stringify(config)); } catch { /* Storage is optional. */ }
       requestAnimationFrame(() => record(snapshot(action)));
     }
