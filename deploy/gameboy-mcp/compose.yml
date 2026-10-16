@@ -1,0 +1,30 @@
+# Runs next to the existing Artisanal Brew stack. Joins Caddy's network
+# (artisanalbrew_default) without publishing any host port.
+services:
+  gameboy-mcp:
+    build: .
+    image: gameboy-mcp:local
+    container_name: gameboy-mcp
+    restart: unless-stopped
+    environment:
+      GAMEBOY_MCP_PUBLIC_HOST: mcp.alexisrs.dev
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 384m
+    pids_limit: 128
+    networks:
+      - artisanalbrew_default
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8787/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  artisanalbrew_default:
+    external: true

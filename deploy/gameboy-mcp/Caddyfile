@@ -1,0 +1,14 @@
+# Append to /opt/artisanalbrew/Caddyfile (do not replace that file), then
+# validate and reload Caddy. WebSockets and SSE pass through unbuffered.
+mcp.alexisrs.dev {
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+    }
+    request_body {
+        max_size 4MB
+    }
+    reverse_proxy gameboy-mcp:8787 {
+        flush_interval -1
+    }
+}

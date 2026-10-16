@@ -80,7 +80,7 @@
 .toolbar .iconButton { display: grid; place-items: center; flex: 0 0 44px; width: 44px; padding: 8px; }
 .iconButton svg, .pauseIcon, .soundIcon { width: 16px; height: 16px; }
 .pauseIcon, .soundIcon { display: none; }
-.casePicker, .savePicker { position: relative; }
+.casePicker, .savePicker, .aiPicker { position: relative; }
 .toolbar .iconButton { position: relative; }
 .iconButton[data-warning="true"]::after { content: ""; position: absolute; top: 4px; right: 4px; width: 4px; height: 4px; background: #e3c477; }
 .savePopup {
@@ -107,6 +107,27 @@
 .toolbar .savePopup button { width: 100%; opacity: 1; color: #e6e2d5; text-align: left; }
 .saveHelp { color: #b4b3b6; font-size: 9px; }
 .saveStatus { color: #e3c477; }
+.aiError { color: #f4a7a7; }
+.aiField { display: grid; gap: 4px; color: #b4b3b6; font-size: 9px; }
+.aiField input {
+  min-height: 40px;
+  border: 2px solid #59595e;
+  border-radius: 0;
+  padding: 6px 8px;
+  background: #18191d;
+  color: #e6e2d5;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.aiField input:focus-visible { outline: 3px solid #e3c477; outline-offset: 2px; }
+.iconButton[data-ai="active"]::after, .iconButton[data-ai="paired"]::after { content: ""; position: absolute; top: 4px; right: 4px; width: 4px; height: 4px; background: #7fd18b; }
+.iconButton[data-ai="error"]::after { content: ""; position: absolute; top: 4px; right: 4px; width: 4px; height: 4px; background: #f4a7a7; }
+.toolbar .takeControlButton:not(:disabled) { opacity: 1; border-color: #e3c477; background: #e3c477; color: #18191d; }
+.toolbar .takeControlButton:not(:disabled):is(:hover, :focus-visible, :active) { background: #f1d98f; color: #18191d; }
+.takeControlIcon { display: none; width: 16px; height: 16px; }
+.aiBadge { position: absolute; top: 6px; left: 6px; z-index: 1; padding: 2px 5px; background: #e3c477; color: #18191d; font-size: 8px; line-height: 1.4; pointer-events: none; }
 .caseMenu {
   position: absolute;
   z-index: 4;
@@ -274,9 +295,9 @@
   .toolbar > div { flex: 1; }
 }
 @media (max-width: 380px) {
-  .toolbar .pauseLabel, .toolbar .exitLabel, .toolbar .soundLabel { display: none; }
-  .toolbar .pauseIcon, .toolbar .soundIcon { display: block; }
-  .toolbar .pauseButton, .toolbar .exitButton, .toolbar .soundButton { display: grid; place-items: center; flex: 0 0 44px; width: 44px; padding: 8px; }
+  .toolbar .pauseLabel, .toolbar .exitLabel, .toolbar .soundLabel, .toolbar .takeControlLabel { display: none; }
+  .toolbar .pauseIcon, .toolbar .soundIcon, .toolbar .takeControlIcon { display: block; }
+  .toolbar .pauseButton, .toolbar .exitButton, .toolbar .soundButton, .toolbar .takeControlButton { display: grid; place-items: center; flex: 0 0 44px; width: 44px; padding: 8px; }
   .library { padding: 16px; gap: 16px; }
   .library .gameCard { grid-template-columns: 32px minmax(0, 1fr) auto; gap: 10px; padding: 12px; }
   .cartridge { width: 32px; height: 40px; }
