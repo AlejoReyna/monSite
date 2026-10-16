@@ -442,7 +442,7 @@ test('standalone navigation does not start the game; embedded boot creates exact
   assert.equal(embedded.appended[0].src,'/emulatorjs/4.2.3/data/loader.js');
   assert.equal(embedded.context.EJS_gameUrl,'/games/pokemon-gold.gbc');
   assert.equal(embedded.context.EJS_threads,false);
-  assert.equal(embedded.context.EJS_defaultOptions['save-save-interval'],'30');
+  assert.equal(embedded.context.EJS_defaultOptions['save-save-interval'],'0');
 });
 
 test('native saves win over stale mirrors; explicit imports restore before loading the engine', async () => {
@@ -1059,7 +1059,7 @@ test('IDBFS signed byte views preserve high-bit bytes and offsets in backup and 
 });
 
 
-test('background saving uses the pinned native flush without export screenshots or restart actions', async () => {
+test('no timer saves in the background: the periodic native flush coincided with iOS killing the tab', async () => {
   const h=harness();await settle();h.context.EJS_onGameStart();
   assert.equal(h.intervals.size,0,'the bridge never clicks the export UI on a timer');
   const source=read('../public/emulatorjs/4.2.3/data/emulator.min.js');
@@ -1075,9 +1075,8 @@ test('background saving uses the pinned native flush without export screenshots 
     takeScreenshot(){assert.fail('background saves must not allocate a screenshot');},
     restart(){assert.fail('background saves must not restart the game');}};
   apply.call(engine,'save-save-interval',h.context.EJS_defaultOptions['save-save-interval']);
-  assert.equal(ticks.length,1);assert.equal(ticks[0].delay,30000);
-  for(let seconds=30;seconds<=120;seconds+=30)ticks[0].fn();
-  assert.equal(flushed,5,'native save flushes continue for two minutes');
+  assert.equal(ticks.length,0,'the pinned runtime schedules no autosave');
+  assert.equal(flushed,0,'applying the option does not flush either');
   assert.equal(h.messages.some(m=>m.type==='stopped'||m.type==='exit'||m.type==='error'),false);
 });
 
