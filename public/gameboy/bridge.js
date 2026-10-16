@@ -199,7 +199,14 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
     // EmulatorJS's native export first saves RAM, then awaits a screenshot.
     // If that action rejects before EJS_onSaveSave, do not leave the adapter
     // permanently busy: the player must be able to retry or explicitly exit.
-    if (!busy) { fail('Promesa rechazada', event.reason); return; }
+    // iOS rejects audio playback started outside a user gesture with
+    // NotAllowedError. The game keeps running muted, so it is not fatal.
+    if (event?.reason?.name === 'NotAllowedError') {
+      console.warn('[gameboy] Bloqueado por el navegador (autoplay):', event.reason);
+      event.preventDefault?.();
+      return;
+    }
+    if (!busy) { fail('Promesa rechazada', event?.reason); return; }
     busy = false; exportNext = false; rawNext = false;
     send('storage-error');
     if (exiting) { exiting = false; send('stop-failed'); }

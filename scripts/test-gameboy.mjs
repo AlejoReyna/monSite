@@ -933,6 +933,15 @@ test('an asynchronous native export failure releases busy state so the player ca
   assert.equal(Buffer.from(h.messages.find(m=>m.type==='cartridge-save').encoded,'base64').length,32768);
 });
 
+test('an iOS autoplay rejection is not a fatal player error, other rejections report their cause', async () => {
+  const h=harness();await settle();h.context.EJS_onGameStart();
+  const blocked=Object.assign(new Error('The request is not allowed by the user agent'),{name:'NotAllowedError'});
+  h.listeners.get('unhandledrejection')({reason:blocked,preventDefault(){}});
+  assert.equal(h.messages.some(m=>m.type==='error'),false);
+  h.listeners.get('unhandledrejection')({reason:new TypeError('boom')});
+  assert.equal(h.messages.find(m=>m.type==='error').message,'Promesa rechazada: TypeError: boom');
+});
+
 test('an asynchronous native stop failure never acknowledges save and allows a fresh stop attempt', async () => {
   const h=harness();await settle();h.context.EJS_onGameStart();
   const callback=h.context.EJS_onSaveSave;h.context.EJS_onSaveSave=()=>{};
