@@ -56,7 +56,9 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
   window.EJS_backgroundColor = '#000';
   // Use the pinned engine's native SRAM flush. The export button also takes
   // a screenshot and must never run periodically during gameplay.
-  window.EJS_defaultOptions = { shader: 'disabled', 'save-save-interval': '30', 'save-state-location': 'browser' };
+  // EmulatorJS's 30 s autosave coincided with iOS Safari killing the tab at its
+  // 2 GB memory limit. Saves happen on pause, blur, hide and the save button.
+  window.EJS_defaultOptions = { shader: 'disabled', 'save-save-interval': '0', 'save-state-location': 'browser' };
   window.EJS_defaultControls = { 0: Object.fromEntries([[0,'z'],[2,'shift'],[3,'enter'],[4,'up arrow'],[5,'down arrow'],[6,'left arrow'],[7,'right arrow'],[8,'x']].map(([id,value]) => [id,{value}])), 1:{}, 2:{}, 3:{} };
   const control = (name, callback) => ({ visible: true, displayName: `gold-${name}`, callback });
   window.EJS_Buttons = {
