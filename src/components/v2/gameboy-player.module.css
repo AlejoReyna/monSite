@@ -166,14 +166,15 @@
   background: var(--case-body);
   color: var(--case-ink);
   clip-path: none;
-  box-shadow: inset 4px 4px var(--case-light), inset -4px -4px var(--case-shadow), inset 0 8px var(--case-edge);
+  /* Left edge uses the same shade as the right one; the top keeps its highlight. */
+  box-shadow: inset 0 4px var(--case-light), inset 4px 0 var(--case-shadow), inset -4px -4px var(--case-shadow), inset 0 8px var(--case-edge);
 }
 .bezel {
   position: relative;
   padding: 10px 14px;
   background: #555763;
   box-shadow: inset 4px 4px #737582, inset -4px -4px #353741;
-  clip-path: polygon(4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 16px), calc(100% - 4px) calc(100% - 16px), calc(100% - 4px) calc(100% - 8px), calc(100% - 12px) calc(100% - 8px), calc(100% - 12px) calc(100% - 4px), calc(100% - 20px) calc(100% - 4px), calc(100% - 20px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px), 0 4px, 4px 4px);
+  clip-path: polygon(4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px), 0 4px, 4px 4px);
 }
 .powerLight { position: absolute; left: 9px; top: 46%; width: 6px; height: 6px; background: #35333b; box-shadow: 0 2px #272830; }
 .powerLight[data-on="true"] { background: #f27966; box-shadow: -2px 0 #b14a43, 0 2px #b14a43; }
@@ -322,17 +323,9 @@
 /* Keep the physical display the same size in the library and every game.
    Slightly taller than 3:2, growing downward; fullscreen sets its own ratio. */
 .screen { width: 100%; height: auto; aspect-ratio: 4 / 3; outline-width: 2px; box-shadow: none; }
-/* Fit the narrower GB/GBC display inside the taller glass without stretching.
-   A 4:3 glass at full height holds a 10:9 picture at 5/6 of the width. */
-.dialog[data-fullscreen="false"]:not([data-platform="gba"]) .frame {
-  top: 0;
-  bottom: auto;
-  left: 50%;
-  right: auto;
-  width: calc(100% * 5 / 6);
-  height: 100%;
-  transform: translateX(-50%);
-}
+/* The GB/GBC glass matches the native 10:9 picture (see the aspect-ratio
+   override below), so the game fills it edge to edge without stretching. */
+.dialog[data-fullscreen="false"]:not([data-platform="gba"]) .frame { inset: 0; width: 100%; height: 100%; transform: none; }
 .touchControls {
   margin-top: 40px;
   flex: none;
@@ -356,11 +349,21 @@
   .dialog[open] { display: block; }
   .toolbar { position: fixed; }
   .dialog[data-fullscreen="false"] .toolbar {
-    top: 0;
+    top: auto;
+    bottom: 0;
     left: 0;
     right: 0;
-    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
+    padding: 8px max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     background: var(--case-top-color);
+  }
+  .dialog[data-fullscreen="false"] .shell {
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: calc(max(16px, env(safe-area-inset-bottom)) + 68px);
+  }
+  .dialog[data-fullscreen="false"] .savePopup,
+  .dialog[data-fullscreen="false"] .caseMenu {
+    top: auto;
+    bottom: calc(100% + 8px);
   }
 }
 @media (min-width: 701px) and (pointer: fine), (min-width: 1101px) {
@@ -368,6 +371,20 @@
   .dialog[data-fullscreen="false"]::backdrop { background: #000; }
   .dialog[data-fullscreen="false"] .content {
     width: min(100%, 598px, max(391px, calc((100dvh - 410px) * 23 / 18)));
+  }
+  /* The toolbar lives in the bottom strip of the casing, under the speaker. */
+  .dialog[data-fullscreen="false"] .toolbar {
+    top: auto;
+    bottom: 14px;
+    left: 22px;
+    right: 22px;
+    background: transparent;
+  }
+  .dialog[data-fullscreen="false"] .shell { padding-top: 18px; padding-bottom: 72px; }
+  .dialog[data-fullscreen="false"] .savePopup,
+  .dialog[data-fullscreen="false"] .caseMenu {
+    top: auto;
+    bottom: calc(100% + 8px);
   }
 }
 /* Fullscreen promotes the existing screen on every device. Removing the
@@ -461,8 +478,15 @@
 .dialog[data-platform="gba"] .screen { aspect-ratio: 3 / 2; }
 /* Cased L/R sit in a pocket above the controls. 52px fits a 44px shoulder
    without the old 82px push and without covering the LCD or the toolbar. */
-.dialog[data-fullscreen="false"][data-platform="gba"] .touchControls { position: relative; margin-top: 52px; }
-.dialog[data-fullscreen="false"] .screen { aspect-ratio: 4 / 3; }
+/* Cased controls sit 5% of the console width lower. */
+.dialog[data-fullscreen="false"] .touchControls { margin-top: calc(40px + 5cqw); }
+.dialog[data-fullscreen="false"][data-platform="gba"] .touchControls { position: relative; margin-top: calc(52px + 5cqw); }
+/* Extra headroom above the cased screen: 2.5% of the console width. */
+.dialog[data-fullscreen="false"] .bezel { margin-top: 2.5cqw; }
+/* 15% taller than the original 4 / 3 LCD, growing downward. */
+.dialog[data-fullscreen="false"] .screen { aspect-ratio: 4 / 3.45; }
+/* GB/GBC (and the library) use the native 10:9 glass so the game has no black bars. */
+.dialog[data-fullscreen="false"]:not([data-platform="gba"]) .screen { aspect-ratio: 10 / 9; }
 .dialog[data-fullscreen="false"][data-platform="gba"] .frame {
   top: 0;
   right: 0;
