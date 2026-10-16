@@ -793,6 +793,32 @@ test('desktop chrome stays unchanged and mobile never adds theme metadata that w
   assert.equal(h.metas.length,0);assert.equal(h.document.documentElement.style.backgroundColor,'#0e131a');
 });
 
+test('every stored case restores distinct portfolio metadata across mobile and fullscreen transitions', async () => {
+  for(const [casing,color] of [['classic','#d5d3c6'],['green','#73935b'],['red','#bc4e4b'],['transparent','#485956']]){
+    const h=hostHarness({casing});
+    h.metas[0].content='#f9faf7';
+    h.metas[1].content='#10131a';
+    // Also preserve an existing tag without content/media rather than inventing attributes on exit.
+    const missing=h.document.createElement('meta');h.document.head.appendChild(missing);
+    const metadata=()=>h.metas.map(meta=>[meta.getAttribute('content'),meta.getAttribute('media')]);
+    const original=metadata();
+    const check=color=>{
+      assert.equal(h.document.documentElement.style.backgroundColor,color);
+      assert.equal(h.document.body.style.backgroundColor,color);
+      assert.ok(h.metas.every(meta=>meta.content===color && meta.getAttribute('media')===null));
+    };
+    h.resizeMobile(true);check(color);
+    h.clickLabel('Pantalla completa');check('#000000');
+    h.resizeMobile(false);assert.deepEqual(metadata(),original);
+    assert.equal(h.document.body.style.backgroundColor,'#0e131a');
+    h.resizeMobile(true);check('#000000');
+    h.clickLabel('Salir de pantalla completa');await settle();h.render();check(color);
+    h.unmount();assert.deepEqual(metadata(),original);
+    assert.equal(h.document.body.style.backgroundColor,'#0e131a');
+    assert.equal(h.listeners.size,0);
+  }
+});
+
 test('host keeps the library idle, authenticates Gold startup, and returns only after save acknowledgement', () => {
   const h=hostHarness();assert.equal(h.frame,undefined);assert.equal(h.messages.length,0);
   h.find(n=>n.props['data-launch-game']==='pokemon-gold').props.onClick();h.render();h.load();

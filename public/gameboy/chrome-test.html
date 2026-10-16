@@ -11,7 +11,7 @@
     #surface { position: fixed; inset: 0; margin: 0; border: 0; padding: 0; max-width: none; max-height: none; width: 100%; height: 100%; background: var(--case); color: #111; overflow: auto; }
     #surface.normal { position: absolute; min-height: 100dvh; }
     #surface::backdrop { background: #18191d; }
-    .edge { display: none; position: fixed; left: 0; right: 0; height: 8px; background: var(--case); pointer-events: none; z-index: 2; }
+    .edge { display: none; position: fixed; left: 0; right: 0; height: 16px; background: var(--case); pointer-events: none; z-index: 2; }
     .edge.top { top: 0; } .edge.bottom { bottom: 0; }
     #surface.edges .edge { display: block; }
     main { max-width: 600px; margin: auto; padding: max(24px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom)); }
@@ -42,9 +42,9 @@
       <label>Capa <select id="mode"><option value="modal">Dialog modal fijo (showModal)</option><option value="fixed">Dialog fijo no modal (show)</option><option value="normal">Contenido normal (posición absoluta)</option></select></label>
       <label><input id="meta" type="checkbox"> Meta theme-color presente</label>
       <label><input id="canvas" type="checkbox"> Sincronizar html/body (si no: #18191d)</label>
-      <label><input id="edges" type="checkbox"> Bordes fijos de 8px dentro de la capa</label>
+      <label><input id="edges" type="checkbox"> Bordes fijos de 16px dentro de la capa</label>
       <button id="reload" type="button">Recargar con estas opciones guardadas</button>
-      <p>Por cada capa: probar sin/con meta, cambiar clásica → verde → roja → transparente → negro sin recargar; repetir tras recargar. Luego activar los bordes de 8px y repetir. No cambiar el diseño de barras de Safari durante la comparación.</p>
+      <p>Por cada capa: probar sin/con meta, cambiar clásica → verde → roja → transparente → negro sin recargar; repetir tras recargar. Luego activar los bordes de 16px y repetir. No cambiar el diseño de barras de Safari durante la comparación.</p>
       <label>Observación manual (superior / inferior / captura)<textarea id="observation" placeholder="Ej.: caliente, modal, sin meta, verde: superior beige, inferior verde"></textarea></label>
       <button id="record" type="button">Registrar observación</button>
       <button id="download" type="button">Descargar registro JSON</button>
@@ -53,7 +53,13 @@
   </dialog>
   <script>
     const surface = document.getElementById('surface');
-    const records = [];
+    let records = [];
+    try { records = JSON.parse(sessionStorage.getItem('gba-chrome-records') || '[]'); } catch { /* Storage is optional. */ }
+    function record(entry) {
+      records.push(entry); records = records.slice(-200);
+      try { sessionStorage.setItem('gba-chrome-records', JSON.stringify(records)); } catch { /* Storage is optional. */ }
+      document.getElementById('state').textContent = JSON.stringify(entry, null, 2);
+    }
     const controls = ['casing', 'mode', 'meta', 'canvas', 'edges'];
     function snapshot(action) {
       return { action, time: new Date().toISOString(), config: { ...config }, userAgent: navigator.userAgent,
@@ -77,7 +83,7 @@
       }
       surface.classList.toggle('edges', config.edges);
       try { localStorage.setItem('gba-chrome-test', JSON.stringify(config)); } catch { /* Storage is optional. */ }
-      requestAnimationFrame(() => { const entry = snapshot(action); records.push(entry); document.getElementById('state').textContent = JSON.stringify(entry, null, 2); });
+      requestAnimationFrame(() => record(snapshot(action)));
     }
     for (const id of controls) {
       const input = document.getElementById(id);
@@ -86,7 +92,7 @@
     }
     surface.addEventListener('cancel', event => event.preventDefault());
     document.getElementById('reload').onclick = () => location.reload();
-    document.getElementById('record').onclick = () => { const entry = { ...snapshot('observation'), observation: document.getElementById('observation').value }; records.push(entry); document.getElementById('state').textContent = JSON.stringify(entry, null, 2); };
+    document.getElementById('record').onclick = () => record({ ...snapshot('observation'), observation: document.getElementById('observation').value });
     document.getElementById('download').onclick = () => { const url = URL.createObjectURL(new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' })); const link = document.createElement('a'); link.href = url; link.download = 'safari-chrome-pr77.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
     apply('load');
   </script>
