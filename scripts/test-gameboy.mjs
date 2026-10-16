@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createHash, webcrypto } from 'node:crypto';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
+import './test-safari-wasm-guard.mjs';
 
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
@@ -262,6 +263,7 @@ function harness({ standalone = false, native, mirror, imported, captureFails = 
     KeyboardEvent:class{constructor(type,options){this.type=type;Object.assign(this,options);}},
     MouseEvent:class{constructor(type,options){this.type=type;Object.assign(this,options);}},
     ...backups, ROM: GOLD_ROM_SHA256, SAVE_KEY:'monsite.gold.cartridge.v1',
+    installSafariWasmGuard: () => {},
     decode: encoded => Uint8Array.from(Buffer.from(encoded, 'base64')),
     encode: bytes=>Buffer.from(bytes).toString('base64'),
     captureCartridge: async () => { if (captureFails) throw new Error('RTC unavailable'); return backup(); },
@@ -931,6 +933,15 @@ test('an asynchronous native export failure releases busy state so the player ca
   h.context.EJS_onSaveSave=callback;
   h.message({type:'export-raw'});await settle();
   assert.equal(Buffer.from(h.messages.find(m=>m.type==='cartridge-save').encoded,'base64').length,32768);
+});
+
+test('an iOS autoplay rejection is not a fatal player error, other rejections report their cause', async () => {
+  const h=harness();await settle();h.context.EJS_onGameStart();
+  const blocked=Object.assign(new Error('The request is not allowed by the user agent'),{name:'NotAllowedError'});
+  h.listeners.get('unhandledrejection')({reason:blocked,preventDefault(){}});
+  assert.equal(h.messages.some(m=>m.type==='error'),false);
+  h.listeners.get('unhandledrejection')({reason:new TypeError('boom')});
+  assert.equal(h.messages.find(m=>m.type==='error').message,'Promesa rechazada: TypeError: boom');
 });
 
 test('an asynchronous native stop failure never acknowledges save and allows a fresh stop attempt', async () => {

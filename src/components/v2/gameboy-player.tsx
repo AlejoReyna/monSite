@@ -185,8 +185,15 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   }, [casing, fullscreenMode]);
 
   const release = useCallback(() => { held.current.clear(); send({ type: "release" }); }, [send]);
+  // Safari only resumes audio inside a real user gesture, and postMessage loses
+  // it. Call into the same-origin player synchronously from the gesture.
+  const resumeAudio = useCallback(() => {
+    try { (frame.current?.contentWindow as (Window & { goldResumeAudio?: () => void }) | null | undefined)?.goldResumeAudio?.(); }
+    catch { /* The player is not loaded yet. */ }
+  }, []);
   const press = useCallback((source: string, key: string) => {
     if (state.current.status !== "ready" || state.current.paused || held.current.has(source)) return;
+    resumeAudio();
     // The cartridge boots muted. The first control press unmutes inside this
     // gesture; an explicit mute from the sound button stays off.
     if (!userMuted.current && !soundOn.current) {
@@ -196,7 +203,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     const alreadyHeld = [...held.current.values()].includes(key);
     held.current.set(source, key);
     if (!alreadyHeld) send({ type: "key", key, down: true });
-  }, [send]);
+  }, [send, resumeAudio]);
   const lift = useCallback((source: string) => {
     const key = held.current.get(source);
     if (!key) return;
@@ -536,7 +543,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
         <div>
           {selectedGame && <button className={styles.iconButton} type="button" disabled={status === "stopping" || importBusy} title={copy.libraryBack} aria-label={copy.libraryBack} onClick={() => requestStop("library")}>▦</button>}
           <button className={styles.pauseButton} type="button" disabled={status !== "ready"} aria-label={paused ? copy.resume : copy.pause} title={paused ? copy.resume : copy.pause} onClick={() => { release(); send({ type: "pause", value: !paused }); }}><span className={styles.pauseLabel}>{paused ? copy.resume : copy.pause}</span><svg className={styles.pauseIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={paused ? "M4 2v12h2v-2h3v-2h3V6H9V4H6V2Z" : "M3 2h4v12H3Zm6 0h4v12H9Z"} fill="currentColor" /></svg></button>
-          <button className={styles.soundButton} type="button" disabled={status !== "ready"} aria-label={sound ? copy.mute : copy.sound} title={sound ? copy.mute : copy.sound} aria-pressed={sound} onClick={() => { const next = !sound; userMuted.current = !next; send({ type: "sound", value: next }); }}><span className={styles.soundLabel}>{sound ? copy.mute : copy.sound}</span><svg className={styles.soundIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 6h3V4h2V2h2v12H6v-2H4v-2H1Z" fill="currentColor" /><path d={sound ? "M10 4h2v2h2v4h-2v2h-2v-2h2V6h-2Z" : "M10 6h2v2h-2Zm2 2h2v2h-2Z"} fill="currentColor" /></svg></button>
+          <button className={styles.soundButton} type="button" disabled={status !== "ready"} aria-label={sound ? copy.mute : copy.sound} title={sound ? copy.mute : copy.sound} aria-pressed={sound} onClick={() => { const next = !sound; userMuted.current = !next; if (next) resumeAudio(); send({ type: "sound", value: next }); }}><span className={styles.soundLabel}>{sound ? copy.mute : copy.sound}</span><svg className={styles.soundIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 6h3V4h2V2h2v12H6v-2H4v-2H1Z" fill="currentColor" /><path d={sound ? "M10 4h2v2h2v4h-2v2h-2v-2h2V6h-2Z" : "M10 6h2v2h-2Zm2 2h2v2h-2Z"} fill="currentColor" /></svg></button>
           <div ref={casePicker} className={styles.casePicker}>
             <button className={styles.iconButton} type="button" title={copy.caseLabel} aria-label={copy.caseLabel} aria-expanded={casePickerOpen} aria-controls="gameboy-case-picker" onClick={() => { release(); setSaveMenuOpen(false); setCasePickerOpen(value => !value); }}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 1h6v6H1Zm8 0h6v6H9ZM1 9h6v6H1Zm8 0h6v6H9Z" fill="currentColor" /></svg></button>
             {casePickerOpen && <div id="gameboy-case-picker" className={styles.caseMenu} role="group" aria-label={copy.caseLabel}>
@@ -610,7 +617,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
                 {status === "error" && errorDetail && <p className={styles.errorDetail}>{errorDetail}</p>}
                 {status === "error" && <><button type="button" onClick={retry}>{copy.retry}</button><button type="button" onClick={() => requestStop("library")}>{copy.libraryBack}</button></>}
               </div>}
-              {status === "ready" && paused && <div className={styles.overlay}><button type="button" onClick={() => send({ type: "pause", value: false })}>{copy.paused} · {copy.resume}</button></div>}
+              {status === "ready" && paused && <div className={styles.overlay}><button type="button" onClick={() => { resumeAudio(); send({ type: "pause", value: false }); }}>{copy.paused} · {copy.resume}</button></div>}
             </div>
           </div>
           <div className={styles.touchControls} aria-label={copy.focus}>
