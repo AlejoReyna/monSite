@@ -359,6 +359,8 @@
   .dialog[data-fullscreen="false"] .shell {
     padding-top: max(12px, env(safe-area-inset-top));
     padding-bottom: calc(max(16px, env(safe-area-inset-bottom)) + 68px);
+    /* The top edge continues into the tinted status bar: no highlight seam. */
+    box-shadow: inset 4px 0 var(--case-shadow), inset -4px 0 var(--case-shadow);
   }
   /* Safari 26 tints the status bar from the full-screen fixed dialog, so its
      background must be the case color. Opaque shells hide it entirely. */
