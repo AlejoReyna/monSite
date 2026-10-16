@@ -12,6 +12,13 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
   let identity = { sha256: ROM, platform: 'gbc', core: 'gambatte' };
   let restore, stateRestore;
   const send = (type, extra = {}) => parent.postMessage({ channel: 'gold-player', ...(session ? { session } : {}), type, ...extra }, origin);
+  // Fatal errors carry a readable cause so the host can log and show it.
+  const fail = (where, cause, at = '') => {
+    const detail = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause ?? 'sin detalle');
+    const message = `${where}: ${detail}${at ? ` (${at})` : ''}`.slice(0, 500);
+    console.error('[gameboy]', message, cause);
+    send('error', { message });
+  };
   const keys = { ArrowUp: 38, ArrowDown: 40, ArrowLeft: 37, ArrowRight: 39, x: 88, z: 90, Enter: 13, Shift: 16 };
   const held = new Set();
   let started = false, paused = false, busy = false, exiting = false, exportNext = false, rawNext = false;
@@ -173,7 +180,7 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
         if (started) { pause(true); click('mute'); if (!busy) save(); }
         else send('stopped');
       }
-    } catch (error) { send('error', { message: String(error) }); }
+    } catch (error) { fail(`Mensaje "${type}"`, error); }
   });
   addEventListener('blur', release);
   document.addEventListener('visibilitychange', () => { if (document.hidden) { save(); pause(true); } });
@@ -186,12 +193,13 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
     else if (keys[event.key] && !event.repeat) held.add(event.key);
   }, true);
   document.addEventListener('keyup', event => { if (event.isTrusted) held.delete(event.key); }, true);
-  addEventListener('error', () => send('error'));
-  addEventListener('unhandledrejection', () => {
+  addEventListener('error', event => fail('Error de JavaScript', event.error ?? event.message,
+    event.filename ? `${event.filename.replace(origin, '')}:${event.lineno}:${event.colno}` : ''));
+  addEventListener('unhandledrejection', event => {
     // EmulatorJS's native export first saves RAM, then awaits a screenshot.
     // If that action rejects before EJS_onSaveSave, do not leave the adapter
     // permanently busy: the player must be able to retry or explicitly exit.
-    if (!busy) { send('error'); return; }
+    if (!busy) { fail('Promesa rechazada', event.reason); return; }
     busy = false; exportNext = false; rawNext = false;
     send('storage-error');
     if (exiting) { exiting = false; send('stop-failed'); }
@@ -201,7 +209,8 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
     booted = true;
     if (typeof MutationObserver !== 'undefined') {
       const observer = new MutationObserver(() => {
-        if (document.querySelector('.ejs_error_text')) { observer.disconnect(); send('error'); }
+        const shown = document.querySelector('.ejs_error_text');
+        if (shown) { observer.disconnect(); fail('EmulatorJS', shown.textContent); }
       });
       observer.observe(document.getElementById('game'), { childList: true, subtree: true, attributes: true });
     }
@@ -225,15 +234,16 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
           if (!native.sram && mirror) await restoreCartridge(JSON.parse(mirror));
         }
       }
-    } catch {
+    } catch (error) {
+      console.error('[gameboy] Partida guardada:', error);
       send('storage-error');
-      if (restore) { send('error'); return; }
+      if (restore) { fail('No se pudo restaurar el respaldo', error); return; }
     }
     if (exiting) return;
     if (stateRestore) window.EJS_loadStateURL = decode(stateRestore.state);
     const loader = document.createElement('script');
     loader.src = '/emulatorjs/4.2.3/data/loader.js';
-    loader.onerror = () => send('error');
+    loader.onerror = () => fail('No se pudo descargar', loader.src);
     document.body.appendChild(loader);
   }
   boot();

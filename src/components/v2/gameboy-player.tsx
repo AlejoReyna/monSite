@@ -126,6 +126,8 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const casePicker = useRef<HTMLDivElement>(null);
   const saveMenu = useRef<HTMLDivElement>(null);
   const [notice, setNotice] = useState<"saved" | "invalid" | "storage" | "partial" | null>(null);
+  // Technical cause of the last start failure, shown under the generic message.
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const state = useRef({ status, paused });
   const held = useRef(new Map<string, string>());
   const stopTimeout = useRef<number | undefined>(undefined);
@@ -323,7 +325,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const recoverStop = useCallback(() => {
     window.clearTimeout(stopTimeout.current);
     state.current.status = wasReady.current ? "ready" : "error";
-    setStatus(state.current.status); setStopFailed(true); setNotice("storage");
+    setStatus(state.current.status); setStopFailed(true); setNotice("storage"); setErrorDetail(null);
     setCancelImportOnFailure(stopTarget.current === "restart" && pendingImport.current !== null);
     setSaveMenuOpen(true);
   }, []);
@@ -405,7 +407,12 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
 
   useEffect(() => {
     if (status !== "loading") return;
-    const timeout = window.setTimeout(() => { if (state.current.status === "loading") setStatus("error"); }, 45000);
+    const timeout = window.setTimeout(() => {
+      if (state.current.status !== "loading") return;
+      const detail = "El emulador no respondió en 45 s";
+      console.error("[gameboy]", detail);
+      setErrorDetail(detail); setStatus("error");
+    }, 45000);
     return () => window.clearTimeout(timeout);
   }, [status, attempt]);
   useEffect(() => {
@@ -425,8 +432,10 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       if (data.type === "saved") setNotice("saved");
       if (data.type === "storage-error") setNotice("storage");
       if (data.type === "error") {
+        const detail = typeof data.message === "string" ? data.message.slice(0, 500) : "El reproductor no envió detalle";
+        console.error("[gameboy]", detail);
         if (state.current.status === "stopping") recoverStop();
-        else { state.current.status = "error"; setStatus("error"); }
+        else { state.current.status = "error"; setStatus("error"); setErrorDetail(detail); }
       }
       if (data.type === "stopped" && awaitingStop.current) finishStop();
       if (data.type === "stop-failed" && awaitingStop.current) {
@@ -598,6 +607,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
                 restore: pendingImport.current?.restore, state: pendingImport.current?.state })} />}
               {status !== "ready" && status !== "library" && <div className={styles.overlay} role="status">
                 <p>{status === "loading" ? copy.loading : status === "stopping" ? copy.stopping : copy.error}</p>
+                {status === "error" && errorDetail && <p className={styles.errorDetail}>{errorDetail}</p>}
                 {status === "error" && <><button type="button" onClick={retry}>{copy.retry}</button><button type="button" onClick={() => requestStop("library")}>{copy.libraryBack}</button></>}
               </div>}
               {status === "ready" && paused && <div className={styles.overlay}><button type="button" onClick={() => send({ type: "pause", value: false })}>{copy.paused} · {copy.resume}</button></div>}
