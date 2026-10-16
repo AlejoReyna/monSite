@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLanguage } from "@/components/lang-context";
 import { GAME_KEYS, GBA_KEYS, GOLD_ROM_SHA256, parseGoldBackup, type GoldBackup } from "@/lib/gameboy/save";
 import { parseGameBackup, parseStateBackup, encodedSize, MAX_SRAM_BYTES, GAME_BACKUP_LIMIT, STATE_BACKUP_LIMIT, type GameBackup, type StateBackup } from "../../../public/gameboy/backups.js";
 import { GAME_LIBRARY, type LibraryGame } from "@/lib/gameboy/library";
 import { ROM_ACCEPT, RomFileError, identifyLocalRom } from "@/lib/gameboy/local-rom";
 import { CASE_STORAGE_KEY, GAMEBOY_CASES, createGameFullscreen, parseGameBoyCase, type GameBoyCase, type GameFullscreenMode } from "@/lib/gameboy/presentation";
+import { AI_DEFAULT_PORT } from "../../../public/gameboy/ai-protocol.js";
+import { INITIAL_AI_STATE, REMOTE_BRIDGE_URL, createAiLink, isLoopbackPage, type AiLink, type AiLinkState } from "@/lib/gameboy/ai-link";
 import styles from "./gameboy-player.module.css";
 
 const COPY = {
@@ -32,6 +34,23 @@ const COPY = {
     romErrors: { format: "Selecciona una ROM .gb, .gbc, .dmg o .gba.", size: "El mínimo es 16 KB; el máximo es 8 MB para GB/Color y 32 MB para GBA.", read: "No pudimos leer esa ROM. Vuelve a seleccionarla." },
     localSaveHelp: "Guarda desde el menú del juego. La partida permanece en este navegador por ROM. El respaldo incluye los archivos de partida y reloj disponibles. Para volver a jugar una ROM local, selecciona el archivo otra vez.",
     gbaHelp: "Flechas/WASD · X: A · Z: B · Q: L · E: R · Enter: Start · Shift: Select · Esc: pausa · Alt + Q: salir",
+    ai: {
+      title: "Control por IA", code: "Código de emparejamiento", port: "Puerto local", connect: "Conectar IA", disconnect: "Desconectar IA",
+      grant: "Permitir que la IA controle", take: "Tomar control", last: "Última acción", none: "ninguna", actions: "Acciones",
+      status: { off: "Desconectada", connecting: "Conectando…", paired: "Conectada", error: "Sin conexión" },
+      control: { user: "Tú tienes el control.", pending: "Guardando el respaldo inicial…", ai: "La IA controla el juego." },
+      backupSaved: "Respaldo inicial guardado", backupPartial: "Parcial: no se pudo verificar el reloj.",
+      backupFailed: "No se pudo guardar el respaldo inicial; la IA no tomó el control.", needsGame: "Inicia un juego para permitir el control.",
+      help: "Agrega el conector MCP https://mcp.alexisrs.dev/mcp a tu agente de IA (o, en localhost, el proceso local) y pídele el código. La IA solo juega tras tu permiso; el juego queda en pausa entre acciones y tus controles se desactivan. Esc o «Tomar control» la detienen al instante.",
+      errors: {
+        "invalid-code-format": "El código tiene 8 letras o números.", "invalid-port": "Puerto no válido (1024–65535).",
+        unreachable: "No se pudo conectar. Comprueba que el proceso MCP esté en marcha. Fuera de localhost el navegador puede bloquear la conexión (acceso a la red local o contenido mixto).",
+        "invalid-code": "Código incorrecto o caducado. Pide uno nuevo a la IA.", "already-paired": "Otra pestaña ya está emparejada.",
+        "handshake-timeout": "El puente no respondió a tiempo.", protocol: "El puente envió una respuesta no válida.",
+        closed: "Se perdió la conexión; la IA se detuvo y el juego quedó en pausa.", "backup-failed": "No se pudo guardar el respaldo inicial.",
+        "backup-timeout": "El respaldo inicial tardó demasiado.",
+      },
+    },
   },
   en: {
     loading: "Preparing the game…", error: "The game could not start.", retry: "Try again", back: "Back to desktop",
@@ -55,6 +74,23 @@ const COPY = {
     romErrors: { format: "Choose a .gb, .gbc, .dmg or .gba ROM.", size: "Minimum 16 KB; maximum 8 MB for GB/Color and 32 MB for GBA.", read: "This ROM could not be read. Select it again." },
     localSaveHelp: "Save from the game's menu. Saves stay in this browser separately for each ROM. Backups include the available save and clock files. Select a local ROM file again to play it after returning.",
     gbaHelp: "Arrows/WASD · X: A · Z: B · Q: L · E: R · Enter: Start · Shift: Select · Esc: pause · Alt + Q: exit",
+    ai: {
+      title: "AI control", code: "Pairing code", port: "Local port", connect: "Connect AI", disconnect: "Disconnect AI",
+      grant: "Let the AI take control", take: "Take control", last: "Last action", none: "none", actions: "Actions",
+      status: { off: "Disconnected", connecting: "Connecting…", paired: "Connected", error: "Not connected" },
+      control: { user: "You have control.", pending: "Saving the initial backup…", ai: "The AI is playing." },
+      backupSaved: "Initial backup saved", backupPartial: "Partial: the clock could not be verified.",
+      backupFailed: "The initial backup could not be saved; the AI did not take control.", needsGame: "Start a game to grant control.",
+      help: "Add the MCP connector https://mcp.alexisrs.dev/mcp to your AI agent (or, on localhost, the local process) and ask it for the code. The AI plays only after you allow it; the game stays paused between actions and your controls are disabled. Esc or “Take control” stops it at once.",
+      errors: {
+        "invalid-code-format": "The code has 8 letters or digits.", "invalid-port": "Invalid port (1024–65535).",
+        unreachable: "Could not connect. Check that the MCP process is running. Outside localhost the browser may block the connection (local network access or mixed content).",
+        "invalid-code": "Wrong or expired code. Ask the AI for a new one.", "already-paired": "Another tab is already paired.",
+        "handshake-timeout": "The bridge did not answer in time.", protocol: "The bridge sent an invalid response.",
+        closed: "The connection was lost; the AI stopped and the game is paused.", "backup-failed": "The initial backup could not be saved.",
+        "backup-timeout": "The initial backup took too long.",
+      },
+    },
   },
 };
 
@@ -75,6 +111,12 @@ function GameCartridge({ artwork }: { artwork?: LibraryGame["artwork"] }) {
   </svg>;
   return <svg className={styles.cartridge} viewBox="0 0 40 48" aria-hidden="true" shapeRendering="crispEdges"><path d="M4 0h32v4h4v40h-4v4H4v-4H0V4h4Z" fill="#c6ac68" /><path d="M8 4h24v22H8Z" fill="#504c37" /><path d="M12 30h16v12H12Z" fill="#e2cb8c" /><path d="M14 8h12v4H14Zm0 8h12v4H14Z" fill="#e2cb8c" /></svg>;
 }
+
+// The page URL does not change under the player; the server never offers the AI panel.
+const noSubscription = () => () => {};
+const onClient = () => true;
+const neverOnServer = () => false;
+const loopbackPage = () => isLoopbackPage(window.location);
 
 function download(text: string | Uint8Array<ArrayBuffer>, name: string, type: string) {
   const url = URL.createObjectURL(new Blob([text], { type }));
@@ -125,6 +167,18 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const [notice, setNotice] = useState<"saved" | "invalid" | "storage" | "partial" | null>(null);
   // Technical cause of the last start failure, shown under the generic message.
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  // Local AI bridge: offered on loopback pages (or with ?ai=1), connected only on request.
+  const aiAvailable = useSyncExternalStore(noSubscription, onClient, neverOnServer);
+  // Loopback pages use the local MCP process; the site uses the public bridge.
+  const aiLocal = useSyncExternalStore(noSubscription, loopbackPage, neverOnServer);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiState, setAiState] = useState<AiLinkState>(INITIAL_AI_STATE);
+  const [aiCode, setAiCode] = useState("");
+  const [aiPort, setAiPort] = useState(String(AI_DEFAULT_PORT));
+  const aiLink = useRef<AiLink | null>(null);
+  const aiMenu = useRef<HTMLDivElement>(null);
+  // True while the AI holds or is receiving control: manual game input is ignored.
+  const aiControl = useRef(false);
   const state = useRef({ status, paused });
   const held = useRef(new Map<string, string>());
   const stopTimeout = useRef<number | undefined>(undefined);
@@ -186,7 +240,8 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     return () => { mobile.removeEventListener("change", sync); restore?.(); };
   }, [casing, fullscreenMode]);
 
-  const release = useCallback(() => { held.current.clear(); send({ type: "release" }); }, [send]);
+  // The AI's buttons belong to the player; host UI never lifts them mid-action.
+  const release = useCallback(() => { held.current.clear(); if (!aiControl.current) send({ type: "release" }); }, [send]);
   // Safari only resumes audio inside a real user gesture, and postMessage loses
   // it. Call into the same-origin player synchronously from the gesture.
   const resumeAudio = useCallback(() => {
@@ -194,7 +249,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     catch { /* The player is not loaded yet. */ }
   }, []);
   const press = useCallback((source: string, key: string) => {
-    if (state.current.status !== "ready" || state.current.paused || held.current.has(source)) return;
+    if (aiControl.current || state.current.status !== "ready" || state.current.paused || held.current.has(source)) return;
     resumeAudio();
     // The cartridge boots muted. The first control press unmutes inside this
     // gesture; an explicit mute from the sound button stays off.
@@ -238,15 +293,39 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     return () => { controller.dispose(); fullscreen.current = null; };
   }, []);
   useEffect(() => {
-    if (!casePickerOpen && !saveMenuOpen) return;
+    if (!casePickerOpen && !saveMenuOpen && !aiOpen) return;
     const dismiss = (event: PointerEvent) => {
       if (!(event.target instanceof Node)) return;
       if (!casePicker.current?.contains(event.target)) setCasePickerOpen(false);
       if (!saveMenu.current?.contains(event.target)) setSaveMenuOpen(false);
+      if (!aiMenu.current?.contains(event.target)) setAiOpen(false);
     };
     document.addEventListener("pointerdown", dismiss);
     return () => document.removeEventListener("pointerdown", dismiss);
-  }, [casePickerOpen, saveMenuOpen]);
+  }, [casePickerOpen, saveMenuOpen, aiOpen]);
+  useEffect(() => {
+    if (!aiAvailable) return;
+    const link = createAiLink({
+      createSocket: (url, protocols) => new window.WebSocket(url, protocols),
+      postToPlayer: message => send(message),
+      onChange: next => { aiControl.current = next.control !== "user"; setAiState(next); },
+      randomId: bytes => Array.from(crypto.getRandomValues(new Uint8Array(bytes)), byte => byte.toString(16).padStart(2, "0")).join(""),
+      setTimeout: (callback, ms) => window.setTimeout(callback, ms), clearTimeout: id => window.clearTimeout(id), now: () => Date.now(),
+      keepBackupLocally: (backup, game) => {
+        const name = `${game.id}-respaldo-ia-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+        download(backup, name, "application/json");
+        return name;
+      },
+    });
+    aiLink.current = link;
+    return () => { link.dispose(); aiLink.current = null; aiControl.current = false; };
+  }, [aiAvailable, send]);
+  useEffect(() => {
+    aiLink.current?.setSession(selectedGame && sessionId ? {
+      hostSession: sessionId, ready: status === "ready", paused,
+      game: { id: selectedGame.id, title: selectedGame.title, platform: selectedGame.platform, sha256: selectedGame.sha256 },
+    } : null);
+  }, [aiAvailable, selectedGame, sessionId, status, paused]);
   const startGame = useCallback((game: LibraryGame) => {
     if (state.current.status !== "library" || readingRom.current) return;
     state.current.status = "loading";
@@ -364,11 +443,14 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       if (event.isComposing) return;
       // Native capture prevents terminal/carousel document and window handlers.
       if (event.key === "Tab" || event.metaKey || event.ctrlKey) { event.stopPropagation(); return; }
+      // Typing a pairing code must not press game buttons.
+      if (event.target instanceof HTMLElement && event.target.closest("[data-ai-input]")) { event.stopPropagation(); return; }
       const interactive = event.target instanceof HTMLElement && event.target.closest("button,summary,input");
       if (interactive && (event.key === "Enter" || event.key === " ")) return;
       event.stopImmediatePropagation();
       if (event.key === "Escape") {
         event.preventDefault();
+        if (aiControl.current) { aiLink.current?.takeControl(); return; }
         if (state.current.status === "library") { exit(); return; }
         if (!event.repeat && state.current.status === "ready") { release(); send({ type: "pause", value: !state.current.paused }); }
         return;
@@ -389,12 +471,15 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     };
     const keyup = (event: KeyboardEvent) => {
       if (event.key === "Tab" || event.metaKey || event.ctrlKey) { event.stopPropagation(); return; }
+      if (event.target instanceof HTMLElement && event.target.closest("[data-ai-input]")) { event.stopPropagation(); return; }
       if (!held.current.has(`keyboard:${event.code}`) && (event.key === "Enter" || event.key === " ") && event.target instanceof HTMLElement && event.target.closest("button,summary,input")) return;
       event.stopImmediatePropagation();
       lift(`keyboard:${event.code}`);
     };
-    const blur = () => { release(); send({ type: "save" }); send({ type: "pause", value: true }); };
-    const visibility = () => { if (document.hidden) blur(); };
+    const background = () => { release(); send({ type: "save" }); send({ type: "pause", value: true }); };
+    // While the AI plays, focusing its client window must not pause the game.
+    const blur = () => { if (aiControl.current) send({ type: "save" }); else background(); };
+    const visibility = () => { aiLink.current?.setHidden(document.hidden); if (document.hidden) background(); };
     window.addEventListener("keydown", keydown, true);
     window.addEventListener("keyup", keyup, true);
     window.addEventListener("blur", blur);
@@ -452,6 +537,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
       }
       if (data.type === "exit") exit();
       if (data.type === "focus-host") dialog.current?.querySelector("button")?.focus();
+      if (typeof data.type === "string" && data.type.startsWith("ai-")) aiLink.current?.handlePlayerMessage(data);
       if (data.type === "backup" && typeof data.backup === "string") {
         try {
           const backup = parseGoldBackup(data.backup);
@@ -524,11 +610,20 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     window.clearTimeout(stopTimeout.current);
     setImportCandidate(null); setStopFailed(false); setCancelImportOnFailure(false);
   }
+  function takeAiControl() {
+    aiLink.current?.takeControl();
+    dialog.current?.focus({ preventScroll: true });
+  }
+  function connectAi() {
+    if (aiLink.current?.connect(aiCode, aiLocal ? Number(aiPort) : REMOTE_BRIDGE_URL)) setAiCode("");
+  }
+  const aiBlocking = aiState.control !== "user";
+  const aiLast = aiState.lastAction;
   const gba = selectedGame?.platform === "gba";
   const help = gba ? copy.gbaHelp : copy.help;
   const controls = [["ArrowUp", "↑", copy.up], ["ArrowLeft", "←", copy.left], ["ArrowDown", "↓", copy.down], ["ArrowRight", "→", copy.right], ["z", "B", "B"], ["x", "A", "A"], ["Shift", "Select", "Select"], ["Enter", "Start", "Start"]];
   const libraryAction = (key: string) => { if (key === "ArrowUp" || key === "ArrowDown") libraryStep(key === "ArrowUp" ? -1 : 1); else libraryLaunch(); };
-  const renderControl = ([key, label, name]: string[]) => <button key={key} type="button" data-key={key} aria-label={name} disabled={(status !== "ready" && !(status === "library" && ["x", "Enter", "ArrowUp", "ArrowDown"].includes(key))) || paused}
+  const renderControl = ([key, label, name]: string[]) => <button key={key} type="button" data-key={key} aria-label={name} disabled={(status !== "ready" && !(status === "library" && ["x", "Enter", "ArrowUp", "ArrowDown"].includes(key))) || paused || aiBlocking}
     onPointerDown={event => { event.preventDefault(); if (status === "library") { libraryAction(key); return; } event.currentTarget.setPointerCapture(event.pointerId); press(`pointer:${event.pointerId}`, key); }}
     onPointerUp={event => { lift(`pointer:${event.pointerId}`); if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
     onPointerCancel={event => lift(`pointer:${event.pointerId}`)} onLostPointerCapture={event => lift(`pointer:${event.pointerId}`)}
@@ -538,7 +633,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     {key.startsWith("Arrow") ? <svg className={styles.direction} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M6 2h4v2h2v2h2v2h-4v6H6V8H2V6h2V4h2Z" fill="currentColor" /></svg> : label}
   </button>;
 
-  return <dialog ref={dialog} className={styles.dialog} data-case={casing} data-platform={selectedGame?.platform ?? "gbc"} data-fullscreen={fullscreenMode !== "none"} tabIndex={-1} aria-label={copy.console} onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); if (status === "library") exit(); else if (status === "ready") send({ type: "pause", value: !paused }); }} onTouchStart={event => event.stopPropagation()} onTouchEnd={event => event.stopPropagation()}>
+  return <dialog ref={dialog} className={styles.dialog} data-case={casing} data-platform={selectedGame?.platform ?? "gbc"} data-fullscreen={fullscreenMode !== "none"} tabIndex={-1} aria-label={copy.console} onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); if (aiControl.current) takeAiControl(); else if (status === "library") exit(); else if (status === "ready") send({ type: "pause", value: !paused }); }} onTouchStart={event => event.stopPropagation()} onTouchEnd={event => event.stopPropagation()}>
     <div className={styles.chromeEdge} data-chrome-edge="top" aria-hidden="true" />
     <div className={styles.chromeEdge} data-chrome-edge="bottom" aria-hidden="true" />
     <div className={styles.content}>
@@ -546,7 +641,8 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
         <span className={styles.title}>{selectedGame?.title ?? copy.library}</span>
         <div>
           {selectedGame && <button className={styles.iconButton} type="button" disabled={status === "stopping" || importBusy} title={copy.libraryBack} aria-label={copy.libraryBack} onClick={() => requestStop("library")}>▦</button>}
-          <button className={styles.pauseButton} type="button" disabled={status !== "ready"} aria-label={paused ? copy.resume : copy.pause} title={paused ? copy.resume : copy.pause} onClick={() => { release(); send({ type: "pause", value: !paused }); }}><span className={styles.pauseLabel}>{paused ? copy.resume : copy.pause}</span><svg className={styles.pauseIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={paused ? "M4 2v12h2v-2h3v-2h3V6H9V4H6V2Z" : "M3 2h4v12H3Zm6 0h4v12H9Z"} fill="currentColor" /></svg></button>
+          {aiState.control === "ai" && <button className={styles.takeControlButton} type="button" title={copy.ai.take} aria-label={copy.ai.take} onClick={takeAiControl}><span className={styles.takeControlLabel}>{copy.ai.take}</span><svg className={styles.takeControlIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M6 1h2v6h1V2h2v6h1V4h2v7h-1v2h-1v2H6v-2H5v-2H4V9H3V7h2v1h1Z" fill="currentColor" /></svg></button>}
+          <button className={styles.pauseButton} type="button" disabled={status !== "ready" || aiBlocking} aria-label={paused ? copy.resume : copy.pause} title={paused ? copy.resume : copy.pause} onClick={() => { release(); send({ type: "pause", value: !paused }); }}><span className={styles.pauseLabel}>{paused ? copy.resume : copy.pause}</span><svg className={styles.pauseIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={paused ? "M4 2v12h2v-2h3v-2h3V6H9V4H6V2Z" : "M3 2h4v12H3Zm6 0h4v12H9Z"} fill="currentColor" /></svg></button>
           <button className={styles.soundButton} type="button" disabled={status !== "ready"} aria-label={sound ? copy.mute : copy.sound} title={sound ? copy.mute : copy.sound} aria-pressed={sound} onClick={() => { const next = !sound; userMuted.current = !next; if (next) resumeAudio(); send({ type: "sound", value: next }); }}><span className={styles.soundLabel}>{sound ? copy.mute : copy.sound}</span><svg className={styles.soundIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 6h3V4h2V2h2v12H6v-2H4v-2H1Z" fill="currentColor" /><path d={sound ? "M10 4h2v2h2v4h-2v2h-2v-2h2V6h-2Z" : "M10 6h2v2h-2Zm2 2h2v2h-2Z"} fill="currentColor" /></svg></button>
           <div ref={casePicker} className={styles.casePicker}>
             <button className={styles.iconButton} type="button" title={copy.caseLabel} aria-label={copy.caseLabel} aria-expanded={casePickerOpen} aria-controls="gameboy-case-picker" onClick={() => { release(); setSaveMenuOpen(false); setCasePickerOpen(value => !value); }}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 1h6v6H1Zm8 0h6v6H9ZM1 9h6v6H1Zm8 0h6v6H9Z" fill="currentColor" /></svg></button>
@@ -585,6 +681,32 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
               }}>{cancelImportOnFailure ? copy.cancel : copy.leaveWithoutSave}</button>}
             </section>}
           </div>}
+          {aiAvailable && <div ref={aiMenu} className={styles.aiPicker}>
+            <button className={styles.iconButton} type="button" title={copy.ai.title} aria-label={copy.ai.title} aria-expanded={aiOpen} aria-controls="game-ai-menu" data-ai={aiState.control === "ai" ? "active" : aiState.status} onClick={() => { setCasePickerOpen(false); setSaveMenuOpen(false); setAiOpen(value => !value); }}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M7 0h2v2h4v2h1v3h2v3h-2v3h-1v2H3v-2H2v-3H0V7h2V4h1V2h4Zm-2 6v2h2V6Zm4 0v2h2V6Zm-4 4v2h6v-2Z" fill="currentColor" fillRule="evenodd" /></svg></button>
+            {aiOpen && <section id="game-ai-menu" className={styles.savePopup} aria-label={copy.ai.title}>
+              <h2>{copy.ai.title}</h2>
+              <p role="status">{copy.ai.status[aiState.status]} · {copy.ai.control[aiState.control]}</p>
+              {aiState.error && <p className={styles.aiError} role="alert">{copy.ai.errors[aiState.error]}</p>}
+              {(aiState.status === "off" || aiState.status === "error") && <>
+                <label className={styles.aiField}>{copy.ai.code}<input data-ai-input type="text" value={aiCode} maxLength={12} placeholder="ABCD-EFGH" autoComplete="off" autoCapitalize="characters" spellCheck={false} onChange={event => setAiCode(event.currentTarget.value)} /></label>
+                {aiLocal && <label className={styles.aiField}>{copy.ai.port}<input data-ai-input type="text" inputMode="numeric" value={aiPort} maxLength={5} autoComplete="off" onChange={event => setAiPort(event.currentTarget.value.replace(/\D/g, ""))} /></label>}
+                <button type="button" onClick={connectAi}>{copy.ai.connect}</button>
+              </>}
+              {aiState.status === "connecting" && <button type="button" onClick={() => aiLink.current?.disconnect()}>{copy.cancel}</button>}
+              {aiState.status === "paired" && <>
+                {aiState.control === "user"
+                  ? <button type="button" disabled={status !== "ready" || aiState.hidden} onClick={() => aiLink.current?.requestControl()}>{copy.ai.grant}</button>
+                  : <button type="button" onClick={takeAiControl}>{copy.ai.take}</button>}
+                {status !== "ready" && <p className={styles.saveHelp}>{copy.ai.needsGame}</p>}
+                <button type="button" onClick={() => aiLink.current?.disconnect()}>{copy.ai.disconnect}</button>
+              </>}
+              <p>{copy.ai.last}: {aiLast ? `${aiLast.kind}${aiLast.detail ? ` ${aiLast.detail}` : ""} · ${aiLast.ok ? "OK" : aiLast.code}` : copy.ai.none}</p>
+              {aiState.actions && <p>{copy.ai.actions}: {aiState.actions.used}/{aiState.actions.limit}</p>}
+              {aiState.backup.state === "saved" && <p className={styles.saveStatus}>{copy.ai.backupSaved}: {aiState.backup.file?.split(/[\\/]/).pop()}{aiState.backup.partial ? ` · ${copy.ai.backupPartial}` : ""}</p>}
+              {aiState.backup.state === "failed" && <p className={styles.aiError}>{copy.ai.backupFailed}{aiState.backup.message ? ` (${aiState.backup.message})` : ""}</p>}
+              <p className={styles.saveHelp}>{copy.ai.help}</p>
+            </section>}
+          </div>}
           <button className={styles.iconButton} type="button" disabled={status === "stopping" && fullscreenMode === "none"} title={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-label={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-pressed={fullscreenMode !== "none"} onClick={toggleFullscreen}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={fullscreenMode === "none" ? "M1 1h5v2H3v3H1Zm9 0h5v5h-2V3h-3ZM1 10h2v3h3v2H1Zm12 0h2v5h-5v-2h3Z" : "M4 1h2v5H1V4h3Zm6 0h2v3h3v2h-5ZM1 10h5v5H4v-3H1Zm9 0h5v2h-3v3h-2Z"} fill="currentColor" /></svg></button>
           <button className={styles.exitButton} type="button" disabled={status === "stopping" || romBusy || importBusy} aria-label={copy.exit} title={copy.exit} onClick={exit}><span className={styles.exitLabel}>{copy.exit} </span>↗</button>
         </div>
@@ -613,7 +735,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
                 </button>
                 {romError && <p className={styles.romError} role="alert">{copy.romErrors[romError]}</p>}
               </section>}
-              {selectedGame && <iframe key={attempt} ref={frame} src={`${selectedGame.playerUrl}${selectedGame.playerUrl.includes("?") ? "&" : "?"}session=${sessionId}`} title={selectedGame.title} allow="autoplay" tabIndex={-1} className={styles.frame} onLoad={() => send({ type: "load-rom", url: selectedGame.romUrl, id: selectedGame.id,
+              {selectedGame && <iframe key={attempt} ref={frame} src={`${selectedGame.playerUrl}${selectedGame.playerUrl.includes("?") ? "&" : "?"}session=${sessionId}${aiAvailable ? "&ai=1" : ""}`} title={selectedGame.title} allow="autoplay" tabIndex={-1} className={styles.frame} onLoad={() => send({ type: "load-rom", url: selectedGame.romUrl, id: selectedGame.id,
                 platform: selectedGame.platform, sha256: selectedGame.sha256, saveMode: selectedGame.saveMode,
                 restore: pendingImport.current?.restore, state: pendingImport.current?.state })} />}
               {status !== "ready" && status !== "library" && <div className={styles.overlay} role="status">
@@ -621,7 +743,8 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
                 {status === "error" && errorDetail && <p className={styles.errorDetail}>{errorDetail}</p>}
                 {status === "error" && <><button type="button" onClick={retry}>{copy.retry}</button><button type="button" onClick={() => requestStop("library")}>{copy.libraryBack}</button></>}
               </div>}
-              {status === "ready" && paused && <div className={styles.overlay}><button type="button" onClick={() => { resumeAudio(); send({ type: "pause", value: false }); }}>{copy.paused} · {copy.resume}</button></div>}
+              {status === "ready" && paused && !aiBlocking && <div className={styles.overlay}><button type="button" onClick={() => { resumeAudio(); send({ type: "pause", value: false }); }}>{copy.paused} · {copy.resume}</button></div>}
+              {aiState.control === "ai" && <span className={styles.aiBadge} aria-hidden="true">AI</span>}
             </div>
           </div>
           <div className={styles.touchControls} aria-label={copy.focus}>

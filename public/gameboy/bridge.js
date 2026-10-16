@@ -1,6 +1,8 @@
 import { installSafariWasmGuard } from './safari-wasm-guard.js';
 import { SAVE_KEY, ROM, encode, decode, captureCartridge, restoreCartridge, readCartridge, createCartridgeBackup, captureGameCartridge, createGameCartridgeBackup, restoreGameCartridge } from './cartridge.js';
 import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_STATE_BYTES } from './backups.js';
+import { createAiPlayer } from './ai-player.js';
+import { isRequestId } from './ai-protocol.js';
 /* Pinned EmulatorJS adapter: documented configuration/events and native UI
  * actions only. Never accesses EJS_emulator/GameManager/Module internals. */
 (() => {
@@ -8,6 +10,15 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
   const params = new URLSearchParams(location.search);
   const session = params.get('session');
   const localGame = params.get('local') === '1';
+  // Pages that offer the AI panel keep the WebGL buffer readable: the core
+  // skips redrawing unchanged frames, which otherwise read back as cleared.
+  // Browser API only (like the AudioContext tracking below); other pages are untouched.
+  if (params.get('ai') === '1' && window.HTMLCanvasElement) {
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, attributes) {
+      return getContext.call(this, type, /^(webgl2?|experimental-webgl)$/.test(type) ? { ...attributes, preserveDrawingBuffer: true } : attributes);
+    };
+  }
   let configured = !localGame && !session, booted = false;
   let mode = localGame ? 'cartridge' : 'gold';
   let identity = { sha256: ROM, platform: 'gbc', core: 'gambatte' };
@@ -39,7 +50,7 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
   };
   const keys = { ArrowUp: 38, ArrowDown: 40, ArrowLeft: 37, ArrowRight: 39, x: 88, z: 90, Enter: 13, Shift: 16 };
   const held = new Set();
-  let started = false, paused = false, busy = false, exiting = false, exportNext = false, rawNext = false;
+  let started = false, paused = false, busy = false, exiting = false, exportNext = false, rawNext = false, aiBackupNext = false;
   const click = name => {
     const label = [...document.querySelectorAll('.ejs_menu_button span')].find(el => el.textContent === `gold-${name}`);
     if (!label) throw new Error(`Missing EmulatorJS control: ${name}`);
@@ -57,12 +68,21 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
     if (!started || value === paused) return;
     click(value ? 'pause' : 'play');
   }
-  function save(backup = false, raw = false) {
-    if (!started) return;
-    if (busy) { exportNext ||= backup; rawNext ||= raw; return; }
-    busy = true; exportNext = backup; rawNext = raw;
-    try { click('save'); } catch (error) { busy = false; throw error; }
+  // aiBackup: the AI session's initial backup, sent only to the host (never downloaded).
+  function save(backup = false, raw = false, aiBackup = false) {
+    if (!started) { if (aiBackup) send('ai-backup-failed', { message: 'The game has not started.' }); return; }
+    if (busy) { exportNext ||= backup; rawNext ||= raw; aiBackupNext ||= aiBackup; return; }
+    busy = true; exportNext = backup; rawNext = raw; aiBackupNext = aiBackup;
+    try { click('save'); } catch (error) { busy = false; aiBackupNext = false; throw error; }
   }
+  const ai = createAiPlayer({
+    input, pause, isPaused: () => paused, isStarted: () => started, isExiting: () => exiting,
+    isHeld: key => held.has(key), platform: () => identity.platform,
+    getCanvas: () => document.querySelector('#game canvas.ejs_canvas') ?? document.querySelector('#game canvas'),
+    createCanvas: (width, height) => Object.assign(document.createElement('canvas'), { width, height }),
+    requestAnimationFrame: callback => requestAnimationFrame(callback), cancelAnimationFrame: id => cancelAnimationFrame(id),
+    setTimeout: (callback, ms) => setTimeout(callback, ms), clearTimeout: id => clearTimeout(id), now: () => performance.now(),
+  });
   window.EJS_player = '#game';
   window.EJS_core = 'gambatte';
   window.EJS_controlScheme = 'gb';
@@ -87,7 +107,7 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
   window.EJS_defaultControls = { 0: Object.fromEntries([[0,'z'],[2,'shift'],[3,'enter'],[4,'up arrow'],[5,'down arrow'],[6,'left arrow'],[7,'right arrow'],[8,'x']].map(([id,value]) => [id,{value}])), 1:{}, 2:{}, 3:{} };
   const control = (name, callback) => ({ visible: true, displayName: `gold-${name}`, callback });
   window.EJS_Buttons = {
-    play: control('play', () => { paused = false; send('paused', { value: false }); }),
+    play: control('play', () => { paused = false; ai.noteResumed(); send('paused', { value: false }); }),
     pause: control('pause', () => { paused = true; send('paused', { value: true }); }),
     mute: control('mute', () => send('sound', { value: false })),
     unmute: control('unmute', () => send('sound', { value: true })),
@@ -106,6 +126,7 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
         send('saved', { bytes: bytes.length });
         if (exportNext) send('game-backup', { backup: JSON.stringify(backup) });
         if (rawNext) send('cartridge-save', { encoded: encode(bytes) });
+        if (aiBackupNext) send('ai-backup', { backup: JSON.stringify(backup) });
       } else {
         if (bytes.length !== 32768) throw new Error('Invalid SRAM export');
         const backup = await captureCartridge(bytes);
@@ -114,20 +135,26 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
         send('saved', { bytes: bytes.length });
         if (exportNext) send('backup', { backup: json });
         if (rawNext) send('cartridge-save', { encoded: encode(bytes) });
+        if (aiBackupNext) send('ai-backup', { backup: json });
       }
     } catch {
       failed = true;
       send('storage-error');
+      let aiPartial = null;
       if (mode === 'cartridge' && bytes.length <= MAX_SRAM_BYTES) {
         if (exportNext) send('game-backup', { backup: JSON.stringify(createGameCartridgeBackup(bytes, undefined, identity, true)) });
         if (rawNext) send('cartridge-save', { encoded: encode(bytes) });
+        if (aiBackupNext) try { aiPartial = JSON.stringify(createGameCartridgeBackup(bytes, undefined, identity, true)); } catch { /* Reported below. */ }
       }
       if (mode === 'gold' && bytes.length === 32768) {
         if (exportNext) send('backup', { backup: JSON.stringify(createCartridgeBackup(bytes)) });
         if (rawNext) send('cartridge-save', { encoded: encode(bytes) });
+        if (aiBackupNext) try { aiPartial = JSON.stringify(createCartridgeBackup(bytes)); } catch { /* Reported below. */ }
       }
+      // The cartridge data is still real; only its clock or browser copy is missing.
+      if (aiBackupNext) send(aiPartial ? 'ai-backup' : 'ai-backup-failed', aiPartial ? { backup: aiPartial, partial: true } : { message: 'The cartridge save could not be read.' });
     } finally {
-      busy = false; exportNext = false; rawNext = false;
+      busy = false; exportNext = false; rawNext = false; aiBackupNext = false;
       if (exiting) {
         pause(true);
         if (failed) { exiting = false; send('stop-failed'); }
@@ -182,6 +209,16 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
         return;
       }
       if (type === 'key') input(key, down === true);
+      if (type === 'ai-mode') ai.setEnabled(value === true);
+      if (type === 'ai-command') {
+        const { requestId, kind, params } = event.data;
+        void ai.execute({ requestId, kind, params }).then(result => send('ai-result', { requestId, ...result }));
+      }
+      if (type === 'ai-stop') send('ai-stopped', { requestId: isRequestId(event.data.requestId) ? event.data.requestId : null, ...ai.stop('stopped') });
+      if (type === 'ai-backup') {
+        if (exiting) send('ai-backup-failed', { message: 'The player is closing.' });
+        else try { save(false, false, true); } catch { send('ai-backup-failed', { message: 'The native save control is unavailable.' }); }
+      }
       if (type === 'release') release();
       if (type === 'pause') pause(value === true);
       if (type === 'sound' && started && !exiting) {
@@ -194,23 +231,30 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
       if (type === 'snapshot' && started && !exiting) click('snapshot');
       if (type === 'stop') {
         if (exiting) return;
-        exiting = true; release();
+        exiting = true; ai.interrupt('session-changed'); release();
         if (started) { pause(true); click('mute'); if (!busy) save(); }
         else send('stopped');
       }
     } catch (error) { fail(`Mensaje "${type}"`, error); }
   });
-  addEventListener('blur', release);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { save(); pause(true); } });
-  addEventListener('pagehide', () => { release(); if (started) save(); });
+  // AI keys are synthetic: losing focus does not lift them. Hiding the page does.
+  addEventListener('blur', () => { if (!ai.isEnabled()) release(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { ai.interrupt('page-hidden'); save(); pause(true); } });
+  addEventListener('pagehide', () => { ai.interrupt('session-changed'); release(); if (started) save(); });
   document.addEventListener('keydown', event => {
     if (!event.isTrusted) return;
+    // While the AI controls the game, physical keys never reach the engine.
+    if (ai.isEnabled() && (keys[event.key] || event.key === 'Escape')) { event.preventDefault(); event.stopImmediatePropagation(); return; }
     if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); pause(!paused); }
     else if (event.key === 'Tab') { event.preventDefault(); send('focus-host'); }
     else if (event.altKey && event.key.toLowerCase() === 'q') { event.preventDefault(); send('exit'); }
     else if (keys[event.key] && !event.repeat) held.add(event.key);
   }, true);
-  document.addEventListener('keyup', event => { if (event.isTrusted) held.delete(event.key); }, true);
+  document.addEventListener('keyup', event => {
+    if (!event.isTrusted) return;
+    if (ai.isEnabled() && keys[event.key]) { event.preventDefault(); event.stopImmediatePropagation(); return; }
+    held.delete(event.key);
+  }, true);
   addEventListener('error', event => fail('Error de JavaScript', event.error ?? event.message,
     event.filename ? `${event.filename.replace(origin, '')}:${event.lineno}:${event.colno}` : ''));
   addEventListener('unhandledrejection', event => {
@@ -225,7 +269,8 @@ import { parseGameBackup, parseStateBackup, CORE_RUNTIMES, MAX_SRAM_BYTES, MAX_S
       return;
     }
     if (!busy) { fail('Promesa rechazada', event?.reason); return; }
-    busy = false; exportNext = false; rawNext = false;
+    if (aiBackupNext) send('ai-backup-failed', { message: 'The native save export failed.' });
+    busy = false; exportNext = false; rawNext = false; aiBackupNext = false;
     send('storage-error');
     if (exiting) { exiting = false; send('stop-failed'); }
   });

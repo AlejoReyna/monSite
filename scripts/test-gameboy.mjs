@@ -5,6 +5,7 @@ import { createHash, webcrypto } from 'node:crypto';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
 import './test-safari-wasm-guard.mjs';
+import './test-gameboy-ai.mjs';
 
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
@@ -33,6 +34,12 @@ vm.runInNewContext(ts.transpileModule(read('../src/lib/gameboy/local-rom.ts'), {
 }).outputText, { exports: localRom, crypto: webcrypto, require: name => { assert.equal(name, './library'); return library; } });
 const cartridgeModule = await import('../public/gameboy/cartridge.js');
 const backups = await import('../public/gameboy/backups.js');
+const aiProtocol = await import('../public/gameboy/ai-protocol.js');
+const aiPlayerModule = await import('../public/gameboy/ai-player.js');
+const aiLinkModule = {};
+vm.runInNewContext(ts.transpileModule(read('../src/lib/gameboy/ai-link.ts'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { exports: aiLinkModule, URLSearchParams, require: name => { assert.ok(name.endsWith('/public/gameboy/ai-protocol.js'), name); return aiProtocol; } });
 const backup = () => ({ format: 'monsite-gold-cartridge', version: 1, rom: GOLD_ROM_SHA256,
   savedAt: '2026-10-13T12:00:00.000Z', sram: Buffer.alloc(32768, 0x42).toString('base64'), rtc: Buffer.alloc(8, 0x12).toString('base64') });
 
@@ -194,6 +201,8 @@ test('the initial console offers fullscreen and bundled Gold and Doom without bo
     if (module === '@/lib/gameboy/library') return library;
     if (module === '@/lib/gameboy/local-rom') return localRom;
     if (module.endsWith('/public/gameboy/backups.js')) return backups;
+    if (module.endsWith('/public/gameboy/ai-protocol.js')) return aiProtocol;
+    if (module === '@/lib/gameboy/ai-link') return aiLinkModule;
     if (module.endsWith('.module.css')) return {__esModule:true,default:new Proxy({}, {get:(_,key)=>String(key)})};
     return require(module);
   };
@@ -234,7 +243,7 @@ test('local ROMs retain content identity across filenames, support all GB extens
   await assert.rejects(localRom.identifyLocalRom({...file('Gold.gb'),arrayBuffer:async()=>new ArrayBuffer(1)}), error=>error.reason==='read');
 });
 
-function harness({ standalone = false, native, mirror, imported, captureFails = false, localGame = false, sramBytes = 32768, flushFails = false, flushWait, session, restoreFails = false } = {}) {
+function harness({ standalone = false, native, mirror, imported, captureFails = false, localGame = false, sramBytes = 32768, flushFails = false, flushWait, session, restoreFails = false, ai = null, aiPage = false } = {}) {
   const events = []; const messages = []; const listeners = new Map();
   const intervals = new Map(); let intervalId = 0; const appended = []; const restored = [];
   const local = new Map();
@@ -253,11 +262,13 @@ function harness({ standalone = false, native, mirror, imported, captureFails = 
     getElementById: id => { assert.equal(id,'game'); return { dispatchEvent: event => events.push(event) }; },
     addEventListener: (type, fn) => listeners.set('document:' + type, fn),
     dispatchEvent: event => events.push(event),
-    createElement: type => ({tagName:type}),
+    createElement: type => type === 'canvas' && ai ? ai.createCanvas() : ({tagName:type}),
+    querySelector: selector => ai && selector.includes('canvas') ? ai.canvas : null,
     body: {appendChild: element => appended.push(element)},
   };
   const context = vm.createContext({
-    document, parent, location:{origin:'http://localhost:3000',search:(localGame?'?local=1':'?') + (session ? '&session=' + session : '')}, URLSearchParams,
+    document, parent, location:{origin:'http://localhost:3000',search:(localGame?'?local=1':'?') + (session ? '&session=' + session : '') + (aiPage ? '&ai=1' : '')}, URLSearchParams,
+    HTMLCanvasElement: class { getContext(type, attributes) { return { type, attributes }; } },
     localStorage:{getItem:key=>local.get(key)??null,setItem:(key,value)=>local.set(key,value),removeItem:key=>local.delete(key)},
     addEventListener:(type,fn)=>listeners.set(type,fn),
     setInterval:fn=>{intervals.set(++intervalId,fn);return intervalId;},clearInterval:id=>intervals.delete(id),
@@ -265,6 +276,7 @@ function harness({ standalone = false, native, mirror, imported, captureFails = 
     MouseEvent:class{constructor(type,options){this.type=type;Object.assign(this,options);}},
     ...backups, ROM: GOLD_ROM_SHA256, SAVE_KEY:'monsite.gold.cartridge.v1',
     installSafariWasmGuard: () => {},
+    createAiPlayer: aiPlayerModule.createAiPlayer, isRequestId: aiProtocol.isRequestId,
     decode: encoded => Uint8Array.from(Buffer.from(encoded, 'base64')),
     encode: bytes=>Buffer.from(bytes).toString('base64'),
     captureCartridge: async () => { if (captureFails) throw new Error('RTC unavailable'); return backup(); },
@@ -274,7 +286,7 @@ function harness({ standalone = false, native, mirror, imported, captureFails = 
     captureGameCartridge: async (bytes, name, identity) => { if (flushWait) await flushWait; if (flushFails) throw new Error('Save unavailable'); return cartridgeModule.createGameCartridgeBackup(bytes, native?.rtc, identity); },
     createGameCartridgeBackup: cartridgeModule.createGameCartridgeBackup,
     restoreGameCartridge: async (value, name, identity) => { if (restoreFails) throw new Error('Restore failed'); restored.push({value,name,identity}); },
-    Uint8Array, console,
+    Uint8Array, console, ...(ai?.context ?? {}),
   });
   context.window = context;
   if (standalone) context.parent = context;
@@ -640,7 +652,15 @@ test('generic restore writes only this ROM and deletes a stale clock when the im
 
 // Executes the real host handlers with deterministic React hooks and DOM
 // boundaries. This verifies lifecycle contracts; it is not a browser/WASM test.
-function hostHarness({language='es', mobile=false, casing='classic', themeMetas=true}={}) {
+function hostHarness({language='es', mobile=false, casing='classic', themeMetas=true, ai=false}={}) {
+  const sockets=[];
+  class FakeSocket {
+    constructor(url,protocols){Object.assign(this,{url,protocols,readyState:0,sent:[]});sockets.push(this);}
+    send(text){this.sent.push(JSON.parse(text));}
+    close(code=1000){this.readyState=3;this.onclose?.({code});}
+    open(){this.readyState=1;this.onopen?.({});}
+    message(data){this.onmessage?.({data:JSON.stringify(data)});}
+  }
   const slots=[]; let cursor=0,dirty=true,tree,frameNode,frameSurface,exits=0,urlCounter=0;
   const messages=[],revoked=[],listeners=new Map(),timers=new Map(); let timerId=0;
   const dependenciesEqual=(a,b)=>a && b && a.length===b.length && a.every((v,i)=>Object.is(v,b[i]));
@@ -655,6 +675,7 @@ function hostHarness({language='es', mobile=false, casing='classic', themeMetas=
     }},
   };
   hooks.useLayoutEffect=hooks.useEffect;
+  hooks.useSyncExternalStore=(subscribe,getSnapshot)=>getSnapshot();
   const metas=[];
   const canvasStyle=()=>{
     const properties=new Map([['--sequence-theme-color','#0e131a']]);
@@ -680,7 +701,7 @@ function hostHarness({language='es', mobile=false, casing='classic', themeMetas=
   };
   const storage=new Map([[presentation.CASE_STORAGE_KEY,casing]]);
   const localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)};
-  const window={location:{origin:'http://localhost:3000'},localStorage,
+  const window={location:{origin:'http://localhost:3000',...(ai?{hostname:'localhost',search:''}:{})},localStorage,WebSocket:FakeSocket,
     matchMedia:()=>mediaQuery,
     getComputedStyle:()=>({getPropertyValue:key=>{
       const css=require('postcss').parse(read('../src/components/v2/gameboy-player.module.css'));
@@ -704,6 +725,8 @@ function hostHarness({language='es', mobile=false, casing='classic', themeMetas=
     if(name==='@/lib/gameboy/local-rom')return localRom;
     if(name==='@/lib/gameboy/presentation')return presentation;
     if(name.endsWith('/public/gameboy/backups.js'))return backups;
+    if(name.endsWith('/public/gameboy/ai-protocol.js'))return aiProtocol;
+    if(name==='@/lib/gameboy/ai-link')return aiLinkModule;
     if(name.endsWith('.module.css'))return {__esModule:true,default:new Proxy({}, {get:(_,key)=>String(key)})};
     return require(name);
   };
@@ -754,7 +777,7 @@ function hostHarness({language='es', mobile=false, casing='classic', themeMetas=
   const expire=delay=>{for(const [id,timer] of [...timers])if(timer.delay===delay){timers.delete(id);timer.fn();}render();};
   const unmount=()=>{for(const slot of slots)slot?.cleanup?.();};
   render();
-  return {render,find,receive,clickLabel,clickText,load,pick,importFile,expire,unmount,messages,revoked,listeners,timers,
+  return {render,find,receive,clickLabel,clickText,load,pick,importFile,expire,unmount,messages,revoked,listeners,timers,sockets,
     document,metas,
     resizeMobile(matches){mediaQuery.matches=matches;listeners.get('media:change')?.();},
     get frame(){return frameNode;},get surface(){return frameSurface;},get exits(){return exits;},
@@ -1152,4 +1175,276 @@ test('save notifications preserve the running host iframe and its session', () =
   assert.equal(h.surface,frame);assert.equal(h.frame.props.src,url);
   assert.equal(h.messages.filter(m=>m.type==='load-rom').length,1);
   assert.equal(h.messages.some(m=>m.type==='stop'),false);h.unmount();
+});
+
+// AI bridge through the real player bridge and host component. Frames come
+// from a simulated engine; the real EmulatorJS/WASM path needs the manual
+// browser procedure in docs/gameboy-ai-mcp.md.
+function aiScreen() {
+  const frames = new Map(), timers = new Map(); let clock = 0, ids = 0;
+  const screen = { value: 7 };
+  const canvas = { width: 640, height: 576, addEventListener() {}, getContext: () => null };
+  const createCanvas = () => {
+    const element = { tagName: 'canvas', width: 0, height: 0 };
+    let pixels = new Uint8ClampedArray(0);
+    const context = {
+      imageSmoothingEnabled: true, fillStyle: '',
+      fillRect() { pixels = new Uint8ClampedArray(element.width * element.height * 4); },
+      drawImage() { for (let index = 0; index < pixels.length; index += 4) pixels.set([screen.value, index / 4 % 160, 9, 255], index); },
+      getImageData: () => ({ data: new Uint8ClampedArray(pixels) }),
+    };
+    element.getContext = () => context;
+    return element;
+  };
+  const context = {
+    requestAnimationFrame: callback => { frames.set(++ids, callback); return ids; },
+    cancelAnimationFrame: id => { frames.delete(id); },
+    setTimeout: (callback, ms) => { timers.set(++ids, { callback, at: clock + ms }); return ids; },
+    clearTimeout: id => { timers.delete(id); },
+    performance: { now: () => clock },
+  };
+  async function run(ms) {
+    for (let elapsed = 0; elapsed < ms; elapsed += 4) {
+      clock += 4;
+      for (const [id, timer] of [...timers]) if (timer.at <= clock && timers.delete(id)) timer.callback();
+      if (clock % 16 === 0) { const queued = [...frames.values()]; frames.clear(); queued.forEach(callback => callback()); }
+      await settle();
+    }
+  }
+  return { canvas, createCanvas, context, screen, run };
+}
+const trusted = (key, counter = { stopped: 0 }) => ({ isTrusted: true, key, repeat: false, altKey: false, preventDefault() {}, stopImmediatePropagation() { counter.stopped++; } });
+
+test('player bridge: with AI mode off, AI commands are refused without touching the game', async () => {
+  const screen = aiScreen(); const h = harness({ ai: screen }); await settle(); h.context.EJS_onGameStart();
+  const before = h.messages.length;
+  h.message({ type: 'ai-command', requestId: 'r-1', kind: 'act', params: { buttons: ['a'], holdMs: 100, settleMs: 0 } });
+  await screen.run(200);
+  const result = h.messages.find(m => m.type === 'ai-result');
+  assert.equal(result.ok, false); assert.equal(result.error.code, 'user-control');
+  assert.equal(h.events.length, 0);
+  assert.deepEqual(h.messages.slice(before).map(m => m.type), ['ai-result'], 'no pause, play or key traffic');
+  h.listeners.get('document:keydown')(trusted('x'));
+  h.listeners.get('blur')();
+  assert.deepEqual(h.events.map(event => `${event.type} ${event.keyCode}`), ['keyup 88'], 'blur still lifts physical keys as before');
+});
+
+test('player bridge: AI mode freezes on a synchronized frame; act presses and releases through the native controls', async () => {
+  const screen = aiScreen(); const h = harness({ ai: screen }); await settle(); h.context.EJS_onGameStart();
+  const pauses = () => h.messages.filter(m => m.type === 'paused').map(m => m.value);
+  h.message({ type: 'ai-mode', value: true }); await screen.run(48);
+  assert.deepEqual(pauses(), [true], 'entering AI mode pauses the running game');
+  h.message({ type: 'ai-command', requestId: 'r-1', kind: 'act', params: { buttons: ['a', 'right'], holdMs: 100, settleMs: 32 } });
+  await screen.run(400);
+  const result = h.messages.find(m => m.type === 'ai-result');
+  assert.equal(result.ok, true, JSON.stringify(result.error));
+  assert.deepEqual([result.frame.width, result.frame.height, result.frame.data.length, result.frame.data[0]], [160, 144, 92160, 7]);
+  assert.deepEqual(h.events.map(event => `${event.type} ${event.keyCode}`), ['keydown 88', 'keydown 39', 'keyup 88', 'keyup 39']);
+  assert.deepEqual(pauses(), [true, false, true]);
+  assert.equal(result.paused, true);
+  assert.equal(h.messages.some(m => ['saved', 'backup', 'game-backup', 'cartridge-save', 'snapshot'].includes(m.type)), false,
+    'captures never go through the save or export path');
+  h.message({ type: 'ai-command', requestId: 'r-2', kind: 'act', params: { buttons: ['b'], holdMs: 2000, settleMs: 0 } });
+  await screen.run(40);
+  assert.equal(h.events.at(-1).type, 'keydown');
+  h.message({ type: 'ai-stop', requestId: 'stop-1' });
+  assert.equal(h.events.at(-1).type, 'keyup', 'stop lifts the buttons synchronously');
+  const stopped = h.messages.find(m => m.type === 'ai-stopped');
+  assert.deepEqual([stopped.requestId, stopped.paused], ['stop-1', true]);
+  await screen.run(40);
+  assert.equal(h.messages.filter(m => m.type === 'ai-result').at(-1).error.code, 'stopped');
+  h.message({ type: 'ai-mode', value: false });
+  h.message({ type: 'ai-command', requestId: 'r-3', kind: 'observe' }); await screen.run(40);
+  assert.equal(h.messages.filter(m => m.type === 'ai-result').at(-1).error.code, 'user-control');
+});
+
+test('player bridge: in AI mode physical keys never reach the engine, blur keeps AI presses, hiding interrupts', async () => {
+  const screen = aiScreen(); const h = harness({ ai: screen }); await settle(); h.context.EJS_onGameStart();
+  h.message({ type: 'ai-mode', value: true }); await screen.run(48);
+  const counter = { stopped: 0 };
+  h.listeners.get('document:keydown')(trusted('x', counter));
+  h.listeners.get('document:keydown')(trusted('Escape', counter));
+  h.listeners.get('document:keyup')(trusted('x', counter));
+  assert.equal(counter.stopped, 3);
+  assert.deepEqual(h.messages.filter(m => m.type === 'paused').map(m => m.value), [true], 'Escape does not toggle the pause');
+  h.message({ type: 'ai-command', requestId: 'r-1', kind: 'act', params: { buttons: ['a'], holdMs: 300, settleMs: 0 } });
+  await screen.run(40);
+  h.listeners.get('blur')();
+  assert.equal(h.events.filter(event => event.type === 'keyup').length, 0, 'losing focus keeps the AI press');
+  await screen.run(400);
+  assert.equal(h.messages.find(m => m.type === 'ai-result').ok, true);
+  h.message({ type: 'ai-command', requestId: 'r-2', kind: 'act', params: { buttons: ['b'], holdMs: 2000, settleMs: 0 } });
+  await screen.run(40);
+  h.context.document.hidden = true; h.listeners.get('document:visibilitychange')();
+  await screen.run(40);
+  assert.equal(h.messages.filter(m => m.type === 'ai-result').at(-1).error.code, 'page-hidden');
+  assert.equal(h.events.at(-1).type, 'keyup');
+  assert.equal(h.messages.filter(m => m.type === 'paused').at(-1).value, true);
+});
+
+test('player bridge: AI messages from another origin, window, channel or session never reach the controls', async () => {
+  const screen = aiScreen(); const h = harness({ ai: screen, session: 'current' }); await settle(); h.context.EJS_onGameStart();
+  h.message({ type: 'ai-mode', value: true, session: 'current' }); await screen.run(48);
+  const command = { type: 'ai-command', requestId: 'r-1', kind: 'act', params: { buttons: ['a'], holdMs: 100, settleMs: 0 }, session: 'current' };
+  h.message(command, {});
+  h.message(command, undefined, 'https://evil.example');
+  h.message({ ...command, session: 'previous' });
+  h.listeners.get('message')({ source: h.context.parent, origin: 'http://localhost:3000', data: { ...command, channel: 'gold-player' } });
+  h.message({ type: 'ai-mode', value: false, session: 'previous' });
+  await screen.run(200);
+  assert.equal(h.messages.some(m => m.type === 'ai-result'), false);
+  assert.equal(h.events.length, 0);
+  h.message({ ...command, requestId: 'r-2' }); await screen.run(400);
+  assert.equal(h.messages.find(m => m.type === 'ai-result').ok, true, 'the authenticated host still works');
+});
+
+test('player bridge: the AI initial backup goes only to the host, never as a download, and partial saves are flagged', async () => {
+  const h = harness(); await settle(); h.context.EJS_onGameStart();
+  h.message({ type: 'ai-backup' }); await settle();
+  const sent = h.messages.find(m => m.type === 'ai-backup');
+  assert.ok(sent); assert.equal(sent.partial, undefined);
+  assert.doesNotThrow(() => parseGoldBackup(sent.backup));
+  assert.equal(Buffer.from(JSON.parse(sent.backup).rtc, 'base64').length, 8);
+  assert.equal(h.messages.some(m => ['backup', 'game-backup', 'cartridge-save'].includes(m.type)), false, 'nothing is downloaded');
+  const failing = harness({ captureFails: true }); await settle(); failing.context.EJS_onGameStart();
+  failing.message({ type: 'ai-backup' }); await settle();
+  const partial = failing.messages.find(m => m.type === 'ai-backup');
+  assert.equal(partial.partial, true); assert.equal(JSON.parse(partial.backup).rtc, undefined);
+  const local = harness({ localGame: true, sramBytes: 8192 }); await settle();
+  local.message({ type: 'load-rom', url: 'blob:http://localhost:3000/local-game', id: 'rom-' + 'c'.repeat(64) }); await settle();
+  local.context.EJS_onGameStart(); local.message({ type: 'ai-backup' }); await settle();
+  const generic = JSON.parse(local.messages.find(m => m.type === 'ai-backup').backup);
+  assert.equal(generic.format, 'monsite-game-cartridge'); assert.equal(Buffer.from(generic.sram, 'base64').length, 8192);
+  const early = harness(); await settle(); early.message({ type: 'ai-backup' });
+  assert.equal(early.messages.find(m => m.type === 'ai-backup-failed').message, 'The game has not started.');
+});
+
+test('host normal mode is unchanged with or without the AI panel: same messages, no AI traffic, no connection', () => {
+  for (const ai of [false, true]) {
+    const h = hostHarness({ ai });
+    h.find(n => n.props['data-launch-game'] === 'pokemon-gold').props.onClick(); h.render(); h.load(); h.receive({ type: 'ready' });
+    const start = h.messages.length;
+    h.key('keydown', { code: 'KeyX', key: 'x' }); h.key('keyup', { code: 'KeyX', key: 'x' });
+    h.listeners.get('blur')();
+    h.document.hidden = true; h.listeners.get('document:visibilitychange')(); h.document.hidden = false;
+    h.key('keydown', { code: 'Escape', key: 'Escape' });
+    assert.deepEqual(h.messages.slice(start).map(({ type, key, value }) => [type, key ?? value ?? null]), [
+      ['sound', true], ['key', 'x'], ['key', 'x'], ['release', null], ['save', null], ['pause', true],
+      ['release', null], ['save', null], ['pause', true], ['release', null], ['pause', true],
+    ]);
+    assert.equal(h.messages.some(m => m.type.startsWith('ai-')), false);
+    assert.equal(h.sockets.length, 0);
+    h.unmount();
+  }
+});
+
+test('host offers the AI panel everywhere: the public bridge on the site, the local process on loopback; it never connects by itself', () => {
+  for (const [ai, language, label, connect, url] of [[false, 'es', 'Control por IA', 'Conectar IA', 'wss://mcp.alexisrs.dev/gameboy-ai'], [true, 'en', 'AI control', 'Connect AI', 'ws://127.0.0.1:41887/gameboy-ai']]) {
+    const h = hostHarness({ ai, language });
+    h.clickLabel(label);
+    assert.equal(h.sockets.length, 0, 'opening the panel does not connect');
+    h.clickText(connect);
+    assert.equal(h.sockets.length, 0, 'an empty code never opens a socket');
+    const portField = () => h.find(n => n.type === 'input' && n.props.inputMode === 'numeric');
+    if (ai) portField(); else assert.throws(portField, 'the site has no port field');
+    h.find(n => n.type === 'input' && n.props.placeholder === 'ABCD-EFGH').props.onChange({ currentTarget: { value: 'ABCDEFGH' } }); h.render();
+    h.clickText(connect);
+    assert.equal(h.sockets[0].url, url);
+    h.unmount();
+  }
+});
+
+test('host pairs on request, grants control only after the initial backup, blocks manual play and Escape takes it back', () => {
+  const h = hostHarness({ ai: true });
+  h.find(n => n.props['data-launch-game'] === 'pokemon-gold').props.onClick(); h.render(); h.load(); h.receive({ type: 'ready' });
+  h.clickLabel('Control por IA');
+  const field = h.document.createElement();
+  field.closest = selector => selector === '[data-ai-input]' ? field : null;
+  const typed = h.messages.length;
+  h.key('keydown', { code: 'KeyX', key: 'x', target: field });
+  assert.equal(h.messages.length, typed, 'typing the code never presses game buttons');
+  h.find(n => n.type === 'input' && n.props.placeholder === 'ABCD-EFGH').props.onChange({ currentTarget: { value: 'abcd-efgh' } }); h.render();
+  h.clickText('Conectar IA');
+  const [socket] = h.sockets;
+  assert.equal(socket.url, 'ws://127.0.0.1:41887/gameboy-ai');
+  assert.equal(h.find(n => n.type === 'button' && n.props.children === 'Cancelar').type, 'button');
+  socket.open(); socket.message({ type: 'welcome' }); h.render();
+  assert.deepEqual(socket.sent[0], { type: 'hello', protocol: 'monsite-gameboy-ai', version: 1, code: 'ABCDEFGH' });
+  const ready = socket.sent.filter(m => m.type === 'state').at(-1);
+  assert.deepEqual([ready.control, ready.session.game.id, ready.session.ready], ['user', 'pokemon-gold', true]);
+  h.clickText('Permitir que la IA controle');
+  assert.equal(h.messages.at(-1).type, 'ai-backup');
+  h.receive({ type: 'ai-backup', backup: JSON.stringify(backup()) });
+  const stored = socket.sent.filter(m => m.type === 'backup').at(-1);
+  assert.equal(stored.sessionId, ready.session.id);
+  socket.message({ type: 'backup-saved', grantId: stored.grantId, file: '/Users/me/.monsite-gameboy-mcp/backups/pokemon-gold/first.json' }); h.render();
+  assert.deepEqual([h.messages.at(-1).type, h.messages.at(-1).value], ['ai-mode', true]);
+  assert.equal(socket.sent.filter(m => m.type === 'state').at(-1).control, 'ai');
+  assert.equal(h.find(n => n.props['aria-label'] === 'Pausar').props.disabled, true);
+  assert.ok(h.find(n => n.type === 'p' && Array.isArray(n.props.children) && n.props.children.includes('first.json')));
+  const keys = h.messages.filter(m => m.type === 'key').length;
+  h.key('keydown', { code: 'KeyZ', key: 'z' }); h.key('keyup', { code: 'KeyZ', key: 'z' });
+  assert.equal(h.messages.filter(m => m.type === 'key').length, keys, 'manual input is ignored while the AI plays');
+  const before = h.messages.length;
+  h.listeners.get('blur')();
+  assert.deepEqual(h.messages.slice(before).map(m => m.type), ['save'], 'focusing the AI client does not pause or release');
+  socket.message({ type: 'command', requestId: 'c-1', sessionId: ready.session.id, kind: 'act', params: { buttons: ['a'], holdMs: 100, settleMs: 0 }, timeoutMs: 5100 });
+  assert.deepEqual([h.messages.at(-1).type, h.messages.at(-1).requestId], ['ai-command', 'c-1']);
+  const frameData = { width: 160, height: 144, data: new Uint8ClampedArray(160 * 144 * 4) };
+  const oldSurface = { postMessage() {} };
+  h.receive({ type: 'ai-result', requestId: 'c-1', ok: true, frame: frameData }, { session: 'previous' });
+  h.receive({ type: 'ai-result', requestId: 'c-1', ok: true, frame: frameData }, { origin: 'https://evil.example' });
+  h.receive({ type: 'ai-result', requestId: 'c-1', ok: true, frame: frameData }, { surface: oldSurface });
+  assert.equal(socket.sent.some(m => m.type === 'result'), false, 'results from another session, origin or window are ignored');
+  h.receive({ type: 'ai-result', requestId: 'c-1', ok: true, paused: true, frame: frameData });
+  assert.equal(socket.sent.filter(m => m.type === 'result').at(-1).ok, true);
+  h.clickLabel('Tomar control');
+  assert.deepEqual([h.messages.at(-1).type, h.messages.at(-1).value], ['ai-mode', false]);
+  assert.equal(socket.sent.filter(m => m.type === 'state').at(-1).control, 'user');
+  h.clickText('Permitir que la IA controle');
+  h.receive({ type: 'ai-backup', backup: JSON.stringify(backup()) });
+  const second = socket.sent.filter(m => m.type === 'backup').at(-1);
+  assert.notEqual(second.grantId, stored.grantId, 'every grant stores its own initial backup');
+  socket.message({ type: 'backup-saved', grantId: second.grantId, file: '/x/second.json' }); h.render();
+  h.key('keydown', { code: 'Escape', key: 'Escape' });
+  assert.deepEqual([h.messages.at(-1).type, h.messages.at(-1).value], ['ai-mode', false], 'Escape takes control back');
+  h.key('keydown', { code: 'KeyZ', key: 'z' });
+  assert.equal(h.messages.filter(m => m.type === 'key').length, keys + 1, 'manual play works again');
+  h.unmount();
+  assert.equal(socket.readyState, 3, 'unmount closes the bridge connection');
+  assert.equal(h.timers.size, 0, 'no AI timers survive the player');
+  assert.equal(h.listeners.size, 0);
+});
+
+test('host: a failed initial backup is shown and the AI never gets control; a lost bridge returns control', () => {
+  const h = hostHarness({ ai: true, language: 'en' });
+  h.find(n => n.props['data-launch-game'] === 'pokemon-gold').props.onClick(); h.render(); h.load(); h.receive({ type: 'ready' });
+  h.clickLabel('AI control');
+  h.find(n => n.type === 'input' && n.props.placeholder === 'ABCD-EFGH').props.onChange({ currentTarget: { value: 'ABCDEFGH' } }); h.render();
+  h.clickText('Connect AI');
+  const [socket] = h.sockets;
+  socket.open(); socket.message({ type: 'welcome' }); h.render();
+  h.clickText('Let the AI take control');
+  h.receive({ type: 'ai-backup-failed', message: 'The cartridge save could not be read.' });
+  assert.ok(h.find(n => n.type === 'p' && n.props.role === 'alert'));
+  assert.equal(h.messages.some(m => m.type === 'ai-mode'), false);
+  assert.equal(socket.sent.filter(m => m.type === 'state').at(-1).control, 'user');
+  h.clickText('Let the AI take control');
+  h.receive({ type: 'ai-backup', backup: JSON.stringify(backup()) });
+  socket.message({ type: 'backup-saved', grantId: socket.sent.filter(m => m.type === 'backup').at(-1).grantId, file: '/x/a.json' }); h.render();
+  socket.close(1006); h.render();
+  assert.deepEqual([h.messages.at(-1).type, h.messages.at(-1).value], ['ai-mode', false]);
+  assert.ok(h.find(n => n.type === 'p' && n.props.role === 'alert'), 'the lost connection is reported');
+  assert.equal(h.find(n => n.props['aria-label'] === 'Pause').props.disabled, false, 'controls return to the user');
+  h.unmount();
+});
+
+test('player bridge: only AI-capable pages ask WebGL to preserve its buffer; other contexts are untouched', async () => {
+  for (const aiPage of [false, true]) {
+    const h = harness({ aiPage }); await settle();
+    const canvas = new h.context.HTMLCanvasElement();
+    const gl = canvas.getContext('webgl2', { alpha: false, antialias: false });
+    assert.deepEqual(JSON.parse(JSON.stringify(gl.attributes)), aiPage ? { alpha: false, antialias: false, preserveDrawingBuffer: true } : { alpha: false, antialias: false });
+    assert.deepEqual(JSON.parse(JSON.stringify(canvas.getContext('2d', { alpha: false }).attributes)), { alpha: false });
+  }
 });
