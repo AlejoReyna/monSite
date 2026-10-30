@@ -55,7 +55,8 @@ export default function DesktopTerminalWindow({ id, active, count, visible, isDe
       className="absolute cursor-grab active:cursor-grabbing comic-terminal bottom-[7vh] lg:bottom-auto lg:top-[22%] left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto lg:right-[8%] w-[96vw] lg:w-[min(546px,44.1vw)]"
       style={{
         opacity,
-        zIndex: active ? 39 : 38,
+        // On the Mac desktop Finder (35) and Mail (37) open in front of the terminal; below the Dock and menu bar (40).
+        zIndex: noBgImage ? (active ? 39 : 38) : (active ? 34 : 33),
         fontFamily: "var(--font-space-mono, ui-monospace, monospace)",
         "--terminal-offset": `${((id - 1) % 5) * 32}px`,
         ...(windowed ? frame.style : undefined),
