@@ -1,7 +1,8 @@
 # Pokémon Gold easter egg
 
-The existing desktop flow remains: close the final terminal, wait two seconds,
-choose the fun option, complete ↑ ↑ ↓ ↓ ← → ← → B A. Correct steps stay green;
+Currently unreachable: `HeroV2` no longer mounts `TerminalCloseEasterEgg`, so
+closing the final terminal shows nothing. The flow below is what it did: close
+the final terminal, wait two seconds, choose the fun option, complete ↑ ↑ ↓ ↓ ← → ← → B A. Correct steps stay green;
 wrong input colors the next circle red without discarding progress. The completed
 sequence stays visible for 600 ms, fades for 400 ms, then mounts GameBoyPlayer.
 Reduced motion removes the fade while retaining the 600 ms completion feedback.

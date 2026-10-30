@@ -7,7 +7,6 @@ import { motion, useScroll, useTransform, useSpring, type MotionValue } from "fr
 import DesktopPicker from "./desktop-picker";
 import MobileMacStage from "./mobile-mac-stage";
 import DesktopTerminalWindow from "./desktop-terminal-window";
-import TerminalCloseEasterEgg from "./terminal-close-easter-egg";
 import { useLanguage } from "@/components/lang-context";
 import type { Language } from "@/components/lang-context";
 import { ICON_COLUMN_STRIP } from "@/lib/desktop/icon-layout";
@@ -326,8 +325,6 @@ export default function HeroV2({
       {!noBgImage && terminals.visible && (terminals.ids.length > 1 || terminals.minimizedIds.length > 0) && <nav className="terminal-switcher" aria-label={language === "es" ? "Ventanas de Terminal" : "Terminal windows"}>
         {terminals.ids.map(id => <button key={id} type="button" aria-pressed={id === activeTerminalId && !terminals.minimizedIds.includes(id)} data-minimized={terminals.minimizedIds.includes(id)} onClick={() => dispatchTerminals({ type: "focus", id })}>Terminal {id}</button>)}
       </nav>}
-
-      {!noBgImage && terminals.ids.length === 0 && <TerminalCloseEasterEgg onReopen={openTerminal} />}
 
       {/* ── Instagram credit ── */}
       <a
