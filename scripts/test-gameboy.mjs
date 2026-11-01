@@ -219,7 +219,7 @@ test('the initial console offers fullscreen and bundled Gold and Doom without bo
     assert.match(html,/Doom/);
     assert.match(html, locale === 'es' ? /Abrir ROM/ : /Open ROM/);
     assert.match(html, /type="file" accept="\.gb,\.gbc,\.dmg,\.gba"/);
-    const fullscreenButton = html.match(/<button\b[^>]*aria-label="(?:Pantalla completa|Fullscreen)"[^>]*>/)?.[0];
+    const fullscreenButton = html.match(/<button\b[^>]*aria-label="(?:Ampliar a la ventana|Fill window)"[^>]*>/)?.[0];
     assert.ok(fullscreenButton, 'fullscreen is available before selecting a game');
     assert.doesNotMatch(fullscreenButton, /\bdisabled=/);
     assert.doesNotMatch(html,/<iframe|<details|GAME BOY|DOT MATRIX|GOLD EDITION|PHONES|id="game-save-menu"/);
@@ -437,6 +437,21 @@ test('teardown releases owned fullscreen and never exits someone else’s fullsc
   const foreign = fullscreenHost({existing:{}}); await foreign.controller.enter();
   await foreign.controller.leave(); foreign.controller.dispose();
   assert.equal(foreign.enters(),0); assert.equal(foreign.exits(),0);
+});
+
+test('staged fullscreen fills the window first, then the screen, and Escape returns to the window', async () => {
+  const f = fullscreenHost(); f.controller.expand();
+  assert.deepEqual(f.modes,['immersive']); assert.equal(f.enters(),0);
+  assert.equal(f.controller.nativeAvailable(),true);
+  await f.controller.enter(); assert.deepEqual(f.modes,['immersive','native']);
+  f.host.fullscreenElement = null; f.callbacks.forEach(callback => callback());
+  assert.equal(f.modes.at(-1),'immersive');
+  await f.controller.leave(); assert.equal(f.modes.at(-1),'none'); assert.equal(f.exits(),0);
+  for (const options of [{unavailable:true}, {existing:{}}]) {
+    const g = fullscreenHost(options); g.controller.expand();
+    assert.equal(g.controller.nativeAvailable(),false); g.controller.dispose();
+  }
+  f.controller.dispose();
 });
 
 test('an in-flight fullscreen request is cleaned up after exiting or unmounting', async () => {
@@ -801,7 +816,7 @@ test('mobile browser chrome follows stored and selected cases, fullscreen, and r
     h.find(n=>n.type==='button'&&n.key===casing&&n.props['aria-pressed']!==undefined).props.onClick();h.render();
     check(color);
   }
-  h.clickLabel('Pantalla completa');check('#000000');
+  h.clickLabel('Ampliar a la ventana');check('#000000');
   h.clickLabel('Salir de pantalla completa');await settle();h.render();check('#2f5043');
   h.unmount();
   assert.equal(h.document.documentElement.style.backgroundColor,'#0e131a');
@@ -840,7 +855,7 @@ test('every stored case restores distinct portfolio metadata across mobile and f
       assert.ok(h.metas.every(meta=>meta.content===color && meta.getAttribute('media')===null));
     };
     h.resizeMobile(true);check(color);
-    h.clickLabel('Pantalla completa');check('#000000');
+    h.clickLabel('Ampliar a la ventana');check('#000000');
     h.resizeMobile(false);assert.deepEqual(metadata(),original);
     assert.equal(h.document.body.style.backgroundColor,'#0e131a');
     h.resizeMobile(true);check('#000000');
@@ -1437,6 +1452,68 @@ test('host: a failed initial backup is shown and the AI never gets control; a lo
   assert.ok(h.find(n => n.type === 'p' && n.props.role === 'alert'), 'the lost connection is reported');
   assert.equal(h.find(n => n.props['aria-label'] === 'Pause').props.disabled, false, 'controls return to the user');
   h.unmount();
+});
+
+test('host: Clawd appears only while an agent is paired, drags with the pointer, hides on right-click and returns on the next connection', () => {
+  const h = hostHarness({ ai: true });
+  const mascot = () => h.find(n => n.props['data-agent-mascot']);
+  const pair = () => {
+    h.find(n => n.type === 'input' && n.props.placeholder === 'ABCD-EFGH').props.onChange({ currentTarget: { value: 'ABCDEFGH' } }); h.render();
+    h.clickText('Conectar IA');
+    const socket = h.sockets.at(-1);
+    socket.open(); socket.message({ type: 'welcome' }); h.render();
+    return socket;
+  };
+  h.clickLabel('Control por IA');
+  assert.throws(mascot, 'no mascot before pairing');
+  const socket = pair();
+  assert.deepEqual([mascot().props.role, mascot().props.tabIndex, mascot().props.style, mascot().props['data-active']], ['img', 0, undefined, false]);
+  assert.match(mascot().props['aria-label'], /Clawd.*Clic derecho para ocultarlo/);
+  const target = { getBoundingClientRect: () => ({ left: 900, top: 300 }), setPointerCapture: id => { target.captured = id; } };
+  const pointer = (name, event) => { mascot().props[name]({ button: 0, pointerId: 1, preventDefault() {}, currentTarget: target, ...event }); h.render(); };
+  pointer('onPointerDown', { button: 2, clientX: 905, clientY: 305 });
+  assert.equal(target.captured, undefined, 'a right press never starts a drag');
+  pointer('onPointerDown', { clientX: 910, clientY: 320 });
+  assert.equal(target.captured, 1);
+  pointer('onPointerMove', { pointerId: 2, clientX: 0, clientY: 0 });
+  assert.equal(mascot().props.style, undefined, 'another pointer does not move it');
+  pointer('onPointerMove', { clientX: 110, clientY: 70 });
+  assert.match(mascot().props.style.left, /^clamp\(0px, 100px, /);
+  assert.match(mascot().props.style.top, /^clamp\(0px, 50px, /);
+  pointer('onPointerUp', {});
+  pointer('onPointerMove', { clientX: 500, clientY: 500 });
+  assert.match(mascot().props.style.left, /100px/, 'it stays where it was dropped');
+  let prevented = false;
+  mascot().props.onContextMenu({ preventDefault() { prevented = true; } }); h.render();
+  assert.ok(prevented, 'right-click does not open the browser menu');
+  assert.throws(mascot, 'right-click hides it');
+  h.clickText('Desconectar IA');
+  assert.throws(mascot);
+  pair();
+  assert.equal(mascot().props.style, undefined, 'a new connection shows it again at its starting place');
+  h.sockets.at(-1).close(1006); h.render();
+  assert.throws(mascot, 'a lost connection removes it');
+  assert.equal(socket.readyState, 3);
+  h.unmount();
+});
+
+test('host CSS: Clawd is desktop-only, windowed-only and its hop respects reduced motion', () => {
+  const css = require('postcss').parse(read('../src/components/v2/gameboy-player.module.css'));
+  const rules = selector => { const found = []; css.walkRules(rule => { if (rule.selector === selector) found.push(rule); }); return found; };
+  const declaration = (rule, prop) => rule.nodes.find(node => node.type === 'decl' && node.prop === prop)?.value;
+  const [base, desktop] = rules('.agentMascot');
+  assert.equal(base.parent.type, 'root');
+  assert.equal(declaration(base, 'display'), 'none');
+  assert.equal(desktop.parent.params, '(min-width: 701px) and (pointer: fine), (min-width: 1101px)');
+  assert.equal(declaration(desktop, 'display'), 'block');
+  assert.match(declaration(desktop, 'background'), /\/gameboy\/clawd\.webp/);
+  assert.deepEqual(rules('.dialog[data-fullscreen="true"] .agentMascot').map(rule => [rule.parent.type, declaration(rule, 'display')]), [['root', 'none']], 'fullscreen hides it');
+  const hop = rules('.agentMascot[data-active="true"]:not(:active)');
+  assert.deepEqual(hop.map(rule => [rule.parent.params, declaration(rule, 'animation')]),
+    [[desktop.parent.params, 'agentMascotHop 1.2s steps(1, end) infinite'], ['(prefers-reduced-motion: reduce)', 'none']]);
+  const macReduced = rules(':global(html.mac-reduced-motion) .agentMascot[data-active="true"]:not(:active)');
+  assert.deepEqual(macReduced.map(rule => declaration(rule, 'animation')), ['none']);
+  assert.equal(readFileSync(new URL('../public/gameboy/clawd.webp', import.meta.url)).subarray(8, 12).toString(), 'WEBP');
 });
 
 test('player bridge: only AI-capable pages ask WebGL to preserve its buffer; other contexts are untouched', async () => {

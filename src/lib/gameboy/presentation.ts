@@ -19,7 +19,8 @@ type FullscreenHost = {
  * mounted, synchronize browser exits, and release only fullscreen we own. */
 export function createGameFullscreen(host: FullscreenHost, onChange: (mode: GameFullscreenMode) => void) {
   let mode: GameFullscreenMode = "none";
-  let owned = false, wanted = false, pending = false, disposed = false;
+  // Staged: the window fill came first, so a browser exit returns to it.
+  let owned = false, wanted = false, pending = false, disposed = false, staged = false;
   const update = (next: GameFullscreenMode) => {
     if (mode === next) return;
     mode = next;
@@ -37,11 +38,22 @@ export function createGameFullscreen(host: FullscreenHost, onChange: (mode: Game
     if (host.fullscreenElement === host.documentElement) {
       if (wanted) update("native");
     } else {
-      owned = false; wanted = false; update("none");
+      owned = false;
+      if (wanted && staged) update("immersive");
+      else { wanted = false; update("none"); }
     }
   };
   host.addEventListener("fullscreenchange", changed);
   return {
+    /** Fills the browser window only; enter() can promote it afterwards. */
+    expand() {
+      if (disposed || pending) return;
+      wanted = true; staged = true;
+      update("immersive");
+    },
+    nativeAvailable() {
+      return !host.fullscreenElement && host.fullscreenEnabled !== false && !!host.documentElement.requestFullscreen;
+    },
     async enter() {
       if (disposed || pending) return;
       wanted = true;
@@ -60,7 +72,7 @@ export function createGameFullscreen(host: FullscreenHost, onChange: (mode: Game
       } finally { pending = false; }
     },
     async leave() {
-      wanted = false;
+      wanted = false; staged = false;
       await exitOwned();
       if (!owned || pending) update("none");
     },
