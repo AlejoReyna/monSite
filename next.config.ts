@@ -44,6 +44,13 @@ const nextConfig: NextConfig = {
           "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400",
       },
     ];
+    // What Next.js sends for /_next/static: browsers reuse it without asking.
+    const cacheForever = [
+      {
+        key: "Cache-Control",
+        value: "public, max-age=31536000, immutable",
+      },
+    ];
 
     return [
       {
@@ -86,6 +93,17 @@ const nextConfig: NextConfig = {
       {
         source: "/desktop-icons/:path*",
         headers: cacheForAWeek,
+      },
+      // Game Boy engine and ROMs never change under the same URL: EmulatorJS is
+      // pinned per version folder (see its manifest.json) and the ROMs by SHA-256
+      // in library.ts. Ship changes under a new path. /gameboy/* keeps revalidating.
+      {
+        source: "/emulatorjs/:version/data/:path*",
+        headers: cacheForever,
+      },
+      {
+        source: "/games/:path*",
+        headers: cacheForever,
       },
     ];
   },

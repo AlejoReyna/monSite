@@ -26,7 +26,7 @@ const COPY = {
     saved: "Partida del cartucho conservada.", invalid: "Ese respaldo no corresponde a este juego, es incompatible o está dañado.",
     storage: "No se pudo conservar la partida. Exporta un respaldo antes de salir.", stopping: "Conservando la partida…",
     up: "Arriba", down: "Abajo", left: "Izquierda", right: "Derecha", backup: "Partida y respaldos", focus: "Controles del juego",
-    fullscreen: "Pantalla completa", windowed: "Salir de pantalla completa", caseLabel: "Carcasa",
+    expand: "Ampliar a la ventana", fullscreen: "Pantalla completa", windowed: "Salir de pantalla completa", caseLabel: "Carcasa",
     cases: { classic: "Clásica", transparent: "Transparente", green: "Verde", red: "Roja" },
     library: "Juegos", choose: "Elige un juego", play: "Jugar", console: "Consola portátil",
     partial: "Respaldo parcial: contiene la partida disponible, pero no se pudo verificar su reloj.",
@@ -41,6 +41,7 @@ const COPY = {
       control: { user: "Tú tienes el control.", pending: "Guardando el respaldo inicial…", ai: "La IA controla el juego." },
       backupSaved: "Respaldo inicial guardado", backupPartial: "Parcial: no se pudo verificar el reloj.",
       backupFailed: "No se pudo guardar el respaldo inicial; la IA no tomó el control.", needsGame: "Inicia un juego para permitir el control.",
+      mascot: "Clawd, la mascota de Claude: agente de IA conectado", mascotHint: "Arrástralo para moverlo · Clic derecho para ocultarlo",
       help: "Agrega el conector MCP https://mcp.alexisrs.dev/mcp a tu agente de IA (o, en localhost, el proceso local) y pídele el código. La IA solo juega tras tu permiso; el juego queda en pausa entre acciones y tus controles se desactivan. Esc o «Tomar control» la detienen al instante.",
       errors: {
         "invalid-code-format": "El código tiene 8 letras o números.", "invalid-port": "Puerto no válido (1024–65535).",
@@ -66,7 +67,7 @@ const COPY = {
     saved: "Cartridge save preserved.", invalid: "This backup belongs to another game, is incompatible or is damaged.",
     storage: "Your save could not be preserved. Export a backup before exiting.", stopping: "Preserving your save…",
     up: "Up", down: "Down", left: "Left", right: "Right", backup: "Save and backups", focus: "Game controls",
-    fullscreen: "Fullscreen", windowed: "Exit fullscreen", caseLabel: "Casing",
+    expand: "Fill window", fullscreen: "Fullscreen", windowed: "Exit fullscreen", caseLabel: "Casing",
     cases: { classic: "Classic", transparent: "Transparent", green: "Green", red: "Red" },
     library: "Games", choose: "Choose a game", play: "Play", console: "Handheld console",
     partial: "Partial backup: the available save is included, but its clock could not be verified.",
@@ -81,6 +82,7 @@ const COPY = {
       control: { user: "You have control.", pending: "Saving the initial backup…", ai: "The AI is playing." },
       backupSaved: "Initial backup saved", backupPartial: "Partial: the clock could not be verified.",
       backupFailed: "The initial backup could not be saved; the AI did not take control.", needsGame: "Start a game to grant control.",
+      mascot: "Clawd, Claude's mascot: AI agent connected", mascotHint: "Drag to move · Right-click to hide",
       help: "Add the MCP connector https://mcp.alexisrs.dev/mcp to your AI agent (or, on localhost, the local process) and ask it for the code. The AI plays only after you allow it; the game stays paused between actions and your controls are disabled. Esc or “Take control” stops it at once.",
       errors: {
         "invalid-code-format": "The code has 8 letters or digits.", "invalid-port": "Invalid port (1024–65535).",
@@ -161,6 +163,9 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const [casePickerOpen, setCasePickerOpen] = useState(false);
   const [saveMenuOpen, setSaveMenuOpen] = useState(false);
   const [fullscreenMode, setFullscreenMode] = useState<GameFullscreenMode>("none");
+  // The first press fills the browser window; the second, when the browser
+  // allows it, takes the whole screen.
+  const [canGoNative, setCanGoNative] = useState(false);
   const fullscreen = useRef<ReturnType<typeof createGameFullscreen> | null>(null);
   const casePicker = useRef<HTMLDivElement>(null);
   const saveMenu = useRef<HTMLDivElement>(null);
@@ -175,6 +180,10 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   const [aiState, setAiState] = useState<AiLinkState>(INITIAL_AI_STATE);
   const [aiCode, setAiCode] = useState("");
   const [aiPort, setAiPort] = useState(String(AI_DEFAULT_PORT));
+  // Desktop mascot shown while an agent is paired. Hiding and dragging last until the next "Connect AI".
+  const [mascotHidden, setMascotHidden] = useState(false);
+  const [mascotAt, setMascotAt] = useState<{ x: number; y: number } | null>(null);
+  const mascotDrag = useRef<{ pointerId: number; dx: number; dy: number } | null>(null);
   const aiLink = useRef<AiLink | null>(null);
   const aiMenu = useRef<HTMLDivElement>(null);
   // True while the AI holds or is receiving control: manual game input is ignored.
@@ -279,6 +288,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   useEffect(() => {
     const controller = createGameFullscreen(document, mode => {
       setFullscreenMode(mode);
+      setCanGoNative(mode === "immersive" && controller.nativeAvailable());
       // The fullscreen root joins the top layer last. Raise the existing modal
       // above it without remounting its iframe or disturbing the game session.
       if (mode === "native" && dialog.current?.open) {
@@ -376,7 +386,8 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
   }
   function toggleFullscreen() {
     release(); setCasePickerOpen(false); setSaveMenuOpen(false);
-    if (fullscreenMode === "none") void fullscreen.current?.enter();
+    if (fullscreenMode === "none") fullscreen.current?.expand();
+    else if (canGoNative) void fullscreen.current?.enter();
     else void fullscreen.current?.leave();
   }
   const finishStop = useCallback(() => {
@@ -615,7 +626,9 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     dialog.current?.focus({ preventScroll: true });
   }
   function connectAi() {
-    if (aiLink.current?.connect(aiCode, aiLocal ? Number(aiPort) : REMOTE_BRIDGE_URL)) setAiCode("");
+    if (aiLink.current?.connect(aiCode, aiLocal ? Number(aiPort) : REMOTE_BRIDGE_URL)) {
+      setAiCode(""); setMascotHidden(false); setMascotAt(null);
+    }
   }
   const aiBlocking = aiState.control !== "user";
   const aiLast = aiState.lastAction;
@@ -633,6 +646,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
     {key.startsWith("Arrow") ? <svg className={styles.direction} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M6 2h4v2h2v2h2v2h-4v6H6V8H2V6h2V4h2Z" fill="currentColor" /></svg> : label}
   </button>;
 
+  const fullscreenLabel = fullscreenMode === "none" ? copy.expand : canGoNative ? copy.fullscreen : copy.windowed;
   return <dialog ref={dialog} className={styles.dialog} data-case={casing} data-platform={selectedGame?.platform ?? "gbc"} data-fullscreen={fullscreenMode !== "none"} tabIndex={-1} aria-label={copy.console} onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); if (aiControl.current) takeAiControl(); else if (status === "library") exit(); else if (status === "ready") send({ type: "pause", value: !paused }); }} onTouchStart={event => event.stopPropagation()} onTouchEnd={event => event.stopPropagation()}>
     <div className={styles.chromeEdge} data-chrome-edge="top" aria-hidden="true" />
     <div className={styles.chromeEdge} data-chrome-edge="bottom" aria-hidden="true" />
@@ -707,7 +721,7 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
               <p className={styles.saveHelp}>{copy.ai.help}</p>
             </section>}
           </div>}
-          <button className={styles.iconButton} type="button" disabled={status === "stopping" && fullscreenMode === "none"} title={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-label={fullscreenMode === "none" ? copy.fullscreen : copy.windowed} aria-pressed={fullscreenMode !== "none"} onClick={toggleFullscreen}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={fullscreenMode === "none" ? "M1 1h5v2H3v3H1Zm9 0h5v5h-2V3h-3ZM1 10h2v3h3v2H1Zm12 0h2v5h-5v-2h3Z" : "M4 1h2v5H1V4h3Zm6 0h2v3h3v2h-5ZM1 10h5v5H4v-3H1Zm9 0h5v2h-3v3h-2Z"} fill="currentColor" /></svg></button>
+          <button className={styles.iconButton} type="button" disabled={status === "stopping" && fullscreenMode === "none"} title={fullscreenLabel} aria-label={fullscreenLabel} aria-pressed={fullscreenMode !== "none"} onClick={toggleFullscreen}><svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d={fullscreenMode === "none" || canGoNative ? "M1 1h5v2H3v3H1Zm9 0h5v5h-2V3h-3ZM1 10h2v3h3v2H1Zm12 0h2v5h-5v-2h3Z" : "M4 1h2v5H1V4h3Zm6 0h2v3h3v2h-5ZM1 10h5v5H4v-3H1Zm9 0h5v2h-3v3h-2Z"} fill="currentColor" /></svg></button>
           <button className={styles.exitButton} type="button" disabled={status === "stopping" || romBusy || importBusy} aria-label={copy.exit} title={copy.exit} onClick={exit}><span className={styles.exitLabel}>{copy.exit} </span>↗</button>
         </div>
       </header>
@@ -769,5 +783,22 @@ export default function GameBoyPlayer({ onExit }: { onExit: () => void }) {
         if (file) void readImport(file);
       }} />
     </div>
+    {aiState.status === "paired" && !mascotHidden && <div className={styles.agentMascot} data-agent-mascot data-active={aiState.control === "ai"}
+      role="img" tabIndex={0} aria-label={`${copy.ai.mascot}. ${copy.ai.mascotHint}`} title={`${copy.ai.mascot}\n${copy.ai.mascotHint}`}
+      // Clamped in CSS so a drag or a smaller window never leaves it off-screen.
+      style={mascotAt ? { left: `clamp(0px, ${mascotAt.x}px, calc(100% - var(--mascot-size)))`, top: `clamp(0px, ${mascotAt.y}px, calc(100% - var(--mascot-size)))`, right: "auto" } : undefined}
+      onPointerDown={event => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        const box = event.currentTarget.getBoundingClientRect();
+        mascotDrag.current = { pointerId: event.pointerId, dx: event.clientX - box.left, dy: event.clientY - box.top };
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={event => {
+        const drag = mascotDrag.current;
+        if (drag?.pointerId === event.pointerId) setMascotAt({ x: event.clientX - drag.dx, y: event.clientY - drag.dy });
+      }}
+      onPointerUp={() => { mascotDrag.current = null; }} onPointerCancel={() => { mascotDrag.current = null; }}
+      onContextMenu={event => { event.preventDefault(); mascotDrag.current = null; setMascotHidden(true); dialog.current?.focus({ preventScroll: true }); }} />}
   </dialog>;
 }

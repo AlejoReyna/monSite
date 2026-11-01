@@ -128,6 +128,31 @@
 .toolbar .takeControlButton:not(:disabled):is(:hover, :focus-visible, :active) { background: #f1d98f; color: #18191d; }
 .takeControlIcon { display: none; width: 16px; height: 16px; }
 .aiBadge { position: absolute; top: 6px; left: 6px; z-index: 1; padding: 2px 5px; background: #e3c477; color: #18191d; font-size: 8px; line-height: 1.4; pointer-events: none; }
+/* Clawd (dashboardicons.com/icons/clawd) while an agent is paired. Desktop only:
+   it starts centered in the black space right of the console and can be dragged. */
+.agentMascot { display: none; }
+@media (min-width: 701px) and (pointer: fine), (min-width: 1101px) {
+  .agentMascot {
+    --mascot-size: 88px;
+    position: absolute;
+    z-index: 5;
+    top: calc(50% - var(--mascot-size) / 2);
+    right: max(16px, calc((100% - 598px) / 4 - var(--mascot-size) / 2));
+    display: block;
+    width: var(--mascot-size);
+    height: var(--mascot-size);
+    background: url("/gameboy/clawd.webp") center / contain no-repeat;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .agentMascot:active { cursor: grabbing; }
+  .agentMascot:focus-visible { outline: 2px solid #e3c477; outline-offset: 2px; }
+  /* A two-step hop while the AI holds the controls. */
+  .agentMascot[data-active="true"]:not(:active) { animation: agentMascotHop 1.2s steps(1, end) infinite; }
+}
+@keyframes agentMascotHop { 50% { transform: translateY(-6px); } }
 .caseMenu {
   position: absolute;
   z-index: 4;
@@ -492,6 +517,8 @@
   background: transparent;
 }
 .dialog[data-fullscreen="true"] .title { display: none; }
+/* Clawd belongs to the windowed console only. */
+.dialog[data-fullscreen="true"] .agentMascot { display: none; }
 .dialog[data-fullscreen="true"] .toolbar > div { flex: 1; flex-wrap: nowrap; justify-content: flex-end; gap: 4px; }
 .dialog[data-fullscreen="true"] .toolbar button { color: #e6e2d5; background: #292a30; border-color: #59595e; box-shadow: inset 2px 2px #ffffff0c, 0 2px #101114; }
 .dialog[data-fullscreen="true"] .toolbar button:not(:disabled):is(:hover, :focus-visible, :active) { color: #fff; background: #37383e; border-color: #97969d; }
@@ -533,8 +560,10 @@
 @media (prefers-reduced-motion: reduce) {
   .content { animation: none; }
   .toolbar button:not(:disabled) { transition: none; }
+  .agentMascot[data-active="true"]:not(:active) { animation: none; }
 }
 :global(html.mac-reduced-motion) .content { animation: none; }
+:global(html.mac-reduced-motion) .agentMascot[data-active="true"]:not(:active) { animation: none; }
 :global(html.mac-reduced-motion) .toolbar button:not(:disabled) { transition: none; }
 
 /* Fullscreen fits each platform's native display; the cased screen stays fixed. */
