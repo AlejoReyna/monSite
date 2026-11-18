@@ -58,8 +58,12 @@ const MONETTA = {
   title: "Monetta",
   color: "#b98b4c",
   icon: "/desktop-icons/monetta.webp",
-  video: "/project-previews/monetta.mp4",
-  poster: "/monetta/home.jpg",
+  // Each preview is one device. The Finder panel switches among them; it never composites the screens.
+  devices: [
+    { id: "iphone", label: "iPhone", video: "/project-previews/monetta-iphone.mp4", poster: "/monetta/iphone.jpg" },
+    { id: "ipad", label: "iPad", video: "/project-previews/monetta-ipad.mp4", poster: "/monetta/ipad.jpg" },
+    { id: "duo", label: "iPhone Duo", video: "/project-previews/monetta-duo.mp4", poster: "/monetta/duo.jpg" },
+  ],
   href: "https://monetta.mx",
   tags: ["Flutter", "Dart", "Riverpod", "Shopify", "Firebase"],
   subtitle: { en: "Original bags, wallets & watches", es: "Bolsas, carteras y relojes originales" },
@@ -104,6 +108,7 @@ export default function MacProjects({
   const [selected, setSelected] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [gameBoyOpen, setGameBoyOpen] = useState(false);
+  const [deviceView, setDeviceView] = useState<(typeof MONETTA.devices)[number]["id"]>("iphone");
   // Sync Spotlight / Orbit project selection when Finder opens or the id changes.
   useEffect(() => {
     if (!selectedProjectId) return;
@@ -128,10 +133,11 @@ export default function MacProjects({
   const closeRef = useRef<HTMLButtonElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const copy = language === "es"
-    ? { title: copyText("Proyectos"), back: "Todos los proyectos", close: "Cerrar", minimize: "Minimizar al Dock", maximize: "Maximizar", restore: "Restaurar tamaño", open: "Abrir proyecto", applications: "Aplicaciones", preview: "Vista previa", visit: "Visitar tienda web", work: "Lo que hice", role: "Rol:", weddingDate: "Fecha de la boda:", cv: "Abrir CV (PDF)" }
-    : { title: copyText("Projects"), back: "All projects", close: "Close", minimize: "Minimize to Dock", maximize: "Maximize", restore: "Restore window size", open: "Open project", applications: "Applications", preview: "Preview", visit: "Visit web store", work: "What I did", role: "Role:", weddingDate: "Wedding date:", cv: "Open CV (PDF)" };
+    ? { title: copyText("Proyectos"), back: "Todos los proyectos", close: "Cerrar", minimize: "Minimizar al Dock", maximize: "Maximizar", restore: "Restaurar tamaño", open: "Abrir proyecto", applications: "Aplicaciones", preview: "Vista previa", device: "Dispositivo", visit: "Visitar tienda web", work: "Lo que hice", role: "Rol:", weddingDate: "Fecha de la boda:", cv: "Abrir CV (PDF)" }
+    : { title: copyText("Projects"), back: "All projects", close: "Close", minimize: "Minimize to Dock", maximize: "Maximize", restore: "Restore window size", open: "Open project", applications: "Applications", preview: "Preview", device: "Device", visit: "Visit web store", work: "What I did", role: "Role:", weddingDate: "Wedding date:", cv: "Open CV (PDF)" };
   const project = projects.find(item => item.id === selected);
   const app = selected === MONETTA.id ? MONETTA : null;
+  const view = MONETTA.devices.find(device => device.id === deviceView) ?? MONETTA.devices[0];
   const dismiss = () => {
     cancelGenie.current?.();
     minimized.current = false;
@@ -157,6 +163,7 @@ export default function MacProjects({
       return;
     }
     opener.current = button;
+    if (id === MONETTA.id) setDeviceView("iphone");
     setSelected(id);
     onOpen();
     requestAnimationFrame(() => closeRef.current?.focus());
@@ -215,7 +222,15 @@ export default function MacProjects({
               <Cover project={project} label={copy.preview} />
               <div className={styles.detailText}>{project.category && <small>{copyText(project.category)}</small>}<h2>{copyText(project.title)}</h2>{project.role && <p className={styles.role}><strong>{copy.role}</strong> {project.role[language]}</p>}{project.weddingDate && <p className={styles.role}><strong>{copy.weddingDate}</strong> {project.weddingDate[language]}</p>}<p>{project.description[language]}</p>{project.highlights && <section className={styles.highlights} aria-label={copy.work}><h3>{copy.work}</h3><ol>{project.highlights[language].map(item => <li key={item}>{item}</li>)}</ol></section>}<ul>{project.tags.map(tag => <li key={tag}>{tag}</li>)}</ul><a href={project.href} target="_blank" rel="noopener noreferrer">{copy.open}<ArrowUpRight size={14} /></a></div>
             </article> : app ? <article className={`${styles.detail} ${styles.detailLong}`} style={{ "--folder-color": app.color } as CSSProperties}>
-              <section className={styles.appMedia} aria-label={`${app.title} — ${copy.preview}`}><h3>{copy.preview}</h3><video className={`${styles.coverVideo} ${styles.appVideo}`} autoPlay muted loop playsInline preload="metadata" poster={app.poster} aria-label={`${app.title} — ${copy.preview}`}><source src={app.video} type="video/mp4" /></video></section>
+              <section className={styles.appMedia} aria-label={`${app.title} — ${copy.preview}`}>
+                <h3>{copy.preview}</h3>
+                <div className={styles.deviceSwitch} role="group" aria-label={copy.device}>
+                  {app.devices.map(device => <button key={device.id} type="button" aria-pressed={device.id === deviceView} onClick={() => setDeviceView(device.id)}>{device.label}</button>)}
+                </div>
+                <div className={styles.appStage}>
+                  <video key={view.id} className={`${styles.coverVideo} ${styles.appVideo}`} autoPlay muted loop playsInline preload="metadata" poster={view.poster} aria-label={`${app.title} — ${view.label}`}><source src={view.video} type="video/mp4" /></video>
+                </div>
+              </section>
               <div className={styles.appDetails}>
                 <header className={styles.appHeader}>
                   <Image className={styles.appIcon} src={MONETTA.icon} alt="" width={96} height={96} unoptimized />

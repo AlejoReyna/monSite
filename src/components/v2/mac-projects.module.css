@@ -132,7 +132,14 @@
 /* Monetta uses the same 40/60 media-to-information split as every project. */
 .appMedia { min-width: 0; display: flex; flex-direction: column; padding: 14px; overflow: hidden; border-radius: 12px; background: #0c0c0d; box-shadow: 0 0 0 1px #ffffff14, 0 12px 30px #00000059; }
 .appMedia h3 { margin: 0 0 12px; color: #ffffff8c; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+/* One device fills the stage. The control only changes which recording is mounted. */
+.deviceSwitch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; margin: 0 0 10px; padding: 2px; border-radius: 8px; background: #ffffff14; }
+.deviceSwitch button { min-width: 0; height: 26px; padding: 0 4px; border: 0; border-radius: 6px; color: #ffffffc7; background: transparent; font: inherit; font-size: 11px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.deviceSwitch button:hover { color: #fff; }
+.deviceSwitch button[aria-pressed="true"] { color: #1d1d1f; background: #f2f2f4; }
+.appStage { min-height: 0; flex: 1; display: grid; place-items: center; overflow: hidden; border-radius: 8px; background: #000; }
 .appVideo { min-height: 0; flex: 1; height: auto; border-radius: 8px; }
+.appStage .appVideo { width: 100%; height: 100%; flex: none; object-fit: contain; background: #000; }
 .appDetails { min-width: 0; align-self: center; }
 .appHeader { display: flex; align-items: center; gap: 20px; }
 /* The macOS app icon shape: corners at about 22% of the width and a soft drop shadow. */
