@@ -4,7 +4,7 @@ import type { Skill } from "./types";
  * The site's canonical origin. Used to build the install commands shown in the
  * terminal, so they are copy-pasteable by a reader who is not on this machine.
  */
-export const SITE_ORIGIN = "https://www.alexisreyna.dev";
+export const SITE_ORIGIN = "https://alexisrs.dev";
 
 /**
  * Byte/line counts are the real ones, measured from the files in

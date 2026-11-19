@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/_next/', '/private/'],
     },
-    sitemap: 'https://www.alexisreyna.dev/sitemap.xml',
+    sitemap: 'https://alexisrs.dev/sitemap.xml',
   };
 }

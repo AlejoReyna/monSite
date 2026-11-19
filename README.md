@@ -1,6 +1,6 @@
 # Alexis Reyna — Portfolio
 
-- **Live:** https://www.alexisreyna.dev
+- **Live:** https://alexisrs.dev
 - **Stack:** Next.js 16 (App Router, Webpack for local development) · React 19 · TypeScript · Tailwind CSS v4 · Framer Motion
 
 A bilingual (EN/ES) portfolio built as a full-screen, swipe-driven "desktop." The home page is a sequence of panels you move through with the wheel or a swipe, each one a mini case study, plus a draggable AI chat terminal that answers questions about my work.
@@ -29,7 +29,7 @@ Path alias: `@/*` resolves to `src/*` (see `tsconfig.json`).
 
 ## SEO & social metadata
 
-`src/app/layout.tsx` sets the global metadata for `https://www.alexisreyna.dev`:
+`src/app/layout.tsx` sets the global metadata for `https://alexisrs.dev`:
 
 - Canonical URL via `alternates.canonical`.
 - Open Graph title, description, site name and a 1200×630 `og-image.png`.

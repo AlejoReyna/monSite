@@ -21,7 +21,7 @@ import styles from "./this-cafeteria-gateway.module.css";
  * monospace/copper palette instead of the old card's serif/Inter look.
  */
 
-const DEPLOYMENT_URL = "https://cafe.alexisreyna.dev";
+const DEPLOYMENT_URL = "https://cafe.alexisrs.dev";
 const REPO_URL = "https://github.com/AlejoReyna/tcde";
 
 const TITLE_LINES = ["ARTISANAL", "BREW"] as const;

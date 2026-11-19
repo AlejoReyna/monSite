@@ -108,7 +108,7 @@ const spec: { name: string; rule: string; demo: Block[] }[] = [
           { kind: "comment", text: "install one skill" },
           {
             kind: "cmd",
-            text: "curl -fsSL alexisreyna.dev/skills/theme-tokens/SKILL.md -o SKILL.md",
+            text: "curl -fsSL alexisrs.dev/skills/theme-tokens/SKILL.md -o SKILL.md",
           },
           { kind: "out", text: "→ 11.2 KB written" },
         ],

@@ -33,7 +33,7 @@ type FooterProps = {
 const defaultBrand: BrandInfo = {
   name: "Alexis Reyna",
   slogan: "Hecho con calma — y café",
-  href: "https://alexisreyna.dev",
+  href: "https://alexisrs.dev",
   logoSrc: "/weddings/andrea/assets/logos/IMG_0340.PNG",
 };
 
@@ -145,7 +145,7 @@ function BrandMark({
 
   return (
     <a
-      href={href ?? "https://alexisreyna.dev"}
+      href={href ?? "https://alexisrs.dev"}
       target="_blank"
       rel="noopener noreferrer"
       className="group inline-flex w-fit items-center"

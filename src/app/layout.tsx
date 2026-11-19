@@ -74,7 +74,7 @@ const vt323 = VT323({
   preload: false,
 });
 
-const SITE_URL = "https://www.alexisreyna.dev";
+const SITE_URL = "https://alexisrs.dev";
 const OG_IMAGE = "/og-image.png";
 
 const baseMetadata: Metadata = {

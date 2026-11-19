@@ -11,7 +11,7 @@ import {
   getReadingMinutes,
 } from "@/lib/blog/reading-time";
 
-const SITE_URL = "https://www.alexisreyna.dev";
+const SITE_URL = "https://alexisrs.dev";
 const AUTHOR_URL = `${SITE_URL}/`;
 
 /** Static params so every post is prerendered at build time. */
